@@ -20,7 +20,7 @@ cleanUsers <- function(users, filter="Saudi|Mecca|Medina|Riya|Jedda") {
 }
 
 joinCheckInsWithProfiles <- function(checkIns, profiles) {
-  query <- paste("Select * From", checkIns, "JOIN", profiles, "using(idUserFoursquare)")
+  query <- paste("Select * from", checkIns, "JOIN", profiles, "using(idUserFoursquare)")
   return(sqldf(query))
 }
 
@@ -52,8 +52,8 @@ correlateCategories <- function(x, y, labels, country="Saudi Arabia", countMetho
        xlab="Male", ylab="Female")
   abline(0, 1, col="red")
   text(x, y, labels=labels, pos=3)
-  cor.test(x, y)
-  chisq.test(x, y)
+  print(cor.test(x, y))
+  print(chisq.test(x, y))
 }
 
 selectNotPresentFromOtherGender <- function(x, y) {
@@ -72,11 +72,12 @@ completeSubcategories <- function(gender1, gender2, gender1String, gender2String
 # run
 ##########
 
-country <- "Saudi Arabia"
+country <- "France"
 ci <- readCheckIns()
-profiles <- cleanUsers(readUsers())
+users <- readUsers(path="base2/profileFiltredGermanyFranceEmiratesSweden.dat"))
+profiles <- cleanUsers(users, filter="Paris|France|Metz|Bordeaux|Marseille|Midi-Py|Strasbourg|Lyon")
 
-joined <- joinCheckInsWithProfiles("profles", "ci")
+joined <- joinCheckInsWithProfiles("ci", "profiles")
 tableString <- "joined"
 
 #categories
