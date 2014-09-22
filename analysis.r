@@ -124,12 +124,6 @@ saUFSR$count <- normalizeByAbsolutePercentage(saUFSR$count)
 ## test
 stopifnot(length(saUFSR$count) == length(saUMSR$count))
 
-saFSR <- completeSubcategories(saMSR, saFSR, "saMSR", "saFSR")
-saMSR <- completeSubcategories(saFSR, saMSR, "saFSR", "saMSR")
-
-saUFSR <- completeSubcategories(saUMSR, saUFSR, "saUMSR", "saUFSR")
-saUMSR <- completeSubcategories(saUFSR, saUMSR, "saUFSR", "saUMSR")
-
 correlateCategories(saMSR$count, saFSR$count, saMSR$subcategory, categories="Subcategories")
 correlateCategories(saUMSR$count, saUFSR$count, saUMSR$subcategory, categories="Subcategories",
                     countMethod="uniqueUsers")
