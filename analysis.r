@@ -19,8 +19,8 @@ cleanUsers <- function(users, filter="Saudi|Mecca|Medina|Riya|Jedda") {
   return(users[grep(filter, ignore.case=T, users$userLocal), ])
 }
 
-joinCheckInsWithProfiles <- function(checkIns, profiles) {
-  query <- paste("Select * from", checkIns, "JOIN", profiles, "using(idUserFoursquare)")
+joinCheckInsWithProfiles <- function(checkIns, profileTable) {
+  query <- paste("Select * from", checkIns, "JOIN", profileTable, "using(idUserFoursquare)")
   return(sqldf(query))
 }
 
@@ -67,14 +67,13 @@ completeSubcategories <- function(gender1, gender2, gender1String, gender2String
   return( gender2[ order(gender2$subcategory), ] )
 }
 
-
 ##########
 # run
 ##########
 
 country <- "France"
-ci <- readCheckIns()
-users <- readUsers(path="base2/profileFiltredGermanyFranceEmiratesSweden.dat"))
+ci <- readCheckIns(path="base2/France.txt")
+users <- readUsers(path="base2/profileFiltredGermanyFranceEmiratesSweden.dat")
 profiles <- cleanUsers(users, filter="Paris|France|Metz|Bordeaux|Marseille|Midi-Py|Strasbourg|Lyon")
 
 joined <- joinCheckInsWithProfiles("ci", "profiles")
