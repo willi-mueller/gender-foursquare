@@ -15,8 +15,8 @@ readCheckIns <- function(path="base2/arabiaSaudita/Saudi-Arabia.txt") {
   return(sa)
 }
 
-cleanUsers <- function(users) {
-  return(users[grep("Saudi|Mecca|Medina|Riya|Jedda", ignore.case=T, users$userLocal), ])
+cleanUsers <- function(users, filter="Saudi|Mecca|Medina|Riya|Jedda") {
+  return(users[grep(filter, ignore.case=T, users$userLocal), ])
 }
 
 joinCheckInsWithProfiles <- function(checkIns, profiles) {
@@ -73,52 +73,47 @@ completeSubcategories <- function(gender1, gender2, gender1String, gender2String
 ##########
 
 country <- "Saudi Arabia"
-sa <- readCheckIns()
-cSaU <- cleanUsers(readUsers())
+ci <- readCheckIns()
+profiles <- cleanUsers(readUsers())
 
-joined <- joinCheckInsWithProfiles("cSaU", "sa")
+joined <- joinCheckInsWithProfiles("profles", "ci")
 tableString <- "joined"
 
 #categories
-saMC <- categoriesByGender(tableString, "male")
-saFC <- categoriesByGender(tableString, "female")
-saUMC <- categoriesByGender(tableString, "male", uniqueUsers=TRUE)
-saUFC <- categoriesByGender(tableString, "female", uniqueUsers=TRUE)
+maleC <- categoriesByGender(tableString, "male")
+femaleC <- categoriesByGender(tableString, "female")
+maleUniqueC <- categoriesByGender(tableString, "male", uniqueUsers=TRUE)
+femaleUniqueC <- categoriesByGender(tableString, "female", uniqueUsers=TRUE)
 
 #subcategories
-saMS <- categoriesByGender(tableString, "male", subcategory=TRUE)
-saFS <- categoriesByGender(tableString, "female", subcategory=TRUE)
-saUMS <- categoriesByGender(tableString, "male", subcategory=TRUE, uniqueUsers=TRUE)
-saUFS <- categoriesByGender(tableString, "female", subcategory=TRUE, uniqueUsers=TRUE)
+maleSubC <- categoriesByGender(tableString, "male", subcategory=TRUE)
+femaleSubC <- categoriesByGender(tableString, "female", subcategory=TRUE)
+maleUniqueSubC <- categoriesByGender(tableString, "male", subcategory=TRUE, uniqueUsers=TRUE)
+femaleUniqueSubC <- categoriesByGender(tableString, "female", subcategory=TRUE, uniqueUsers=TRUE)
 
-saFS <- completeSubcategories(saMS, saFS, "saMS", "saFS")
-saMS <- completeSubcategories(saFS, saMS, "saFS", "saMS")
-saUFS <- completeSubcategories(saUMS, saUFS, "saUMS", "saUFS")
-saUMS <- completeSubcategories(saUFS, saUMS, "saUFS", "saUMS")
+femaleSubC <- completeSubcategories(maleSubC, femaleSubC, "maleSubC", "femaleSubC")
+maleSubC <- completeSubcategories(femaleSubC, maleSubC, "femaleSubC", "maleSubC")
+femaleUniqueSubC <- completeSubcategories(maleUniqueSubC, femaleUniqueSubC, "maleUniqueSubC", "femaleUniqueSubC")
+maleUniqueSubC <- completeSubcategories(femaleUniqueSubC, maleUniqueSubC, "femaleUniqueSubC", "maleUniqueSubC")
 
 ## normalization - counting check-ins
-saMC$count <- normalizeByAbsolutePercentage(saMC$count)
-saFC$count <- normalizeByAbsolutePercentage(saFC$count)
-saMS$count <- normalizeByAbsolutePercentage(saMS$count)
-saFS$count <- normalizeByAbsolutePercentage(saFS$count)
+maleC$count <- normalizeByAbsolutePercentage(maleC$count)
+femaleC$count <- normalizeByAbsolutePercentage(femaleC$count)
+maleSubC$count <- normalizeByAbsolutePercentage(maleSubC$count)
+femaleSubC$count <- normalizeByAbsolutePercentage(femaleSubC$count)
 
 ### normalization – unique users
-saUMC$count <- normalizeByAbsolutePercentage(saUMC$count)
-saUFC$count <- normalizeByAbsolutePercentage(saUFC$count)
-saUMS$count <- normalizeByAbsolutePercentage(saUMS$count)
-saUFS$count <- normalizeByAbsolutePercentage(saUFS$count)
+maleUniqueC$count <- normalizeByAbsolutePercentage(maleUniqueC$count)
+femaleUniqueC$count <- normalizeByAbsolutePercentage(femaleUniqueC$count)
+maleUniqueSubC$count <- normalizeByAbsolutePercentage(maleUniqueSubC$count)
+femaleUniqueSubC$count <- normalizeByAbsolutePercentage(femaleUniqueSubC$count)
 
 ## correlation categories
-correlateCategories(saMC$count, saFC$count, saMC$category, country=country)
-correlateCategories(saUMC$count, saUFC$count, saMC$category, country=country,
+correlateCategories(maleC$count, femaleC$count, maleC$category, country=country)
+correlateCategories(maleUniqueC$count, femaleUniqueC$count, maleC$category, country=country,
                     countMethod="unique users")
 
-correlateCategories(saMS$count, saFS$count, saMS$subcategory, country=country,
+correlateCategories(maleSubC$count, femaleSubC$count, maleSubC$subcategory, country=country,
                     categories="Subcategories")
-correlateCategories(saUMS$count, saUFS$count, saUMS$subcategory, country=country,
+correlateCategories(maleUniqueSubC$count, femaleUniqueSubC$count, maleUniqueSubC$subcategory, country=country,
                     categories="Subcategories", countMethod="unique users")
-
-correlateCategories(saMSR$count, saFSR$count, saMSR$subcategory, country=country,
-                    categories="Subcategories")
-correlateCategories(saUMSR$count, saUFSR$count, saUMSR$subcategory, country=country,
-                    categories="Subcategories", countMethod="uniqueUsers")
