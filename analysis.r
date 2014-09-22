@@ -48,7 +48,7 @@ normalizeByPercentageOfMax <- function(attribute) {
 }
 
 correlateCategories <- function(x, y, labels, country="Saudi Arabia", countMethod="check-ins", categories="Categories") {
-  plot(x, y, main=paste("Correlation in", country, "of", categories, "counting", countMethod),
+  plot(x, y, main=paste("Correlation of", categories, "counting", countMethod, "in", country),
        xlab="Male", ylab="Female")
   abline(0, 1, col="red")
   text(x, y, labels=labels, pos=3)
@@ -72,6 +72,7 @@ completeSubcategories <- function(gender1, gender2, gender1String, gender2String
 # run
 ##########
 
+country <- "Saudi Arabia"
 sa <- readCheckIns()
 cSaU <- cleanUsers(readUsers())
 
@@ -108,16 +109,16 @@ saUMS$count <- normalizeByAbsolutePercentage(saUMS$count)
 saUFS$count <- normalizeByAbsolutePercentage(saUFS$count)
 
 ## correlation categories
-correlateCategories(saMC$count, saFC$count, saMC$category, country="Saudi Arabia")
-correlateCategories(saUMC$count, saUFC$count, saMC$category, country="Saudi Arabia",
+correlateCategories(saMC$count, saFC$count, saMC$category, country=country)
+correlateCategories(saUMC$count, saUFC$count, saMC$category, country=country,
                     countMethod="unique users")
 
-correlateCategories(saMS$count, saFS$count, saMS$subcategory, country="Saudi Arabia"
+correlateCategories(saMS$count, saFS$count, saMS$subcategory, country=country,
                     categories="Subcategories")
-correlateCategories(saUMS$count, saUFS$count, saUMS$subcategory, country="Saudi Arabia"
+correlateCategories(saUMS$count, saUFS$count, saUMS$subcategory, country=country,
                     categories="Subcategories", countMethod="unique users")
 
-correlateCategories(saMSR$count, saFSR$count, saMSR$subcategory, country="Saudi Arabia"
+correlateCategories(saMSR$count, saFSR$count, saMSR$subcategory, country=country,
                     categories="Subcategories")
-correlateCategories(saUMSR$count, saUFSR$count, saUMSR$subcategory, country="Saudi Arabia"
+correlateCategories(saUMSR$count, saUFSR$count, saUMSR$subcategory, country=country,
                     categories="Subcategories", countMethod="uniqueUsers")
