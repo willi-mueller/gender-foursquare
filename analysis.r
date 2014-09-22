@@ -102,10 +102,10 @@ saUFS$count <- normalizeByAbsolutePercentage(saUFS$count)
 correlateCategories(saMC$count, saFC$count, saMC$category)
 correlateCategories(saUMC$count, saUFC$count, saMC$category, countMethod="unique users")
 
-saMS <- completeSubcategories(saMS, saFS, "saMS", "saFS")
-saFS <- completeSubcategories(saFS, saMS, "saFS", "saMS")
-saUMS <- completeSubcategories(saUMS, saUFS, "saUMS", "saUFS")
-saUFS <- completeSubcategories(saUFS, saUMS, "saUFS", "saUMS")
+saFS <- completeSubcategories(saMS, saFS, "saMS", "saFS")
+saMS <- completeSubcategories(saFS, saMS, "saFS", "saMS")
+saUFS <- completeSubcategories(saUMS, saUFS, "saUMS", "saUFS")
+saUMS <- completeSubcategories(saUFS, saUMS, "saUFS", "saUMS")
 
 stopifnot(length(saUFS$count) == length(saUMS$count))
 
@@ -124,11 +124,11 @@ saUFSR$count <- normalizeByAbsolutePercentage(saUFSR$count)
 ## test
 stopifnot(length(saUFSR$count) == length(saUMSR$count))
 
-saMSR <- completeSubcategories(saMSR, saFSR, "saMSR", "saFSR")
-saFSR <- completeSubcategories(saFSR, saMSR, "saFSR", "saMSR")
+saFSR <- completeSubcategories(saMSR, saFSR, "saMSR", "saFSR")
+saMSR <- completeSubcategories(saFSR, saMSR, "saFSR", "saMSR")
 
-saUMSR <- completeSubcategories(saUMSR, saUFSR, "saUMSR", "saUFSR")
-saUFSR <- completeSubcategories(saUFSR, saUMSR, "saUFSR", "saUMSR")
+saUFSR <- completeSubcategories(saUMSR, saUFSR, "saUMSR", "saUFSR")
+saUMSR <- completeSubcategories(saUFSR, saUMSR, "saUFSR", "saUMSR")
 
 correlateCategories(saMSR$count, saFSR$count, saMSR$subcategory, categories="Subcategories")
 correlateCategories(saUMSR$count, saUFSR$count, saUMSR$subcategory, categories="Subcategories",
