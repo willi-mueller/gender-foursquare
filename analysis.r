@@ -47,8 +47,9 @@ normalizeByPercentageOfMax <- function(attribute) {
   return(attribute/max(attribute))
 }
 
-correlateCategories <- function(x, y, labels, countMethod="check-ins", categories="Categories") {
-  plot(x, y, main=paste("Correlation of", categories, "counting", countMethod), xlab="Male", ylab="Female")
+correlateCategories <- function(x, y, labels, country="Saudi Arabia", countMethod="check-ins", categories="Categories") {
+  plot(x, y, main=paste("Correlation in", country, "of", categories, "counting", countMethod),
+       xlab="Male", ylab="Female")
   abline(0, 1, col="red")
   text(x, y, labels=labels, pos=3)
   cor.test(x, y)
@@ -76,17 +77,25 @@ cSaU <- cleanUsers(readUsers())
 
 joined <- joinCheckInsWithProfiles("cSaU", "sa")
 tableString <- "joined"
+
+#categories
 saMC <- categoriesByGender(tableString, "male")
 saFC <- categoriesByGender(tableString, "female")
 saUMC <- categoriesByGender(tableString, "male", uniqueUsers=TRUE)
 saUFC <- categoriesByGender(tableString, "female", uniqueUsers=TRUE)
 
+#subcategories
 saMS <- categoriesByGender(tableString, "male", subcategory=TRUE)
 saFS <- categoriesByGender(tableString, "female", subcategory=TRUE)
 saUMS <- categoriesByGender(tableString, "male", subcategory=TRUE, uniqueUsers=TRUE)
 saUFS <- categoriesByGender(tableString, "female", subcategory=TRUE, uniqueUsers=TRUE)
 
-## normalization
+saFS <- completeSubcategories(saMS, saFS, "saMS", "saFS")
+saMS <- completeSubcategories(saFS, saMS, "saFS", "saMS")
+saUFS <- completeSubcategories(saUMS, saUFS, "saUMS", "saUFS")
+saUMS <- completeSubcategories(saUFS, saUMS, "saUFS", "saUMS")
+
+## normalization - counting check-ins
 saMC$count <- normalizeByAbsolutePercentage(saMC$count)
 saFC$count <- normalizeByAbsolutePercentage(saFC$count)
 saMS$count <- normalizeByAbsolutePercentage(saMS$count)
@@ -99,31 +108,16 @@ saUMS$count <- normalizeByAbsolutePercentage(saUMS$count)
 saUFS$count <- normalizeByAbsolutePercentage(saUFS$count)
 
 ## correlation categories
-correlateCategories(saMC$count, saFC$count, saMC$category)
-correlateCategories(saUMC$count, saUFC$count, saMC$category, countMethod="unique users")
+correlateCategories(saMC$count, saFC$count, saMC$category, country="Saudi Arabia")
+correlateCategories(saUMC$count, saUFC$count, saMC$category, country="Saudi Arabia",
+                    countMethod="unique users")
 
-saFS <- completeSubcategories(saMS, saFS, "saMS", "saFS")
-saMS <- completeSubcategories(saFS, saMS, "saFS", "saMS")
-saUFS <- completeSubcategories(saUMS, saUFS, "saUMS", "saUFS")
-saUMS <- completeSubcategories(saUFS, saUMS, "saUFS", "saUMS")
+correlateCategories(saMS$count, saFS$count, saMS$subcategory, country="Saudi Arabia"
+                    categories="Subcategories")
+correlateCategories(saUMS$count, saUFS$count, saUMS$subcategory, country="Saudi Arabia"
+                    categories="Subcategories", countMethod="unique users")
 
-stopifnot(length(saUFS$count) == length(saUMS$count))
-
-correlateCategories(saMS$count, saFS$count, saMS$subcategory, categories="Subcategories")
-correlateCategories(saUMS$count, saUFS$count, saUMS$subcategory, categories="Subcategories")
-
-## normalize subcategories
-saFSR <- saFS; saMSR <- saMS
-saFSR$count <- normalizeByAbsolutePercentage(saFSR$count)
-saMSR$count <- normalizeByAbsolutePercentage(saMSR$count)
-
-saUFSR <- saUFS; saUMSR <- saUMS
-saUMSR$count <- normalizeByAbsolutePercentage(saUMSR$count)
-saUFSR$count <- normalizeByAbsolutePercentage(saUFSR$count)
-
-## test
-stopifnot(length(saUFSR$count) == length(saUMSR$count))
-
-correlateCategories(saMSR$count, saFSR$count, saMSR$subcategory, categories="Subcategories")
-correlateCategories(saUMSR$count, saUFSR$count, saUMSR$subcategory, categories="Subcategories",
-                    countMethod="uniqueUsers")
+correlateCategories(saMSR$count, saFSR$count, saMSR$subcategory, country="Saudi Arabia"
+                    categories="Subcategories")
+correlateCategories(saUMSR$count, saUFSR$count, saUMSR$subcategory, country="Saudi Arabia"
+                    categories="Subcategories", countMethod="uniqueUsers")
