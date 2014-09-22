@@ -38,7 +38,6 @@ categoriesByGender <- function(table, gender, uniqueUsers=FALSE, subcategory=FAL
 }
 
 
-
 ##########
 # run
 ##########
@@ -55,18 +54,9 @@ saFMC <- categoriesByGender(tableString, "female", uniqueUsers=TRUE)
 
 saMS <- categoriesByGender(tableString, "male", subcategory=TRUE)
 saFS <- categoriesByGender(tableString, "female", subcategory=TRUE)
-saMS <- categoriesByGender(tableString, "male", subcategory=TRUE, uniqueUsers=TRUE)
-saFS <- categoriesByGender(tableString, "female", subcategory=TRUE, uniqueUsers=TRUE)
+saUMS <- categoriesByGender(tableString, "male", subcategory=TRUE, uniqueUsers=TRUE)
+saUFS <- categoriesByGender(tableString, "female", subcategory=TRUE, uniqueUsers=TRUE)
 
-## subcategories by gender
-saMS <- sqldf("Select category, subcategory, count(*) as count from joined
- where gender='male' group by subcategory")
-saFS <- sqldf("Select category, subcategory, count(*) as count from joined
-where gender='female' group by subcategory")
-
-### – count unique users
-saUMSC <- sqldf("Select *, count(*) as CCount from  (select * from joined where gender='male' group by user, subcategory) group by subcategory")
-saUFSC <- sqldf("Select *, count(*) as CCount from  (select * from joined where gender='female' group by user, subcategory) group by subcategory")
 
 ## normalization
 saMC$count <- saMC$count/sum(saMC$count)
@@ -79,8 +69,8 @@ saFS$count <- saFS$count/sum(saFS$count)
 saUMC$CCount <- saUMC$CCount/sum(saUMC$CCount)
 saUFC$CCount <- saUFC$CCount/sum(saUFC$CCount)
 
-saUMSC$CCount <- saUMSC$CCount/sum(saUMSC$CCount)
-saUFSC$CCount <- saUFSC$CCount/sum(saUFSC$CCount)
+saUMS$CCount <- saUMS$CCount/sum(saUMS$CCount)
+saUFS$CCount <- saUFS$CCount/sum(saUFS$CCount)
 
 ## correlation categories
 ### counting check-ins
@@ -110,16 +100,16 @@ saFS <- saFS[ order(saFS$subcategory), ]
 saMS <- saMS[ order(saMS$subcategory), ]
 
 ### with unique users
-temp <- sqldf("Select * from saUMSC where subcategory not in (Select subcategory from saUFSC)")
+temp <- sqldf("Select * from saUMS where subcategory not in (Select subcategory from saUFS)")
 temp$CCount=0
-saUFSC <- rbind(saUFSC, temp)
+saUFS <- rbind(saUFS, temp)
 
-temp <- sqldf("Select * from saUFSC where subcategory not in (Select subcategory from saUMSC)")
+temp <- sqldf("Select * from saUFS where subcategory not in (Select subcategory from saUMS)")
 temp$CCount=0
-saUMSC <- rbind(saUMSC, temp)
+saUMS <- rbind(saUMS, temp)
 
-saUFSC <- saUFSC[ order(saUFSC$subcategory), ]
-saUMSC <- saUMSC[ order(saUMSC$subcategory), ]
+saUFS <- saUFS[ order(saUFS$subcategory), ]
+saUMS <- saUMS[ order(saUMS$subcategory), ]
 
 ## normalize subcategories
 saFSR <- saFS; saMSR <- saMS
@@ -127,9 +117,9 @@ saFSR$count <- saFSR$count/sum(saFSR$count)
 saMSR$count <- saMSR$count/sum(saMSR$count)
 
 ### with unique users
-saUFSCR <- saUFSC; saUMSCR <- saUMSC
-saUMSCR$CCount <- saUMSCR$CCount/sum(saUMSCR$CCount)
-saUFSCR$CCount <- saUFSCR$CCount/sum(saUFSCR$CCount)
+saUFSR <- saUFS; saUMSR <- saUMS
+saUMSR$CCount <- saUMSR$CCount/sum(saUMSR$CCount)
+saUFSR$CCount <- saUFSR$CCount/sum(saUFSR$CCount)
 
 ## correlate subcategories
 plot(saMSR$count, saFSR$count, main="Correlation Subcategories by Gender, Counting check-ins", xlab="Male", ylab="Female")
@@ -139,7 +129,7 @@ cor.test(saMC$count, saFC$count)
 
 
 ### with unique users
-plot(saUMSCR$CCount, saUFSCR$CCount, main="Correlation Subcategories by Gender, Counting Unique Users", xlab="Male", ylab="Female")
+plot(saUMSR$CCount, saUFSR$CCount, main="Correlation Subcategories by Gender, Counting Unique Users", xlab="Male", ylab="Female")
 abline(0,1, col="red")
-text(saUMSCR$CCount, saUFSCR$CCount, labels=saUMSCR$subcategory, pos=3)
-cor.test(saUMSCR$CCount, saUFSCR$CCount)
+text(saUMSR$CCount, saUFSR$CCount, labels=saUMSR$subcategory, pos=3)
+cor.test(saUMSR$CCount, saUFSR$CCount)
