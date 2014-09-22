@@ -1,0 +1,449 @@
+# missing a lot of users e.g. 
+# Visby
+# Visby, Gotland
+> sqldf("select V4, count(*) from allUsers WHERE V3 LIKE '%Sweden' OR V3 Like '%Sverige' group by V4")
+      V4 count(*)
+1 female      173
+2   male      493
+3   none       18
+
+> sqldf("select V4, count(*) from allUsers WHERE V3 LIKE '%Abu dhabi%' OR V3 LIKE '%Emirates' OR V3 LIKE '%UAE' Group By V4")
+      V4 count(*)
+1 female      217
+2   male      404
+3   none        3
+
+# Plot gender proportion
+> barplot(c(0.2487, 0.2398, 0.7268, 0.6942, 0.245, 0.0033), col=gray.colors(2), names.arg=c("Swe female", "UAE female", "Swe male", "UAE male", "Swe none", "UAE none"))
+
+# plot absolute gender
+> barplot(c(173, 217, 493, 404, 18, 3), col=gray.colors(2), names.arg=c("Swe female", "UAE female", "Swe male", "UAE male", "Swe none", "UAE none"), ylim=c(0, 500))
+
+>sqldf("select gender, count(*) from joinedSwe group by gender")
+  gender count(*)
+1 female     1004
+2   male     2934
+3   none       99
+
+>sqldf("select gender, count(*) from joinedUAE group by gender")
+  gender count(*)
+1 female     1448
+2   male     3323
+3   none       16
+
+proportions check-ins female 
+	Swe: 24.87% 
+	UAE: 23.98%
+proportions check-ins male
+	Swe: 72.68%
+	UAE: 69.42%
+proportions check-ins none
+	Swe: 2.45%
+	UAE: 0.33%
+
+
+# No differences between gender and countries in distribution of number of check-ins
+> summary(checkinFreqUAEMale[,3])
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.000   1.000   2.000   3.896   4.000  59.000 
+> summary(checkinFreqUAEFemale[,3])
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.000   1.000   2.000   3.722   4.000  61.000 
+> summary(checkinFreqSweMale[,3])
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.000   1.000   2.000   3.654   4.000  42.000 
+> summary(checkinFreqSweFemale[,3])
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.000   1.000   2.000   3.586   4.000  78.000
+
+# example hypothesis t-tests for differences
+>t.test(checkinFreqSweFemale[,3], checkinFreqUAEFemale[,3])$p.value<0.05
+FALSE
+> t.test(checkinFreqUAEMale[,3], checkinFreqUAEFemale[,3])$p.value<0.05
+[1] FALSE
+
+
+# How many users have how many check-ins?
+>checkinFreqSweMale <- sqldf("SELECT id, gender, count(*) AS CiCount FROM joinedSwe WHERE gender='male' GROUP BY id")
+
+>sqldf("SELECT CiCount, count(*) FROM checkinFreqSweMale GROUP BY CiCount")
+   CiCount count(*)
+1        1      322
+2        2      148
+3        3       95
+4        4       55
+5        5       35
+6        6       25
+7        7       21
+8        8       19
+9        9       12
+10      10        9
+11      11       13
+12      12        7
+13      13        6
+14      14        6
+15      15        6
+16      16        5
+17      17        3
+18      18        3
+19      20        2
+20      21        2
+21      22        1
+22      23        1
+23      24        2
+24      25        2
+25      28        1
+26      30        1
+27      42        1
+
+> checkinFreqSweFemale <- sqldf("SELECT id, gender, count(*) AS CiCount FROM joinedSwe WHERE gender='female' GROUP BY id")
+> sqldf("SELECT CiCount, count(*) FROM checkinFreqSweFemale GROUP BY CiCount")
+   CiCount count(*)
+1        1      104
+2        2       67
+3        3       29
+4        4       18
+5        5       17
+6        6       10
+7        7        7
+8        8        3
+9        9        8
+10      10        4
+11      11        2
+12      12        1
+13      13        4
+14      14        1
+15      15        1
+16      18        1
+17      25        1
+18      41        1
+19      78        1
+
+
+> sqldf("select subcategory from fe2 where subcategory in (Select subcategory from ma) order by subcategory desc")
+> 
+
+temp <- sqldf("Select category, subcategory, count from cSweMaSub where subcategory not in (Select subcategory from cSweFeSub)")
+temp$count=0
+temp$gender='female'
+cSweFeSub <- rbind(cSweFeSub, temp)
+cSweMaSub <- cSweMaSub[ order(cSweMaSub[,2]), ]
+
+plot(cSweFeSub$count/max(cSweFeSub$count))
+
+
+> sqldf("Select subcategory, count From cSweFeSubRe where count > 0.2")
+               subcategory     count
+1                  Airport 0.2105263
+2                      Bar 0.3947368
+3              Bus Station 0.4210526
+4                     Café 0.5526316
+5              Coffee Shop 0.3684211
+6             Concert Hall 0.3157895
+7          Coworking Space 0.3947368
+8         Department Store 0.2631579
+9            Grocery Store 0.4210526
+10                     Gym 0.8684211
+11    Gym / Fitness Center 0.3684211
+12          Home (private) 1.0000000
+13                   Hotel 0.3421053
+14                    Mall 0.4210526
+15                  Office 0.7894737
+16              Restaurant 0.2105263
+17 Scandinavian Restaurant 0.3157895
+18                  School 0.2105263
+19                  Subway 0.4473684
+20                   Train 0.3421053
+21           Train Station 0.8157895
+22              University 0.2105263
+
+> sqldf("Select subcategory, count From cSweMaSubRe where subcategory in (Select subcategory From cSweFeSubRe where count > 0.2)")
+               subcategory      count
+1                  Airport 0.23316062
+2                      Bar 0.13989637
+3              Bus Station 0.10880829
+4                     Café 0.27979275
+5              Coffee Shop 0.09844560
+6             Concert Hall 0.07772021
+7          Coworking Space 0.10362694
+8         Department Store 0.03626943
+9            Grocery Store 0.33160622
+10                     Gym 0.23834197
+11    Gym / Fitness Center 0.07253886
+12          Home (private) 1.00000000
+13                   Hotel 0.17098446
+14                    Mall 0.16062176
+15                  Office 0.87564767
+16              Restaurant 0.10362694
+17 Scandinavian Restaurant 0.14507772
+18                  School 0.06217617
+19                  Subway 0.16062176
+20                   Train 0.01036269
+21           Train Station 0.36269430
+22              University 0.05699482
+
+cSweMaCa <- sqldf("Select category, gender, SUM(count) as count from cSweMaSub group by category")
+cSweFeCa <- sqldf("Select category, gender, SUM(count) as count from cSweFeSub group by category")
+cSweMaCa$count <- cSweMaCa$count/max(cSweMaCa$count)
+cSweFeCa$count <- cSweFeCa$count/max(cSweFeCa$count)
+> cSweMaCa
+       category gender     count
+1          Arts   male 0.2875318
+2     Education   male 0.1806616
+3          Food   male 0.8549618
+4 GreatOutdoors   male 0.3791349
+5          Home   male 0.5292621
+6     Nightlife   male 0.2417303
+7          Shop   male 0.5674300
+8        Travel   male 0.6437659
+9          Work   male 1.0000000
+> cSweFeCa
+       category gender     count
+1          Arts female 0.3680556
+2     Education female 0.1875000
+3          Food female 0.7500000
+4 GreatOutdoors female 0.2777778
+5          Home female 0.2847222
+6     Nightlife female 0.2500000
+7          Shop female 0.6111111
+8        Travel female 0.8541667
+9          Work female 1.0000000
+
+# Categories correlate and Chi-Square does not detect differences between genders (p = 0.23)
+chisq.test(cSweMaCa$count, cSweFeCa$count)
+
+  Pearson's Chi-squared test
+
+data:  cSweMaCa$count and cSweFeCa$count
+X-squared = 72, df = 64, p-value = 0.2303
+
+cor.test(cSweFeCa$count, cSweMaCa$count)
+
+  Pearson's product-moment correlation
+
+data:  cSweFeCa$count and cSweMaCa$count
+t = 5.5923, df = 7, p-value = 0.0008225
+alternative hypothesis: true correlation is not equal to 0
+95 percent confidence interval:
+ 0.6000392 0.9798391
+sample estimates:
+      cor 
+0.9039412 
+
+y <- y[ -grep("Train", y$subcategory),]
+y <- rbind(y, c("Travel", "Train Station", "male", 72))
+
+# collapsed subcategories: strong correlation and no chisq difference
+
+fusion of subcategories:
+café + coffee shop
+Airport + Airpot Lounge + Airport Gate + Airport Terminal
+Train + Train Station
+burger joint + fast food restaurant
+
+
+  Pearson's product-moment correlation
+
+data:  aux$countM and aux$countF
+t = 20.7854, df = 244, p-value < 2.2e-16
+alternative hypothesis: true correlation is not equal to 0
+95 percent confidence interval:
+ 0.7492605 0.8404578
+sample estimates:
+      cor 
+0.7994183 
+
+  Pearson's Chi-squared test
+
+data:  aux$countM and aux$countF
+X-squared = 2755.115, df = 627, p-value < 2.2e-16
+
+# collapsed subcategories: categories with differences
+
+> aux[abs(aux$countF - aux$countM) > 0.2, ]
+    category    subcategory    countM    countF
+32      Food           Café 0.3782383 0.6034483
+114     Work            Gym 0.3523316 1.0000000
+123     Home Home (private) 1.0000000 0.6551724
+165     Work         Office 0.8756477 0.5172414
+235   Travel  Train Station 0.3730570 0.7068966
+> aux[abs(aux$countF - aux$countM) > 0.1, ]
+> 
+     category          subcategory     countM    countF
+15  Nightlife                  Bar 0.13989637 0.2586207
+31     Travel          Bus Station 0.10880829 0.2758621
+32       Food                 Café 0.37823834 0.6034483
+61       Arts         Concert Hall 0.07772021 0.2068966
+66       Work      Coworking Space 0.10362694 0.2586207
+72       Shop     Department Store 0.03626943 0.1724138
+85       Food Fast Food Restaurant 0.19170984 0.0862069
+114      Work                  Gym 0.35233161 1.0000000
+123      Home       Home (private) 1.00000000 0.6551724
+145      Shop                 Mall 0.16062176 0.2758621
+165      Work               Office 0.87564767 0.5172414
+178    Travel             Platform 0.01036269 0.1206897
+220    Travel               Subway 0.16062176 0.2931034
+235    Travel        Train Station 0.37305699 0.7068966
+
+# Pipeline
+sa <- read.csv("~/studium/Lehrveranstaltungen/informationRetrieval/GenderSocialMedia/datasets/base2/arabiaSaudita/Saudi-Arabia.txt", header=F, sep="\t")
+colnames(sa) <- c("idUserFoursquare", "date", "latitude", "longitude",    "idLocal", "subcategory", "category", "city", "country")
+
+## load users
+saU <- read.csv("~/studium/Lehrveranstaltungen/informationRetrieval/GenderSocialMedia/datasets/base2/arabiaSaudita/profilesArabia.dat", header=F, sep="\t")
+colnames(saU) <- c("idUserFoursquare", "user", "userLocal", "gender")
+## clean users
+cSaU <- saU[grep("Saudi|Mecca|Medina|Riya|Jedda", ignore.case=T, saU$userLocal), ]
+
+## join users
+joined <- sqldf("Select * From sa JOIN cSaU using(idUserFoursquare)")
+
+## stats
+2689 male, 869 female
+
+## categories by gender
+saMC <- sqldf("Select category, subcategory, count(*) as count from joined where gender='male' group by category")
+saFC <- sqldf("Select category, subcategory, count(*) as count from joined 
+where gender='female' group by category")
+
+
+### categories by gender – count unique users
+saUMC <- sqldf("Select *, count(*) as CCount from  (select * from joined where gender='male' group by user, category) group by category")
+saUFC <- sqldf("Select *, count(*) as CCount from  (select * from joined where gender='female' group by user, category) group by category")
+
+## subcategories by gender
+saMS <- sqldf("Select category, subcategory, count(*) as count from joined where gender='male' group by subcategory")
+saFS <- sqldf("Select category, subcategory, count(*) as count from joined 
+where gender='female' group by subcategory")
+
+### – count unique users
+saUMSC <- sqldf("Select *, count(*) as CCount from  (select * from joined where gender='male' group by user, subcategory) group by subcategory")
+saUFSC <- sqldf("Select *, count(*) as CCount from  (select * from joined where gender='female' group by user, subcategory) group by subcategory")
+
+## normalization
+saMC$count <- saMC$count/max(saMC$count)
+saFC$count <- saFC$count/max(saFC$count)
+
+saMS$count <- saMS$count/max(saMS$count)
+saFS$count <- saFS$count/max(saFS$count)
+
+### normalization – unique users
+saUMC$CCount <- saUMC$CCount/max(saUMC$CCount)
+saUFC$CCount <- saUFC$CCount/max(saUFC$CCount)
+
+saUMSC$CCount <- saUMSC$CCount/max(saUMSC$CCount)
+saUFSC$CCount <- saUFSC$CCount/max(saUFSC$CCount)
+
+## correlation categories
+### counting check-ins
+plot(saMC$count, saFC$count, main="Correlation Categories counting check-ins", xlab="Male", ylab="Female")
+abline(0, 1, col="red")
+text(saMC$count, saFC$count, labels=saMC$category, pos=3)
+cor.test(saFC$count, saMC$count)
+
+  Pearson's product-moment correlation
+
+data:  saFC$count and saMC$count
+t = 5.5527, df = 7, p-value = 0.0008574
+alternative hypothesis: true correlation is not equal to 0
+95 percent confidence interval:
+ 0.5959143 0.9795812
+sample estimates:
+    cor 
+0.90276 
+
+chisq.test(saMC$count, saFC$count)
+
+  Pearson's Chi-squared test
+
+data:  saFC$count and saMC$count
+X-squared = 72, df = 64, p-value = 0.2303
+
+### counting check-ins by unique-users (counting every user once)
+plot(saUMC$CCount, saUFC$CCount, main="Correlation Categories counting unique users", xlab="Male", ylab="Female")
+abline(0, 1, col="red")
+text(saUMC$CCount, saUFC$CCount, labels=saUMC$category, pos=3)
+cor.test(saUMC$CCount, saUFC$CCount)
+  Pearson's product-moment correlation
+
+data:  saUMC$CCount and saUFC$CCount
+t = 5.6106, df = 7, p-value = 0.000807
+alternative hypothesis: true correlation is not equal to 0
+95 percent confidence interval:
+ 0.6019194 0.9799562
+sample estimates:
+      cor 
+0.9044781 
+
+chisq.test(saUMC$CCount, saUFC$CCount)
+
+  Pearson's Chi-squared test
+
+data:  saUMC$CCount and saUFC$CCount
+X-squared = 63, df = 56, p-value = 0.2425
+
+## complete subcategories
+temp <- sqldf("Select * from saMS where subcategory not in (Select subcategory from saFS)")
+temp$count=0
+saFS <- rbind(saFS, temp)
+
+temp <- sqldf("Select * from saFS where subcategory not in (Select subcategory from saMS)")
+temp$count=0
+saMS <- rbind(saMS, temp)
+
+saFS <- saFS[ order(saFS$subcategory), ]
+saMS <- saMS[ order(saMS$subcategory), ]
+
+### with unique users
+temp <- sqldf("Select * from saUMSC where subcategory not in (Select subcategory from saUFSC)")
+temp$CCount=0
+saUFSC <- rbind(saUFSC, temp)
+
+temp <- sqldf("Select * from saUFSC where subcategory not in (Select subcategory from saUMSC)")
+temp$CCount=0
+saUMSC <- rbind(saUMSC, temp)
+
+saUFSC <- saUFSC[ order(saUFSC$subcategory), ]
+saUMSC <- saUMSC[ order(saUMSC$subcategory), ]
+
+## normalize subcategories
+saFSR <- saFS; saMSR <- saMS
+saFSR$count <- saFSR$count/max(saFSR$count)
+saMSR$count <- saMSR$count/max(saMSR$count)
+
+### with unique users
+saUFSCR <- saUFSC; saUMSCR <- saUMSC
+saUMSCR$CCount <- saUMSCR$CCount/max(saUMSCR$CCount)
+saUFSCR$CCount <- saUFSCR$CCount/max(saUFSCR$CCount)
+
+## correlate subcategories
+plot(saMSR$count, saFSR$count, main="Correlation Subcategories by Gender, Counting check-ins", xlab="Male", ylab="Female")
+abline(0,1, col="red")
+text(saMSR$count, saFSR$count, labels=saMSR$subcategory, pos=3)
+cor.test(saMC$count, saFC$count)
+  Pearson's product-moment correlation
+
+data:  saMC$count and saFC$count
+t = 5.5527, df = 7, p-value = 0.0008574
+alternative hypothesis: true correlation is not equal to 0
+95 percent confidence interval:
+ 0.5959143 0.9795812
+sample estimates:
+    cor 
+0.90276 
+
+### with unique users
+plot(saUMSCR$CCount, saUFSCR$CCount, main="Correlation Subcategories by Gender, Counting Unique Users", xlab="Male", ylab="Female")
+abline(0,1, col="red")
+text(saUMSCR$CCount, saUFSCR$CCount, labels=saUMSCR$subcategory, pos=3)
+cor.test(saUMSCR$CCount, saUFSCR$CCount)  
+  Pearson's product-moment correlation
+
+data:  saUMSCR$CCount and saUFSCR$CCount
+t = 18.8054, df = 228, p-value < 2.2e-16
+alternative hypothesis: true correlation is not equal to 0
+95 percent confidence interval:
+ 0.7233519 0.8258096
+sample estimates:
+      cor 
+0.7797481 

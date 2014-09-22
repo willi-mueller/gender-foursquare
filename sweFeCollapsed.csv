@@ -1,0 +1,247 @@
+"","category","subcategory","gender","count"
+"1","Travel","Airport","female",0.206896551724138
+"2","Food","American Restaurant","female",0
+"3","Work","Animal Shelter","female",0
+"4","GreatOutdoors","Aquarium","female",0
+"5","Arts","Arcade","female",0
+"6","Arts","Art Gallery","female",0.0862068965517241
+"7","Arts","Art Museum","female",0.0689655172413793
+"8","Shop","Arts & Crafts Store","female",0.0172413793103448
+"9","Food","Asian Restaurant","female",0.0517241379310345
+"10","GreatOutdoors","Athletic & Sport","female",0.0172413793103448
+"11","Shop","Automotive Shop","female",0
+"12","Food","Bagel Shop","female",0.0172413793103448
+"13","Food","Bakery","female",0.0689655172413793
+"14","Shop","Bank","female",0
+"15","Nightlife","Bar","female",0.258620689655172
+"16","Arts","Basketball Stadium","female",0
+"17","Food","BBQ Joint","female",0
+"18","GreatOutdoors","Beach","female",0.0344827586206897
+"19","Travel","Bed & Breakfast","female",0.0172413793103448
+"20","Nightlife","Beer Garden","female",0.0172413793103448
+"21","Shop","Bike Shop","female",0.0172413793103448
+"22","Travel","Boat or Ferry","female",0.0517241379310345
+"23","Shop","Bookstore","female",0.0344827586206897
+"24","Shop","Boutique","female",0
+"25","Arts","Bowling Alley","female",0.0172413793103448
+"26","Food","Breakfast Spot","female",0.0172413793103448
+"27","Food","Brewery","female",0
+"28","GreatOutdoors","Bridge","female",0.0172413793103448
+"29","Work","Building","female",0.0862068965517241
+"30","Travel","Bus Line","female",0
+"31","Travel","Bus Station","female",0.275862068965517
+"32","Food","Café","female",0.603448275862069
+"33","GreatOutdoors","Campground","female",0
+"34","Shop","Candy Store","female",0.0172413793103448
+"35","Shop","Car Dealership","female",0.0172413793103448
+"36","Arts","Casino","female",0.0344827586206897
+"37","GreatOutdoors","Castle","female",0
+"38","GreatOutdoors","Cemetery","female",0
+"39","Food","Chinese Restaurant","female",0.0344827586206897
+"40","Work","Church","female",0.0862068965517241
+"41","GreatOutdoors","City","female",0.0344827586206897
+"42","Work","City Hall","female",0.0172413793103448
+"43","Shop","Clothing Store","female",0.103448275862069
+"44","Nightlife","Cocktail Bar","female",0.0517241379310345
+"45","Education","College & University","female",0.0172413793103448
+"46","Education","College Academic Building","female",0.0172413793103448
+"47","Education","College Auditorium","female",0
+"48","Education","College Cafeteria","female",0
+"49","Education","College Classroom","female",0.0344827586206897
+"50","Education","College Communications Building","female",0
+"51","Education","College Engineering Building","female",0.0172413793103448
+"52","Education","College History Building","female",0
+"53","Education","College Lab","female",0
+"54","Education","College Library","female",0.0689655172413793
+"55","Education","College Residence Hall","female",0.0172413793103448
+"56","Education","College Science Building","female",0
+"57","Education","College Soccer Field","female",0
+"58","Education","College Stadium","female",0
+"59","Education","College Technology Building","female",0
+"60","Education","Community College","female",0.0172413793103448
+"61","Arts","Concert Hall","female",0.206896551724138
+"62","Work","Conference Room","female",0.0172413793103448
+"63","Shop","Convenience Store","female",0
+"64","Work","Convention Center","female",0.120689655172414
+"65","Shop","Cosmetics Shop","female",0
+"66","Work","Coworking Space","female",0.258620689655172
+"67","Food","Cuban Restaurant","female",0
+"68","Food","Cupcake Shop","female",0.0172413793103448
+"69","Arts","Dance Studio","female",0.0344827586206897
+"70","Shop","Deli / Bodega","female",0
+"71","Work","Dentist's Office","female",0.0172413793103448
+"72","Shop","Department Store","female",0.172413793103448
+"73","Food","Dessert Shop","female",0.0172413793103448
+"74","Food","Diner","female",0
+"75","Work","Doctor's Office","female",0
+"76","Work","Drugstore / Pharmacy","female",0.0517241379310345
+"77","Food","Dumpling Restaurant","female",0
+"78","Food","Eastern European Restaurant","female",0
+"79","Shop","Electronics Store","female",0.0517241379310345
+"80","Travel","Embassy / Consulate","female",0
+"81","Work","Event Space","female",0.0344827586206897
+"82","Work","Factory","female",0
+"83","Food","Falafel Restaurant","female",0
+"84","GreatOutdoors","Farm","female",0.0344827586206897
+"85","Food","Fast Food Restaurant","female",0.0862068965517241
+"86","Travel","Ferry","female",0
+"87","GreatOutdoors","Field","female",0
+"88","Work","Fire Station","female",0.0172413793103448
+"89","Shop","Fish Market","female",0
+"90","Shop","Flea Market","female",0
+"91","Shop","Flower Shop","female",0.0344827586206897
+"92","Food","Food","female",0.0344827586206897
+"93","Shop","Food & Drink Shop","female",0.0862068965517241
+"94","Food","Food Court","female",0
+"95","Food","Food Truck","female",0
+"96","Education","Fraternity House","female",0
+"97","Food","French Restaurant","female",0
+"98","Work","Funeral Home","female",0
+"99","Shop","Furniture / Home Store","female",0.120689655172414
+"100","Arts","Gaming Cafe","female",0
+"101","GreatOutdoors","Garden","female",0.0172413793103448
+"102","GreatOutdoors","Garden Center","female",0.0172413793103448
+"103","Shop","Gas Station / Garage","female",0.0689655172413793
+"104","Food","Gastropub","female",0.0517241379310345
+"105","Education","General College & University","female",0.0517241379310345
+"106","Arts","General Entertainment","female",0.103448275862069
+"107","Travel","General Travel","female",0.0689655172413793
+"108","Shop","Gift Shop","female",0
+"109","GreatOutdoors","Golf Course","female",0.0517241379310345
+"110","Shop","Gourmet Shop","female",0
+"111","Work","Government Building","female",0
+"112","Food","Greek Restaurant","female",0.0172413793103448
+"113","Shop","Grocery Store","female",0.275862068965517
+"114","Work","Gym","female",1
+"115","GreatOutdoors","Harbor / Marina","female",0
+"116","Shop","Hardware Store","female",0.0344827586206897
+"117","Education","High School","female",0.0689655172413793
+"118","GreatOutdoors","Hiking Trail","female",0.0172413793103448
+"119","Arts","Historic Site","female",0
+"120","Arts","History Museum","female",0
+"121","Shop","Hobby Shop","female",0
+"122","Arts","Hockey Arena","female",0
+"123","Home","Home (private)","female",0.655172413793103
+"124","Work","Hospital","female",0.0344827586206897
+"125","Travel","Hostel","female",0
+"126","Food","Hot Dog Joint","female",0
+"127","Travel","Hotel","female",0.224137931034483
+"128","Nightlife","Hotel Bar","female",0.0689655172413793
+"129","Shop","Housing Development","female",0
+"130","Food","Ice Cream Shop","female",0.0172413793103448
+"131","Food","Indian Restaurant","female",0.103448275862069
+"132","Arts","Indie Movie Theater","female",0
+"133","Food","Italian Restaurant","female",0.103448275862069
+"134","Food","Japanese Restaurant","female",0
+"135","Shop","Jewelry Store","female",0
+"136","Food","Juice Bar","female",0.0172413793103448
+"137","Nightlife","Karaoke Bar","female",0
+"138","GreatOutdoors","Lake","female",0
+"139","Shop","Laundry Service","female",0.0172413793103448
+"140","Work","Library","female",0.0517241379310345
+"141","Travel","Light Rail","female",0
+"142","Shop","Lingerie Store","female",0.0172413793103448
+"143","Shop","Liquor Store","female",0.0344827586206897
+"144","Nightlife","Lounge","female",0.0172413793103448
+"145","Shop","Mall","female",0.275862068965517
+"146","Work","Martial Arts Dojo","female",0
+"147","Work","Medical Center","female",0.0172413793103448
+"148","Food","Mediterranean Restaurant","female",0
+"149","Work","Meeting Room","female",0.0172413793103448
+"150","Shop","Men's Store","female",0
+"151","Food","Mexican Restaurant","female",0.0172413793103448
+"152","Food","Middle Eastern Restaurant","female",0.0172413793103448
+"153","Work","Military Base","female",0.0172413793103448
+"154","Shop","Miscellaneous Shop","female",0.0172413793103448
+"155","Food","Molecular Gastronomy Restaurant","female",0
+"156","Work","Monument / Landmark","female",0.0172413793103448
+"157","Travel","Motel","female",0
+"158","Arts","Movie Theater","female",0.0172413793103448
+"159","Arts","Multiplex","female",0.0689655172413793
+"160","Arts","Museum","female",0.0689655172413793
+"161","Shop","Music Store","female",0
+"162","Arts","Music Venue","female",0
+"163","GreatOutdoors","Neighborhood","female",0.0689655172413793
+"164","Nightlife","Nightclub","female",0.0517241379310345
+"165","Work","Office","female",0.517241379310345
+"166","Arts","Opera House","female",0.0517241379310345
+"167","Shop","Optical Shop","female",0
+"168","GreatOutdoors","Other Great Outdoors","female",0.0517241379310345
+"169","Nightlife","Other Nightlife","female",0
+"170","GreatOutdoors","Outdoors & Recreation","female",0
+"171","GreatOutdoors","Park","female",0.103448275862069
+"172","Arts","Performing Arts Venue","female",0
+"173","Shop","Pet Store","female",0
+"174","Shop","Photography Lab","female",0
+"175","GreatOutdoors","Pier","female",0.0344827586206897
+"176","Food","Pizza Place","female",0.0689655172413793
+"177","Travel","Plane","female",0
+"178","Travel","Platform","female",0.120689655172414
+"179","GreatOutdoors","Playground","female",0.0344827586206897
+"180","GreatOutdoors","Plaza","female",0.0689655172413793
+"181","Work","Police Station","female",0.0344827586206897
+"182","Home","Pool","female",0.0344827586206897
+"183","Work","Post Office","female",0
+"184","Work","Professional & Other Places","female",0.0344827586206897
+"185","Nightlife","Pub","female",0.120689655172414
+"186","Work","Radio Station","female",0
+"187","Food","Ramen /  Noodle House","female",0
+"188","Shop","Recycling Facility","female",0
+"189","Shop","Rental Car Location","female",0
+"190","Home","Residential Building (Apartment / Condo)","female",0.0172413793103448
+"191","Travel","Resort","female",0.0344827586206897
+"192","Food","Restaurant","female",0.137931034482759
+"193","Travel","Road","female",0.0689655172413793
+"194","Arts","Rock Club","female",0.0172413793103448
+"195","Food","Salad Place","female",0.0172413793103448
+"196","Shop","Salon / Barbershop","female",0.0344827586206897
+"197","Food","Sandwich Place","female",0.0172413793103448
+"198","Food","Scandinavian Restaurant","female",0.206896551724138
+"199","GreatOutdoors","Scenic Lookout","female",0
+"200","Work","School","female",0.137931034482759
+"201","Arts","Science Museum","female",0.0172413793103448
+"202","Food","Seafood Restaurant","female",0.0172413793103448
+"203","Shop","Shoe Store","female",0
+"204","GreatOutdoors","Skate Park","female",0.0172413793103448
+"205","GreatOutdoors","Ski Area","female",0.0172413793103448
+"206","GreatOutdoors","Ski Chairlift","female",0
+"207","Shop","Smoke Shop","female",0
+"208","Food","Snack Place","female",0
+"209","GreatOutdoors","Soccer Field","female",0.0172413793103448
+"210","Arts","Soccer Stadium","female",0.0517241379310345
+"211","Shop","Spa / Massage","female",0
+"212","Food","Spanish Restaurant","female",0
+"213","Work","Spiritual Center","female",0.0172413793103448
+"214","Shop","Sporting Goods Shop","female",0.0344827586206897
+"215","Nightlife","Sports Bar","female",0.0344827586206897
+"216","GreatOutdoors","Stables","female",0.0172413793103448
+"217","Arts","Stadium","female",0.0172413793103448
+"218","Food","Steakhouse","female",0.0172413793103448
+"219","Education","Student Center","female",0.0172413793103448
+"220","Travel","Subway","female",0.293103448275862
+"221","GreatOutdoors","Surf Spot","female",0
+"222","Food","Sushi Restaurant","female",0.0344827586206897
+"223","Food","Taco Place","female",0
+"224","Food","Tapas Restaurant","female",0
+"225","Shop","Tattoo Parlor","female",0.0172413793103448
+"226","Work","Tech Startup","female",0.0344827586206897
+"227","GreatOutdoors","Tennis","female",0
+"228","GreatOutdoors","Tennis Court","female",0
+"229","Food","Thai Restaurant","female",0.0517241379310345
+"230","Arts","Theater","female",0.0172413793103448
+"231","Arts","Theme Park","female",0.0172413793103448
+"232","Shop","Toy / Game Store","female",0
+"233","GreatOutdoors","Track Stadium","female",0
+"234","Education","Trade School","female",0
+"235","Travel","Train Station","female",0.706896551724138
+"236","Food","Turkish Restaurant","female",0
+"237","Education","University","female",0.137931034482759
+"238","Food","Vegetarian / Vegan Restaurant","female",0
+"239","Work","Veterinarian","female",0.0172413793103448
+"240","Shop","Video Store","female",0.0172413793103448
+"241","Arts","Water Park","female",0.0172413793103448
+"242","Nightlife","Whisky Bar","female",0
+"243","Nightlife","Wine Bar","female",0
+"244","Food","Winery","female",0
+"245","Work","Yoga Studio","female",0.0172413793103448
+"246","Arts","Zoo","female",0
