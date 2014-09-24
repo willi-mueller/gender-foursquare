@@ -15,7 +15,7 @@ readCheckIns <- function(path) {
   return(sa)
 }
 
-cleanUsers <- function(users, filter="Saudi|Mecca|Medina|Riya|Jedda") {
+cleanUsers <- function(users, filter) {
   return(users[grep(filter, ignore.case=T, users$userLocal), ])
 }
 
@@ -89,7 +89,7 @@ aggregateEquivalentSubC <- function(substitutionRules, table) {
 ##########
 # run
 ##########
-country <- "Sweden"
+country <- "Saudi-Arabia"
 
 saudiCheckIns <- "base2/arabiaSaudita/Saudi-Arabia.txt"
 franceCheckIns <- "base2/France.txt"
@@ -97,21 +97,23 @@ swedenCheckIns <- "base2/Sweden.txt"
 
 franceFilter <- "Paris|France|Metz|Bordeaux|Marseille|Midi-Py|Strasbourg|Lyon"
 swedenFilter <- "Sverige|Sweden|Stockholm|Malmö"
+saudiFilter <- "Saudi|Mecca|Medina|Riya|Jedda"
 intPath <- "base2/profileFiltredGermanyFranceEmiratesSweden.dat"
 saudiUsers <- "base2/arabiaSaudita/profilesArabia.dat"
 
 substitutionRules <- list(
     list(original="Café", equivalents=c("Coffee Shop", "College Cafeteria")),
     list(original="Airport", equivalents=c("Airport Lounge", "Airport Gate", "Airport Terminal")),
-    list(original="Train Station", equivalents=c("Train Station", "Light Rail")),
+    list(original="Train Station", equivalents=c("Train", "Platform", "Light Rail")),
     list(original="Bus Station", equivalents=c("Bus Line", "Bus Terminal")),
     list(original="Library", equivalents=c("College Library")),
+    list(original="University", equivalents=c("College & University")),
     list(original="Gym", equivalents=c("Gym / Fitness Center", "College Gym")))
 
-ci <- readCheckIns(swedenCheckIns)
+ci <- readCheckIns(saudiCheckIns)
 
-users <- readUsers(intProfiles)
-profiles <- cleanUsers(users, filter=swedenFilter)
+users <- readUsers(saudiUsers)
+profiles <- cleanUsers(users, filter=saudiFilter)
 
 joined <- joinCheckInsWithProfiles("ci", "profiles")
 tableString <- "joined"
