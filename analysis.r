@@ -67,6 +67,25 @@ completeSubcategories <- function(gender1, gender2, gender1String, gender2String
   return( gender2[ order(gender2$subcategory), ] )
 }
 
+sumEquivalentSubC <- function(subC, equivalents, table) {
+  for(equivalent in equivalents) {
+    if(equivalent %in% table$subcategory & subC %in% table$subcategory) {
+      equivalentIdx <- match(equivalent, table$subcategory)
+      idx <- match(subC, table$subcategory)
+      table[idx, ]$count <- table[idx, ]$count + table[equivalentIdx, ]$count
+      table <- table[-equivalentIdx, ] # delete equivalent
+    }
+  }
+  return(table)
+}
+
+aggregateEquivalentSubC <- function(substitutionRules, table) {
+  for(pair in substitutionRules) {
+    table <- sumEquivalentSubC(pair$original, pair$equivalents, table)
+  }
+  return(table)
+}
+
 ##########
 # run
 ##########
@@ -75,6 +94,13 @@ ci <- readCheckIns()
 franceFilter <- "Paris|France|Metz|Bordeaux|Marseille|Midi-Py|Strasbourg|Lyon"
 swedenFilter <- "Sverige|Sweden|Stockholm|Malmö"
 intPath <- "base2/profileFiltredGermanyFranceEmiratesSweden.dat"
+
+substitutionRules <- list(
+    list(original="Café", equivalents=c("Coffee Shop")),
+    list(original="Airport", equivalents=c("Airport Lounge", "Airport Gate", "Airport Terminal")),
+    list(original="Train", equivalents=c("Train Station", "Light Rail")),
+    list(original="Gym", equivalents=c("Gym / Fitness Center", "College Gym")))
+
 users <- readUsers()
 profiles <- cleanUsers(users)
 
@@ -97,6 +123,12 @@ femaleSubC <- completeSubcategories(maleSubC, femaleSubC, "maleSubC", "femaleSub
 maleSubC <- completeSubcategories(femaleSubC, maleSubC, "femaleSubC", "maleSubC")
 femaleUniqueSubC <- completeSubcategories(maleUniqueSubC, femaleUniqueSubC, "maleUniqueSubC", "femaleUniqueSubC")
 maleUniqueSubC <- completeSubcategories(femaleUniqueSubC, maleUniqueSubC, "femaleUniqueSubC", "maleUniqueSubC")
+
+# aggregate equivalent subcategories
+maleSubC <- aggregateEquivalentSubC(substitutionRules, maleSubC)
+femaleSubC <- aggregateEquivalentSubC(substitutionRules, femaleSubC)
+maleUniqueSubC <- aggregateEquivalentSubC(substitutionRules, maleUniqueSubC)
+femaleUniqueSubC <- aggregateEquivalentSubC(substitutionRules, femaleUniqueSubC)
 
 ## normalization - counting check-ins
 maleC$count <- normalizeByAbsolutePercentage(maleC$count)
