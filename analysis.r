@@ -49,7 +49,7 @@ normalizeByPercentageOfMax <- function(attribute) {
 
 correlateCategories <- function(x, y, labels, country="Saudi Arabia", countMethod="check-ins", categories="Categories") {
   plot(x, y, main=paste("Correlation of", categories, "counting", countMethod, "in", country),
-       xlab="Male", ylab="Female")
+       xlab="Male", ylab="Female", xlim=c(0,0.1), ylim=c(0, 0.1))
   abline(0, 1, col="red")
   text(x, y, labels=labels, pos=3)
   print(cor.test(x, y))
