@@ -96,9 +96,11 @@ swedenFilter <- "Sverige|Sweden|Stockholm|Malmö"
 intPath <- "base2/profileFiltredGermanyFranceEmiratesSweden.dat"
 
 substitutionRules <- list(
-    list(original="Café", equivalents=c("Coffee Shop")),
+    list(original="Café", equivalents=c("Coffee Shop", "College Cafeteria")),
     list(original="Airport", equivalents=c("Airport Lounge", "Airport Gate", "Airport Terminal")),
-    list(original="Train", equivalents=c("Train Station", "Light Rail")),
+    list(original="Train Station", equivalents=c("Train Station", "Light Rail")),
+    list(original="Bus Station", equivalents=c("Bus Line", "Bus Terminal")),
+    list(original="Library", equivalents=c("College Library")),
     list(original="Gym", equivalents=c("Gym / Fitness Center", "College Gym")))
 
 users <- readUsers()
