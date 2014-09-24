@@ -89,15 +89,19 @@ aggregateEquivalentSubC <- function(substitutionRules, table) {
 ##########
 # run
 ##########
-country <- "Saudi-Arabia"
+country <- "Germany"
 
 saudiCheckIns <- "base2/arabiaSaudita/Saudi-Arabia.txt"
 franceCheckIns <- "base2/France.txt"
 swedenCheckIns <- "base2/Sweden.txt"
+uaeCheckIns <- "base2/United-Arab-Emirates.txt"
+germanyCheckIns <- "base2/Germany.txt"
 
 franceFilter <- "Paris|France|Metz|Bordeaux|Marseille|Midi-Py|Strasbourg|Lyon"
 swedenFilter <- "Sverige|Sweden|Stockholm|Malmö"
 saudiFilter <- "Saudi|Mecca|Medina|Riya|Jedda"
+uaeFilter <- "Dubai|United Arab Emirates|Abu Dhabi|Sharjah|Al Ain|Ras Al-Khaimah"
+germanyFilter <- "Deutschland|Berlin|Germany|München|Munich|Frankfurt|Hamburg|Stuttgart|Mainz|Düsseldorf|Köln|Cologne|Thüringen|Hessen|Sachsen|Bremen|Schleswig|Mecklenburg|Saarbrücken|Saarland|Bayern|Bavaria|Nordrhein-Westfalen"
 intPath <- "base2/profileFiltredGermanyFranceEmiratesSweden.dat"
 saudiUsers <- "base2/arabiaSaudita/profilesArabia.dat"
 
@@ -110,10 +114,10 @@ substitutionRules <- list(
     list(original="University", equivalents=c("College & University")),
     list(original="Gym", equivalents=c("Gym / Fitness Center", "College Gym")))
 
-ci <- readCheckIns(saudiCheckIns)
+ci <- readCheckIns(germanyCheckIns)
 
-users <- readUsers(saudiUsers)
-profiles <- cleanUsers(users, filter=saudiFilter)
+users <- readUsers(intPath)
+profiles <- cleanUsers(users, filter=germanyFilter)
 
 joined <- joinCheckInsWithProfiles("ci", "profiles")
 tableString <- "joined"
