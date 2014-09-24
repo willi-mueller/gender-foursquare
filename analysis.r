@@ -1,13 +1,13 @@
 library(sqldf)
 
-readUsers <- function(path="base2/arabiaSaudita/profilesArabia.dat") {
+readUsers <- function(path) {
   fullPath <- paste("~/studium/Lehrveranstaltungen/informationRetrieval/GenderSocialMedia/datasets/", path, sep="")
   saU <- read.csv(fullPath, header=F, sep="\t")
   colnames(saU) <- c("idUserFoursquare", "user", "userLocal", "gender")
   return(saU)
 }
 
-readCheckIns <- function(path="base2/arabiaSaudita/Saudi-Arabia.txt") {
+readCheckIns <- function(path) {
   fullPath <- paste("~/studium/Lehrveranstaltungen/informationRetrieval/GenderSocialMedia/datasets/", path, sep="")
   sa <- read.csv(fullPath, header=F, sep="\t")
   colnames(sa) <- c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
@@ -89,11 +89,16 @@ aggregateEquivalentSubC <- function(substitutionRules, table) {
 ##########
 # run
 ##########
+country <- "Saudi-Arabia"
 
-ci <- readCheckIns()
+saudiCheckIns <- "base2/arabiaSaudita/Saudi-Arabia.txt"
+franceCheckIns <- "base2/France.txt"
+swedenCheckIns <- "base2/Sweden.txt"
+
 franceFilter <- "Paris|France|Metz|Bordeaux|Marseille|Midi-Py|Strasbourg|Lyon"
 swedenFilter <- "Sverige|Sweden|Stockholm|Malmö"
 intPath <- "base2/profileFiltredGermanyFranceEmiratesSweden.dat"
+saudiUsers <- "base2/arabiaSaudita/profilesArabia.dat"
 
 substitutionRules <- list(
     list(original="Café", equivalents=c("Coffee Shop", "College Cafeteria")),
@@ -103,7 +108,9 @@ substitutionRules <- list(
     list(original="Library", equivalents=c("College Library")),
     list(original="Gym", equivalents=c("Gym / Fitness Center", "College Gym")))
 
-users <- readUsers()
+ci <- readCheckIns(saudiCheckIns)
+
+users <- readUsers(saudiUsers)
 profiles <- cleanUsers(users)
 
 joined <- joinCheckInsWithProfiles("ci", "profiles")
@@ -145,7 +152,6 @@ maleUniqueSubC$count <- normalizeByAbsolutePercentage(maleUniqueSubC$count)
 femaleUniqueSubC$count <- normalizeByAbsolutePercentage(femaleUniqueSubC$count)
 
 ## correlation categories
-country <- "Saudi Arabia"
 correlateCategories(maleC$count, femaleC$count, maleC$category, country=country)
 correlateCategories(maleUniqueC$count, femaleUniqueC$count, maleC$category, country=country,
                     countMethod="unique users")
