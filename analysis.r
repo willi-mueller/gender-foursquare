@@ -71,11 +71,12 @@ completeSubcategories <- function(gender1, gender2, gender1String, gender2String
 # run
 ##########
 
-ci <- readCheckIns(path="base2/Sweden.txt")
+ci <- readCheckIns()
 franceFilter <- "Paris|France|Metz|Bordeaux|Marseille|Midi-Py|Strasbourg|Lyon"
 swedenFilter <- "Sverige|Sweden|Stockholm|Malmö"
-users <- readUsers(path="base2/profileFiltredGermanyFranceEmiratesSweden.dat")
-profiles <- cleanUsers(users, filter=swedenFilter)
+intPath <- "base2/profileFiltredGermanyFranceEmiratesSweden.dat"
+users <- readUsers()
+profiles <- cleanUsers(users)
 
 joined <- joinCheckInsWithProfiles("ci", "profiles")
 tableString <- "joined"
@@ -110,7 +111,7 @@ maleUniqueSubC$count <- normalizeByAbsolutePercentage(maleUniqueSubC$count)
 femaleUniqueSubC$count <- normalizeByAbsolutePercentage(femaleUniqueSubC$count)
 
 ## correlation categories
-country <- "Sweden"
+country <- "Saudi Arabia"
 correlateCategories(maleC$count, femaleC$count, maleC$category, country=country)
 correlateCategories(maleUniqueC$count, femaleUniqueC$count, maleC$category, country=country,
                     countMethod="unique users")
