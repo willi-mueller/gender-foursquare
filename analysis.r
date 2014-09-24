@@ -89,7 +89,7 @@ aggregateEquivalentSubC <- function(substitutionRules, table) {
 ##########
 # run
 ##########
-country <- "Saudi-Arabia"
+country <- "Sweden"
 
 saudiCheckIns <- "base2/arabiaSaudita/Saudi-Arabia.txt"
 franceCheckIns <- "base2/France.txt"
@@ -108,10 +108,10 @@ substitutionRules <- list(
     list(original="Library", equivalents=c("College Library")),
     list(original="Gym", equivalents=c("Gym / Fitness Center", "College Gym")))
 
-ci <- readCheckIns(saudiCheckIns)
+ci <- readCheckIns(swedenCheckIns)
 
-users <- readUsers(saudiUsers)
-profiles <- cleanUsers(users)
+users <- readUsers(intProfiles)
+profiles <- cleanUsers(users, filter=swedenFilter)
 
 joined <- joinCheckInsWithProfiles("ci", "profiles")
 tableString <- "joined"
