@@ -63,7 +63,7 @@ selectNotPresentFromOtherGender <- function(x, y) {
 completeSubcategories <- function(gender1, gender2, gender1String, gender2String) {
   temp <- selectNotPresentFromOtherGender(gender1String, gender2String)
   temp$count <- 0
-  temp$gender <- gender1String
+  #temp$gender <- gender2$gender
   gender2<-rbind(gender2, temp)
   return( gender2[ order(gender2$subcategory), ] )
 }
