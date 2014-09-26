@@ -118,6 +118,7 @@ substitutionRules <- list(
     list(original="Train Station", equivalents=c("Train", "Platform", "Light Rail")),
     list(original="Bus Station", equivalents=c("Bus Line", "Bus Terminal")),
     list(original="Library", equivalents=c("College Library")),
+    list(original="Movie Theater", equivalents=c("Indie Movie Theater", "Multiplex")),
     list(original="University", equivalents=c("General College & University", "College & University")),
     list(original="Gym", equivalents=c("Gym / Fitness Center", "College Gym")))
 
