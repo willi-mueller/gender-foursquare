@@ -86,6 +86,12 @@ aggregateEquivalentSubC <- function(substitutionRules, table) {
   return(table)
 }
 
+filterTopNSubcategories <- function(x, y, n, fun=`+`) {
+  uniqueSubC <- merge(x, y, by="subcategory")
+  uniqueSubC$sumCount <- fun(uniqueSubC$count.x, uniqueSubC$count.y)
+  return(order(uniqueSubC$sumCount, decreasing=TRUE)[1:n])
+}
+
 ##########
 # run
 ##########
@@ -157,12 +163,20 @@ femaleUniqueC$count <- normalizeByAbsolutePercentage(femaleUniqueC$count)
 maleUniqueSubC$count <- normalizeByAbsolutePercentage(maleUniqueSubC$count)
 femaleUniqueSubC$count <- normalizeByAbsolutePercentage(femaleUniqueSubC$count)
 
-## correlation categories
+topN <- length(maleUniqueSubC$subcategory)
+# disable following line
+topN <- filterTopNSubcategories(maleUniqueSubC, femaleUniqueSubC, 10,
+                                function(x,y){abs(x-y)})
+
+maleUniqueSubCTop <- maleUniqueSubC[topN,]
+femaleUniqueSubCTop <- femaleUniqueSubC[topN,]
+
+# correlation categories
 correlateCategories(maleC$count, femaleC$count, maleC$category, country=country)
 correlateCategories(maleUniqueC$count, femaleUniqueC$count, maleC$category, country=country,
                     countMethod="unique users")
 
 correlateCategories(maleSubC$count, femaleSubC$count, maleSubC$subcategory, country=country,
                     categories="Subcategories")
-correlateCategories(maleUniqueSubC$count, femaleUniqueSubC$count, maleUniqueSubC$subcategory, country=country,
-                    categories="Subcategories", countMethod="unique users")
+correlateCategories(maleUniqueSubCTop$count, femaleUniqueSubCTop$count, maleUniqueSubCTop$subcategory, country=country,
+                    categories="10 most different Subcategories", countMethod="unique users")
