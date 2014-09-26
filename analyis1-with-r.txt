@@ -238,7 +238,7 @@ y <- rbind(y, c("Travel", "Train Station", "male", 72))
 fusion of subcategories:
 café + coffee shop
 Airport + Airpot Lounge + Airport Gate + Airport Terminal
-Train + Train Station
+Train + Train Station + Light Rail
 burger joint + fast food restaurant
 
 

@@ -151,13 +151,13 @@ femaleSubC <- aggregateEquivalentSubC(substitutionRules, femaleSubC)
 maleUniqueSubC <- aggregateEquivalentSubC(substitutionRules, maleUniqueSubC)
 femaleUniqueSubC <- aggregateEquivalentSubC(substitutionRules, femaleUniqueSubC)
 
-## normalization - counting check-ins
+# normalization - counting check-ins
 maleC$count <- normalizeByAbsolutePercentage(maleC$count)
 femaleC$count <- normalizeByAbsolutePercentage(femaleC$count)
 maleSubC$count <- normalizeByAbsolutePercentage(maleSubC$count)
 femaleSubC$count <- normalizeByAbsolutePercentage(femaleSubC$count)
 
-### normalization – unique users
+# normalization – unique users
 maleUniqueC$count <- normalizeByAbsolutePercentage(maleUniqueC$count)
 femaleUniqueC$count <- normalizeByAbsolutePercentage(femaleUniqueC$count)
 maleUniqueSubC$count <- normalizeByAbsolutePercentage(maleUniqueSubC$count)
