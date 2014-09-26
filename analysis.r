@@ -109,7 +109,7 @@ swedenFilter <- "Sverige|Sweden|Stockholm|Malmö"
 saudiFilter <- "Saudi|Mecca|Medina|Riya|Jedda"
 uaeFilter <- "Dubai|United Arab Emirates|Abu Dhabi|Sharjah|Al Ain|Ras Al-Khaimah"
 germanyFilter <- "Deutschland|Berlin|Germany|München|Munich|Frankfurt|Hamburg|Stuttgart|Mainz|Düsseldorf|Köln|Cologne|Thüringen|Hessen|Sachsen|Bremen|Schleswig|Mecklenburg|Saarbrücken|Saarland|Bayern|Bavaria|Nordrhein-Westfalen"
-intPath <- "base2/profileFiltredGermanyFranceEmiratesSweden.dat"
+franceUsers=germanyUsers=swedenUsers=uaeUsers <- "base2/profileFiltredGermanyFranceEmiratesSweden.dat"
 saudiUsers <- "base2/arabiaSaudita/profilesArabia.dat"
 
 substitutionRules <- list(
