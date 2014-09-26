@@ -164,7 +164,7 @@ femaleUniqueC$count <- normalizeByAbsolutePercentage(femaleUniqueC$count)
 maleUniqueSubC$count <- normalizeByAbsolutePercentage(maleUniqueSubC$count)
 femaleUniqueSubC$count <- normalizeByAbsolutePercentage(femaleUniqueSubC$count)
 
-topN <- length(maleUniqueSubC$subcategory)
+topN <- femaleUniqueSubC[1:nrow(femaleUniqueSubC),] # select all
 # disable following line
 topN <- filterTopNSubcategories(maleUniqueSubC, femaleUniqueSubC, 10,
                                 function(x,y){abs(x-y)})
