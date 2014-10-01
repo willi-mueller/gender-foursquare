@@ -96,7 +96,7 @@ filterTopNSubcategories <- function(x, y, n, fun=`+`) {
 ##########
 # run
 ##########
-country <- "Germany"
+country <- "saudi"
 
 saudiCheckIns <- "base2/arabiaSaudita/Saudi-Arabia.txt"
 franceCheckIns <- "base2/France.txt"
@@ -122,10 +122,10 @@ substitutionRules <- list(
     list(original="University", equivalents=c("General College & University", "College & University")),
     list(original="Gym", equivalents=c("Gym / Fitness Center", "College Gym")))
 
-ci <- readCheckIns(germanyCheckIns)
+ci <- readCheckIns(franceCheckIns)
 
-users <- readUsers(intPath)
-profiles <- cleanUsers(users, filter=germanyFilter)
+users <- readUsers(franceUsers)
+profiles <- cleanUsers(users, filter=franceFilter)
 
 joined <- joinCheckInsWithProfiles("ci", "profiles")
 tableString <- "joined"
@@ -168,17 +168,209 @@ femaleUniqueSubC$count <- normalizeByAbsolutePercentage(femaleUniqueSubC$count)
 topN <- femaleUniqueSubC[1:nrow(femaleUniqueSubC),] # select all
 # disable following line
 topN <- filterTopNSubcategories(maleUniqueSubC, femaleUniqueSubC, 10,
-                                function(x,y){abs(x-y)})
+                               function(x,y){abs(x+y)})
 
 maleUniqueSubCTop <- maleUniqueSubC[topN,]
 femaleUniqueSubCTop <- femaleUniqueSubC[topN,]
 
 # correlation categories
-correlateCategories(maleC$count, femaleC$count, maleC$category, country=country)
-correlateCategories(maleUniqueC$count, femaleUniqueC$count, maleC$category, country=country,
-                    countMethod="unique users")
+# correlateCategories(maleC$count, femaleC$count, maleC$category, country=country)
+# correlateCategories(maleUniqueC$count, femaleUniqueC$count, maleC$category, country=country,
+#                     countMethod="unique users")
 
-correlateCategories(maleSubC$count, femaleSubC$count, maleSubC$subcategory, country=country,
-                    categories="Subcategories")
+# correlateCategories(maleSubC$count, femaleSubC$count, maleSubC$subcategory, country=country,
+#                     categories="Subcategories")
 correlateCategories(maleUniqueSubCTop$count, femaleUniqueSubCTop$count, maleUniqueSubCTop$subcategory, country=country,
-                    categories="10 most different Subcategories", countMethod="unique users")
+                    categories="10 most popular subcategories", countMethod="unique users")
+
+#################################
+# Analyze gender separation
+#################################
+
+ci <- readCheckIns(saudiCheckIns)
+
+users <- readUsers(saudiUsers)
+profiles <- cleanUsers(users, filter=saudiFilter)
+
+joined <- joinCheckInsWithProfiles("ci", "profiles")
+
+riyadh <- sqldf("Select * from joined where city LIKE 'Riyadh'")
+friyadh <- riyadh[riyadh$gender=='female', ]
+mriyadh <- riyadh[riyadh$gender=='male', ]
+ # paste("Select *, count(*) as count from  (select * from ", table,
+ #                      " where gender='", gender, "' group by user, ",
+ #                       category, " ) group by ",  category, sep="")
+
+xmriyadh <- sqldf("Select *, count(*) as count from
+    (select * from mriyadh group by user, idLocal) group by idLocal")
+xfriyadh <- sqldf("Select *, count(*) as count from
+    (select * from friyadh group by user, idLocal) group by idLocal")
+notInF <- sqldf("Select * from xmriyadh where idLocal not in (Select idLocal from xfriyadh)")
+notInM <- sqldf("Select * from xfriyadh where idLocal not in (Select idLocal from xmriyadh)")
+
+temp <- notInM
+temp$count<-0
+completeMale <- rbind(xmriyadh, temp)
+completeMale <- completeMale[order(completeMale$count, decreasing=T), ]
+
+temp <- notInF
+temp$count<-0
+completeFemale <- rbind(xfriyadh, temp)
+completeFemale <- completeFemale[order(completeFemale$count, decreasing=T), ]
+
+completeMaleR <- completeMale; completeFemaleR <- completeFemale
+completeMaleR$count <- completeMaleR$count/sum(completeMaleR$count)
+completeFemaleR$count <- completeFemaleR$count/sum(completeFemaleR$count)
+
+completeMaleR <- completeMaleR[order(completeMaleR$idLocal, decreasing=T), ]
+completeFemaleR <- completeFemaleR[order(completeFemaleR$idLocal, decreasing=T), ]
+
+cor.test(completeMaleR$count, completeFemaleR$count)
+#   Pearson's product-moment correlation
+# t = 3.041, df = 844, p-value = 0.002431
+# alternative hypothesis: true correlation is not equal to 0
+# 95 percent confidence interval:
+#  0.03696506 0.17031534
+# sample estimates:
+#       cor
+# 0.1041081
+chisq.test(completeMaleR[order(completeMaleR$count, decreasing=T),]$count,
+           completeFemaleR[order(completeFemaleR$count, decreasing=T),]$count)
+#   Pearson's Chi-squared test
+# X-squared = 3733.106, df = 80, p-value < 2.2e-16
+plot(completeMaleR$count, completeFemaleR$count,
+    main="Gender separation in Riyadh", xlab="male", ylab="female",
+    xlim=c(0,0.05), ylim=c(0, 0.5))
+abline(0, 1, col="red")
+
+# check top locations
+completeMaleR[order(completeMaleR$count, decreasing=T),][1:7,]
+completeFemaleR[order(completeFemaleR$count, decreasing=T),][1:7,]
+
+
+########################
+
+ci <- readCheckIns(franceCheckIns)
+
+users <- readUsers(franceUsers)
+profiles <- cleanUsers(users, filter=franceFilter)
+
+joined <- joinCheckInsWithProfiles("ci", "profiles")
+riyadh <- sqldf("Select * from joined where city LIKE 'Paris'")
+friyadh <- riyadh[riyadh$gender=='female', ]
+mriyadh <- riyadh[riyadh$gender=='male', ]
+xmriyadh <- sqldf("Select *, count(*) as count from
+    (select * from mriyadh group by user, idLocal) group by idLocal")
+xfriyadh <- sqldf("Select *, count(*) as count from
+    (select * from friyadh group by user, idLocal) group by idLocal")
+notInF <- sqldf("Select * from xmriyadh where idLocal not in (Select idLocal from xfriyadh)")
+notInM <- sqldf("Select * from xfriyadh where idLocal not in (Select idLocal from xmriyadh)")
+
+temp <- notInM
+temp$count<-0
+completeMale <- rbind(xmriyadh, temp)
+completeMale <- completeMale[order(completeMale$count, decreasing=T), ]
+
+temp <- notInF
+temp$count<-0
+completeFemale <- rbind(xfriyadh, temp)
+completeFemale <- completeFemale[order(completeFemale$count, decreasing=T), ]
+
+completeMaleR <- completeMale; completeFemaleR <- completeFemale
+completeMaleR$count <- completeMale$count/sum(completeMale$count)
+completeFemaleR$count <- completeFemale$count/sum(completeFemale$count)
+
+completeMaleR <- completeMaleR[order(completeMaleR$idLocal, decreasing=T), ]
+completeFemaleR <- completeFemaleR[order(completeFemaleR$idLocal, decreasing=T), ]
+
+cor.test(completeMaleR$count, completeFemaleR$count)
+# Pearson's product-moment correlation
+
+# data:  completeMaleR$count and completeFemaleR$count
+# t = 19.5576, df = 1008, p-value < 2.2e-16
+# alternative hypothesis: true correlation is not equal to 0
+# 95 percent confidence interval:
+#  0.4782692 0.5677967
+# sample estimates:
+#       cor
+# 0.5244812
+chisq.test(completeMaleR[order(completeMaleR$count, decreasing=T),]$count,
+           completeFemaleR[order(completeFemaleR$count, decreasing=T),]$count)
+#X-squared = 8595.182, df = 140, p-value < 2.2e-16
+
+plot(completeMaleR$count, completeFemaleR$count,
+    main="Gender separation in Paris", xlab="male", ylab="female",
+    xlim=c(0,0.05), ylim=c(0, 0.5))
+abline(0, 1, col="red")
+
+# check top locations
+completeMaleR[order(completeMaleR$count, decreasing=T),][1:7,]
+completeFemaleR[order(completeFemaleR$count, decreasing=T),][1:7,]
+
+
+
+##################################
+
+ci <- readCheckIns(uaeCheckIns)
+
+users <- readUsers(uaeUsers)
+profiles <- cleanUsers(users, filter=uaeFilter)
+
+joined <- joinCheckInsWithProfiles("ci", "profiles")
+
+riyadh <- sqldf("Select * from joined where city LIKE 'Abu Dhabi'")
+friyadh <- riyadh[riyadh$gender=='female', ]
+mriyadh <- riyadh[riyadh$gender=='male', ]
+ # paste("Select *, count(*) as count from  (select * from ", table,
+ #                      " where gender='", gender, "' group by user, ",
+ #                       category, " ) group by ",  category, sep="")
+
+xmriyadh <- sqldf("Select *, count(*) as count from
+    (select * from mriyadh group by user, idLocal) group by idLocal")
+xfriyadh <- sqldf("Select *, count(*) as count from
+    (select * from friyadh group by user, idLocal) group by idLocal")
+notInF <- sqldf("Select * from xmriyadh where idLocal not in (Select idLocal from xfriyadh)")
+notInM <- sqldf("Select * from xfriyadh where idLocal not in (Select idLocal from xmriyadh)")
+
+temp <- notInM
+temp$count<-0
+completeMale <- rbind(xmriyadh, temp)
+completeMale <- completeMale[order(completeMale$count, decreasing=T), ]
+
+temp <- notInF
+temp$count<-0
+completeFemale <- rbind(xfriyadh, temp)
+completeFemale <- completeFemale[order(completeFemale$count, decreasing=T), ]
+
+completeMaleR <- completeMale; completeFemaleR <- completeFemale
+completeMaleR$count <- completeMaleR$count/sum(completeMaleR$count)
+completeFemaleR$count <- completeFemaleR$count/sum(completeFemaleR$count)
+
+completeMaleR <- completeMaleR[order(completeMaleR$idLocal, decreasing=T), ]
+completeFemaleR <- completeFemaleR[order(completeFemaleR$idLocal, decreasing=T), ]
+
+cor.test(completeMaleR$count, completeFemaleR$count)
+
+#   Pearson's product-moment correlation
+
+# data:  completeMaleR$count and completeFemaleR$count
+# t = -3.8159, df = 365, p-value = 0.0001593
+# alternative hypothesis: true correlation is not equal to 0
+# 95 percent confidence interval:
+#  -0.29237214 -0.09540704
+# sample estimates:
+#        cor
+# -0.1958642
+
+chisq.test(completeMaleR[order(completeMaleR$count, decreasing=T),]$count,
+           completeFemaleR[order(completeFemaleR$count, decreasing=T),]$count)
+# X-squared = 989.6645, df = 24, p-value < 2.2e-16
+
+plot(completeMaleR$count, completeFemaleR$count,
+    main="Gender separation in Abu Dhabi", xlab="male", ylab="female",
+    xlim=c(0,0.05), ylim=c(0, 0.05))
+abline(0, 1, col="red")
+
+# check top locations
+completeMaleR[order(completeMaleR$count, decreasing=T),][1:7,]
+completeFemaleR[order(completeFemaleR$count, decreasing=T),][1:7,]
