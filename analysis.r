@@ -93,6 +93,12 @@ filterTopNSubcategories <- function(x, y, n, fun=`+`) {
   return(order(uniqueSubC$sumCount, decreasing=TRUE)[1:n])
 }
 
+plot_pdf <- function(x) {
+  h <- hist(completeFemaleR$count, breaks = 100, plot=FALSE)
+  h$counts=h$counts/sum(h$counts)
+  plot(h)
+}
+
 ##########
 # run
 ##########
