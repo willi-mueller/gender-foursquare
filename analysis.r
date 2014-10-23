@@ -93,16 +93,25 @@ filterTopNSubcategories <- function(x, y, n, fun=`+`) {
   return(order(uniqueSubC$sumCount, decreasing=TRUE)[1:n])
 }
 
-plot_pdf <- function(x) {
+plot_pdf <- function(x, xlab="% of unique users checked in", ylab="Frequency") {
+  # probability density function
   h <- hist(completeFemaleR$count, breaks = 100, plot=FALSE)
   h$counts=h$counts/sum(h$counts)
-  plot(h)
+  plot(h, xlab=xlab, ylab=ylab)
 }
+
+plot_density <-function(x) {
+  plot(density(x))
+}
+
+xfit <- seq(min(completeMale$count), max(completeMale$count), length=100)
+yfit <- dnorm(xfit, mean=summary(completeMale$count)[4], sd=sd(completeMale$count))
+lines(xfit, yfit, col="red")
 
 ##########
 # run
 ##########
-country <- "saudi"
+country <- "Saudi Arabia"
 
 saudiCheckIns <- "base2/arabiaSaudita/Saudi-Arabia.txt"
 franceCheckIns <- "base2/France.txt"
