@@ -15,34 +15,17 @@ citySegregation <- function(checkInsInCity, cityName) {
   fCity <- checkInsInCity[checkInsInCity$gender=='female', ]
   mCity <- checkInsInCity[checkInsInCity$gender=='male', ]
 
-  countLocationsByGender <- function(checkInsOfGender) {
-    mCityLocations <- sqldf("Select *, count(*) as count from
-      (select * from checkInsOfGender group by user, idLocal) group by idLocal")
-  }
-
   mCityLocations <- countLocationsByGender(mCity)
   fCityLocations <- countLocationsByGender(fCity)
 
-  notInF <- sqldf("Select * from mCityLocations where idLocal not in (Select idLocal from fCityLocations)")
-  notInM <- sqldf("Select * from fCityLocations where idLocal not in (Select idLocal from mCityLocations)")
+  notInF <- locationsNotCheckInByGender(fCityLocations, mCityLocations)
+  notInM <- locationsNotCheckInByGender(mCityLocations, fCityLocations)
 
+  completeFemale <- completeLocationsWithOtherGender(fCityLocations, notInF)
+  completeMale <- completeLocationsWithOtherGender(mCityLocations, notInM)
 
-  temp <- notInM
-  temp$count<-0
-  completeMale <- rbind(mCityLocations, temp)
-  completeMale <- completeMale[order(completeMale$count, decreasing=T), ]
-
-  temp <- notInF
-  temp$count<-0
-  completeFemale <- rbind(fCityLocations, temp)
-  completeFemale <- completeFemale[order(completeFemale$count, decreasing=T), ]
-
-  completeMaleR <- completeMale; completeFemaleR <- completeFemale
-  completeMaleR$count <- completeMaleR$count/sum(completeMaleR$count)
-  completeFemaleR$count <- completeFemaleR$count/sum(completeFemaleR$count)
-
-  completeMaleR <- completeMaleR[order(completeMaleR$idLocal, decreasing=T), ]
-  completeFemaleR <- completeFemaleR[order(completeFemaleR$idLocal, decreasing=T), ]
+  completeMaleR <- relativeCount(completeMale)
+  completeFemaleR <- relativeCount(completeFemale)
 
   print(cor.test(completeMaleR$count, completeFemaleR$count))
 
@@ -56,6 +39,29 @@ citySegregation <- function(checkInsInCity, cityName) {
 
   printTopLocations(completeMaleR, "male")
   printTopLocations(completeFemaleR, "female")
+}
+
+relativeCount <- function(checkIns) {
+  checkInsRelative <- checkIns
+  checkInsRelative$count <- checkInsRelative$count/sum(checkInsRelative$count)
+  # sort
+  return(checkInsRelative[order(checkInsRelative$idLocal, decreasing=T), ])
+}
+
+completeLocationsWithOtherGender <- function(checkIns, checkInsNotMade){
+    checkInsNotMade$count <- 0
+    complete <- rbind(checkIns, checkInsNotMade)
+    # sort by popularity
+    return(complete[order(complete$count, decreasing=T), ])
+}
+
+locationsNotCheckInByGender <- function(checkIns, checkInsOfOtherGender) {
+    return(sqldf("Select * from checkInsOfOtherGender where idLocal not in (Select idLocal from checkIns)"))
+}
+
+countLocationsByGender <- function(checkInsOfGender) {
+    mCityLocations <- sqldf("Select *, count(*) as count from
+      (select * from checkInsOfGender group by user, idLocal) group by idLocal")
 }
 
 topLocations <- function(checkIns, n=7) {
