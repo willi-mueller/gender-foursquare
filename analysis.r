@@ -398,79 +398,7 @@ completeFemaleR[order(completeFemaleR$count, decreasing=T),][1:7,]
 
 ##################################
 
-getCheckInsInCity <- function(cityName, countryCheckIns, countryUsers, countryFilter) {
-  ci <- readCheckIns(countryCheckIns)
 
-  sqldf("Select * from ci")
-  users <- readUsers(germanyUsers)
-  profiles <- cleanUsers(users, filter=germanyFilter)
-
-  joined <- joinCheckInsWithProfiles("ci", "profiles")
-  print(joined)
-  # string <- sprintf("Select * from joined where city LIKE %s", shQuote(cityName))
-  # printf(string)
-  # checkInsInCity <- sqldf(string)
-  # return(checkInsInCity)
-}
-
-
-citySegregation <- function(checkInsInCity, cityName) {
-  fCity <- checkInsInCity[checkInsInCity$gender=='female', ]
-  m_city <- checkInsInCity[checkInsInCity$gender=='male', ]
-   # paste("Select *, count(*) as count from  (select * from ", table,
-   #                      " where gender='", gender, "' group by user, ",
-   #                       category, " ) group by ",  category, sep="")
-
-  mCityLocations <- sqldf("Select *, count(*) as count from
-      (select * from m_city group by user, idLocal) group by idLocal")
-  fCityLocations <- sqldf("Select *, count(*) as count from
-      (select * from fCity group by user, idLocal) group by idLocal")
-  notInF <- sqldf("Select * from mCityLocations where idLocal not in (Select idLocal from fCityLocations)")
-  notInM <- sqldf("Select * from fCityLocations where idLocal not in (Select idLocal from mCityLocations)")
-
-  temp <- notInM
-  temp$count<-0
-  completeMale <- rbind(mCityLocations, temp)
-  completeMale <- completeMale[order(completeMale$count, decreasing=T), ]
-
-  temp <- notInF
-  temp$count<-0
-  completeFemale <- rbind(fCityLocations, temp)
-  completeFemale <- completeFemale[order(completeFemale$count, decreasing=T), ]
-
-  completeMaleR <- completeMale; completeFemaleR <- completeFemale
-  completeMaleR$count <- completeMaleR$count/sum(completeMaleR$count)
-  completeFemaleR$count <- completeFemaleR$count/sum(completeFemaleR$count)
-
-  completeMaleR <- completeMaleR[order(completeMaleR$idLocal, decreasing=T), ]
-  completeFemaleR <- completeFemaleR[order(completeFemaleR$idLocal, decreasing=T), ]
-
-  print(cor.test(completeMaleR$count, completeFemaleR$count))
-
-  #   Pearson's product-moment correlation
-
-  # data:  completeMaleR$count and completeFemaleR$count
-  # t = -3.8159, df = 365, p-value = 0.0001593
-  # alternative hypothesis: true correlation is not equal to 0
-  # 95 percent confidence interval:
-  #  -0.29237214 -0.09540704
-  # sample estimates:
-  #        cor
-  # -0.1958642
-
-  print(chisq.test(completeMaleR[order(completeMaleR$count, decreasing=T),]$count,
-             completeFemaleR[order(completeFemaleR$count, decreasing=T),]$count))
-  # X-squared = 171.2095, df = 15, p-value < 2.2e-16
-
-  plot(completeMaleR$count, completeFemaleR$count,
-      main=paste("Gender separation in", cityName), xlab="male", ylab="female",
-      xlim=c(0,0.05), ylim=c(0, 0.05))
-  abline(0, 1, col="red")
-
-  # check top locations
-  completeMaleR[order(completeMaleR$count, decreasing=T),][1:7,]
-  completeFemaleR[order(completeFemaleR$count, decreasing=T),][1:7,]
-}
 
 checkInsInCity <- getCheckInsInCity("Berlin", germanyCheckIns, germanyUsers, germanyFilter)
 citySegregation(checkInsInCity, "Berlin")
@@ -500,7 +428,6 @@ outer <- function() {
   foo <- data.frame(1,2,3)
   inner()
 }
-
 
 outer()
 
