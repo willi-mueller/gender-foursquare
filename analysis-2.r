@@ -20,10 +20,10 @@ subcategoryPreferencesByGender <- function(countryCheckIns, countryUsers, countr
   maleUniqueSubC <- categoriesByGender(joined, "male", subcategory=TRUE, uniqueUsers=TRUE)
   femaleUniqueSubC <- categoriesByGender(joined, "female", subcategory=TRUE, uniqueUsers=TRUE)
 
-  femaleSubC <- completeSubcategories(maleSubC, femaleSubC, "maleSubC", "femaleSubC")
-  maleSubC <- completeSubcategories(femaleSubC, maleSubC, "femaleSubC", "maleSubC")
-  femaleUniqueSubC <- completeSubcategories(maleUniqueSubC, femaleUniqueSubC, "maleUniqueSubC", "femaleUniqueSubC")
-  maleUniqueSubC <- completeSubcategories(femaleUniqueSubC, maleUniqueSubC, "femaleUniqueSubC", "maleUniqueSubC")
+  femaleSubC <- completeSubcategories(maleSubC, femaleSubC)
+  maleSubC <- completeSubcategories(femaleSubC, maleSubC)
+  femaleUniqueSubC <- completeSubcategories(maleUniqueSubC, femaleUniqueSubC)
+  maleUniqueSubC <- completeSubcategories(femaleUniqueSubC, maleUniqueSubC)
 
   # aggregate equivalent subcategories
   maleSubC <- aggregateEquivalentSubC(substitutionRules, maleSubC)
@@ -199,12 +199,12 @@ correlateCategories <- function(x, y, labels, country="Saudi Arabia", countMetho
   print(chisq.test(x, y))
 }
 
-selectNotPresentFromOtherGender <- function(x, y) {
-  return(sqldf(paste("Select * from", x, "where subcategory not in (Select subcategory from", y,")")))
+selectNotPresentFromOtherGender <- function(gender1, gender2) {
+  return(sqldf(paste("Select * from gender1 where subcategory not in (Select subcategory from gender2)")))
 }
 
-completeSubcategories <- function(gender1, gender2, gender1String, gender2String) {
-  temp <- selectNotPresentFromOtherGender(gender1String, gender2String)
+completeSubcategories <- function(gender1, gender2) {
+  temp <- selectNotPresentFromOtherGender(gender1, gender2)
   temp$count <- 0
   #temp$gender <- gender2$gender
   gender2<-rbind(gender2, temp)
