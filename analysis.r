@@ -20,8 +20,10 @@ cleanUsers <- function(users, filter) {
 }
 
 joinCheckInsWithProfiles <- function(checkIns, profileTable) {
-  query <- paste("Select * from", checkIns, "JOIN", profileTable, "using(idUserFoursquare)")
-  return(sqldf(query))
+  sqldf("Select * from ci")
+  query <- sprintf("Select * from %s JOIN %s using(idUserFoursquare)", checkIns, profileTable)
+  print(query)
+  return(fn$sqldf("Select * from $checkIns JOIN $profileTable using(idUserFoursquare)"))
 }
 
 categoriesByGender <- function(table, gender, uniqueUsers=FALSE, subcategory=FALSE) {
@@ -104,9 +106,9 @@ plot_density <-function(x) {
   plot(density(x))
 }
 
-xfit <- seq(min(completeMale$count), max(completeMale$count), length=100)
-yfit <- dnorm(xfit, mean=summary(completeMale$count)[4], sd=sd(completeMale$count))
-lines(xfit, yfit, col="red")
+# xfit <- seq(min(completeMale$count), max(completeMale$count), length=100)
+# yfit <- dnorm(xfit, mean=summary(completeMale$count)[4], sd=sd(completeMale$count))
+# lines(xfit, yfit, col="red")
 
 ##########
 # run
@@ -396,67 +398,121 @@ completeFemaleR[order(completeFemaleR$count, decreasing=T),][1:7,]
 
 ##################################
 
-ci <- readCheckIns(germanyCheckIns)
-city = 'Berlin'
+getCheckInsInCity <- function(cityName, countryCheckIns, countryUsers, countryFilter) {
+  ci <- readCheckIns(countryCheckIns)
 
-users <- readUsers(germanyUsers)
-profiles <- cleanUsers(users, filter=germanyFilter)
+  sqldf("Select * from ci")
+  users <- readUsers(germanyUsers)
+  profiles <- cleanUsers(users, filter=germanyFilter)
 
-joined <- joinCheckInsWithProfiles("ci", "profiles")
+  joined <- joinCheckInsWithProfiles("ci", "profiles")
+  print(joined)
+  # string <- sprintf("Select * from joined where city LIKE %s", shQuote(cityName))
+  # printf(string)
+  # checkInsInCity <- sqldf(string)
+  # return(checkInsInCity)
+}
 
-riyadh <- sqldf(paste("Select * from joined where city LIKE '", city, "'", sep=""))
-friyadh <- riyadh[riyadh$gender=='female', ]
-mriyadh <- riyadh[riyadh$gender=='male', ]
- # paste("Select *, count(*) as count from  (select * from ", table,
- #                      " where gender='", gender, "' group by user, ",
- #                       category, " ) group by ",  category, sep="")
 
-xmriyadh <- sqldf("Select *, count(*) as count from
-    (select * from mriyadh group by user, idLocal) group by idLocal")
-xfriyadh <- sqldf("Select *, count(*) as count from
-    (select * from friyadh group by user, idLocal) group by idLocal")
-notInF <- sqldf("Select * from xmriyadh where idLocal not in (Select idLocal from xfriyadh)")
-notInM <- sqldf("Select * from xfriyadh where idLocal not in (Select idLocal from xmriyadh)")
+citySegregation <- function(checkInsInCity, cityName) {
+  fCity <- checkInsInCity[checkInsInCity$gender=='female', ]
+  m_city <- checkInsInCity[checkInsInCity$gender=='male', ]
+   # paste("Select *, count(*) as count from  (select * from ", table,
+   #                      " where gender='", gender, "' group by user, ",
+   #                       category, " ) group by ",  category, sep="")
 
-temp <- notInM
-temp$count<-0
-completeMale <- rbind(xmriyadh, temp)
-completeMale <- completeMale[order(completeMale$count, decreasing=T), ]
+  mCityLocations <- sqldf("Select *, count(*) as count from
+      (select * from m_city group by user, idLocal) group by idLocal")
+  fCityLocations <- sqldf("Select *, count(*) as count from
+      (select * from fCity group by user, idLocal) group by idLocal")
+  notInF <- sqldf("Select * from mCityLocations where idLocal not in (Select idLocal from fCityLocations)")
+  notInM <- sqldf("Select * from fCityLocations where idLocal not in (Select idLocal from mCityLocations)")
 
-temp <- notInF
-temp$count<-0
-completeFemale <- rbind(xfriyadh, temp)
-completeFemale <- completeFemale[order(completeFemale$count, decreasing=T), ]
+  temp <- notInM
+  temp$count<-0
+  completeMale <- rbind(mCityLocations, temp)
+  completeMale <- completeMale[order(completeMale$count, decreasing=T), ]
 
-completeMaleR <- completeMale; completeFemaleR <- completeFemale
-completeMaleR$count <- completeMaleR$count/sum(completeMaleR$count)
-completeFemaleR$count <- completeFemaleR$count/sum(completeFemaleR$count)
+  temp <- notInF
+  temp$count<-0
+  completeFemale <- rbind(fCityLocations, temp)
+  completeFemale <- completeFemale[order(completeFemale$count, decreasing=T), ]
 
-completeMaleR <- completeMaleR[order(completeMaleR$idLocal, decreasing=T), ]
-completeFemaleR <- completeFemaleR[order(completeFemaleR$idLocal, decreasing=T), ]
+  completeMaleR <- completeMale; completeFemaleR <- completeFemale
+  completeMaleR$count <- completeMaleR$count/sum(completeMaleR$count)
+  completeFemaleR$count <- completeFemaleR$count/sum(completeFemaleR$count)
 
-cor.test(completeMaleR$count, completeFemaleR$count)
+  completeMaleR <- completeMaleR[order(completeMaleR$idLocal, decreasing=T), ]
+  completeFemaleR <- completeFemaleR[order(completeFemaleR$idLocal, decreasing=T), ]
 
-#   Pearson's product-moment correlation
+  print(cor.test(completeMaleR$count, completeFemaleR$count))
 
-# data:  completeMaleR$count and completeFemaleR$count
-# t = -3.8159, df = 365, p-value = 0.0001593
-# alternative hypothesis: true correlation is not equal to 0
-# 95 percent confidence interval:
-#  -0.29237214 -0.09540704
-# sample estimates:
-#        cor
-# -0.1958642
+  #   Pearson's product-moment correlation
 
-chisq.test(completeMaleR[order(completeMaleR$count, decreasing=T),]$count,
-           completeFemaleR[order(completeFemaleR$count, decreasing=T),]$count)
-# X-squared = 171.2095, df = 15, p-value < 2.2e-16
+  # data:  completeMaleR$count and completeFemaleR$count
+  # t = -3.8159, df = 365, p-value = 0.0001593
+  # alternative hypothesis: true correlation is not equal to 0
+  # 95 percent confidence interval:
+  #  -0.29237214 -0.09540704
+  # sample estimates:
+  #        cor
+  # -0.1958642
 
-plot(completeMaleR$count, completeFemaleR$count,
-    main=paste("Gender separation in", city), xlab="male", ylab="female",
-    xlim=c(0,0.05), ylim=c(0, 0.05))
-abline(0, 1, col="red")
+  print(chisq.test(completeMaleR[order(completeMaleR$count, decreasing=T),]$count,
+             completeFemaleR[order(completeFemaleR$count, decreasing=T),]$count))
+  # X-squared = 171.2095, df = 15, p-value < 2.2e-16
 
-# check top locations
-completeMaleR[order(completeMaleR$count, decreasing=T),][1:7,]
-completeFemaleR[order(completeFemaleR$count, decreasing=T),][1:7,]
+  plot(completeMaleR$count, completeFemaleR$count,
+      main=paste("Gender separation in", cityName), xlab="male", ylab="female",
+      xlim=c(0,0.05), ylim=c(0, 0.05))
+  abline(0, 1, col="red")
+
+  # check top locations
+  completeMaleR[order(completeMaleR$count, decreasing=T),][1:7,]
+  completeFemaleR[order(completeFemaleR$count, decreasing=T),][1:7,]
+}
+
+checkInsInCity <- getCheckInsInCity("Berlin", germanyCheckIns, germanyUsers, germanyFilter)
+citySegregation(checkInsInCity, "Berlin")
+
+
+# works
+f <- function(foo) {
+  print(sqldf("select * from foo"))
+}
+foo <- data.frame(1,2,3)
+f(foo)
+
+# works
+f <- function() {
+  foo <- data.frame(1,2,3)
+  print(sqldf("select * from foo"))
+}
+
+f()
+
+
+# does not work
+inner <- function() {
+  print(sqldf("select * from foo"))
+}
+outer <- function() {
+  foo <- data.frame(1,2,3)
+  inner()
+}
+
+
+outer()
+
+
+# works
+outer <- function() {
+  foo <- data.frame(1,2,3)
+  inner(foo)
+}
+inner <- function(bar) {
+  print(sqldf("select * from bar"))
+}
+
+outer()
+
