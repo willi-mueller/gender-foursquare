@@ -13,17 +13,19 @@ getCheckInsInCity <- function(cityName, countryCheckIns, countryUsers, countryFi
 
 citySegregation <- function(checkInsInCity, cityName) {
   fCity <- checkInsInCity[checkInsInCity$gender=='female', ]
-  m_city <- checkInsInCity[checkInsInCity$gender=='male', ]
-   # paste("Select *, count(*) as count from  (select * from ", table,
-   #                      " where gender='", gender, "' group by user, ",
-   #                       category, " ) group by ",  category, sep="")
+  mCity <- checkInsInCity[checkInsInCity$gender=='male', ]
 
-  mCityLocations <- sqldf("Select *, count(*) as count from
-      (select * from m_city group by user, idLocal) group by idLocal")
-  fCityLocations <- sqldf("Select *, count(*) as count from
-      (select * from fCity group by user, idLocal) group by idLocal")
+  countLocationsByGender <- function(checkInsOfGender) {
+    mCityLocations <- sqldf("Select *, count(*) as count from
+      (select * from checkInsOfGender group by user, idLocal) group by idLocal")
+  }
+
+  mCityLocations <- countLocationsByGender(mCity)
+  fCityLocations <- countLocationsByGender(fCity)
+
   notInF <- sqldf("Select * from mCityLocations where idLocal not in (Select idLocal from fCityLocations)")
   notInM <- sqldf("Select * from fCityLocations where idLocal not in (Select idLocal from mCityLocations)")
+
 
   temp <- notInM
   temp$count<-0
