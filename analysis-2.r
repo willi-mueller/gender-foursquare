@@ -44,31 +44,27 @@ citySegregation <- function(checkInsInCity, cityName) {
 
   print(cor.test(completeMaleR$count, completeFemaleR$count))
 
-  #   Pearson's product-moment correlation
-
-  # data:  completeMaleR$count and completeFemaleR$count
-  # t = -3.8159, df = 365, p-value = 0.0001593
-  # alternative hypothesis: true correlation is not equal to 0
-  # 95 percent confidence interval:
-  #  -0.29237214 -0.09540704
-  # sample estimates:
-  #        cor
-  # -0.1958642
-
   print(chisq.test(completeMaleR[order(completeMaleR$count, decreasing=T),]$count,
              completeFemaleR[order(completeFemaleR$count, decreasing=T),]$count))
-  # X-squared = 171.2095, df = 15, p-value < 2.2e-16
 
   plot(completeMaleR$count, completeFemaleR$count,
       main=paste("Gender separation in", cityName), xlab="male", ylab="female",
       xlim=c(0,0.05), ylim=c(0, 0.05))
   abline(0, 1, col="red")
 
-  # check top locations
-  completeMaleR[order(completeMaleR$count, decreasing=T),][1:7,]
-  completeFemaleR[order(completeFemaleR$count, decreasing=T),][1:7,]
+  printTopLocations(completeMaleR, "male")
+  printTopLocations(completeFemaleR, "female")
 }
 
+topLocations <- function(checkIns, n=7) {
+    return(checkIns[order(checkIns$count, decreasing=T),][1:n,])
+}
+
+printTopLocations <- function(checkIns, gender) {
+  top <- topLocations(checkIns)
+  print(sprintf("Top %s:", gender))
+  print(top[, c("gender", "count", "subcategory", "idLocal", "latitude", "longitude")])
+}
 
 readUsers <- function(path) {
   fullPath <- paste("~/studium/Lehrveranstaltungen/informationRetrieval/GenderSocialMedia/datasets/", path, sep="")
@@ -90,8 +86,6 @@ cleanUsers <- function(users, filter) {
 }
 
 joinCheckInsWithProfiles <- function(checkIns, profiles) {
-  sqldf("Select * from checkIns")
-  print("Got here 3")
   return(sqldf("Select * from checkIns JOIN profiles using(idUserFoursquare)"))
 }
 
