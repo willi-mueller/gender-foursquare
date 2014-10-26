@@ -12,17 +12,10 @@ getCheckInsInCity <- function(cityName, countryCheckIns, countryUsers, countryFi
 
 
 citySegregation <- function(checkInsInCity, cityName) {
-  fCity <- checkInsInCity[checkInsInCity$gender=='female', ]
-  mCity <- checkInsInCity[checkInsInCity$gender=='male', ]
+  checkIns <- completedCheckInsByGenderInCity(checkInsInCity)
 
-  mCityLocations <- countLocationsByGender(mCity)
-  fCityLocations <- countLocationsByGender(fCity)
-
-  notInF <- locationsNotCheckInByGender(fCityLocations, mCityLocations)
-  notInM <- locationsNotCheckInByGender(mCityLocations, fCityLocations)
-
-  completeFemale <- completeLocationsWithOtherGender(fCityLocations, notInF)
-  completeMale <- completeLocationsWithOtherGender(mCityLocations, notInM)
+  completeFemale <- checkIns$female
+  completeMale <- checkIns$male
 
   completeMaleR <- relativeCount(completeMale)
   completeFemaleR <- relativeCount(completeFemale)
@@ -41,6 +34,21 @@ citySegregation <- function(checkInsInCity, cityName) {
   printTopLocations(completeFemaleR, "female")
 }
 
+completedCheckInsByGenderInCity <- function(checkInsInCity) {
+  fCity <- checkInsInCity[checkInsInCity$gender=='female', ]
+  mCity <- checkInsInCity[checkInsInCity$gender=='male', ]
+
+  mCityLocations <- countLocationsByGender(mCity)
+  fCityLocations <- countLocationsByGender(fCity)
+
+  notInF <- locationsNotCheckedInByGender(fCityLocations, mCityLocations)
+  notInM <- locationsNotCheckedInByGender(mCityLocations, fCityLocations)
+
+  completeFemale <- completeLocationsWithOtherGender(fCityLocations, notInF)
+  completeMale <- completeLocationsWithOtherGender(mCityLocations, notInM)
+  return(list(female=completeFemale, male=completeMale))
+  }
+
 relativeCount <- function(checkIns) {
   checkInsRelative <- checkIns
   checkInsRelative$count <- checkInsRelative$count/sum(checkInsRelative$count)
@@ -55,7 +63,7 @@ completeLocationsWithOtherGender <- function(checkIns, checkInsNotMade){
     return(complete[order(complete$count, decreasing=T), ])
 }
 
-locationsNotCheckInByGender <- function(checkIns, checkInsOfOtherGender) {
+locationsNotCheckedInByGender <- function(checkIns, checkInsOfOtherGender) {
     return(sqldf("Select * from checkInsOfOtherGender where idLocal not in (Select idLocal from checkIns)"))
 }
 
