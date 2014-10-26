@@ -1,5 +1,67 @@
 library(sqldf)
 
+subcategoryPreferencesByGender <- function(countryCheckIns, countryUsers, countryFilter, country) {
+  ci <- readCheckIns(countryCheckIns)
+
+  users <- readUsers(countryUsers)
+  profiles <- cleanUsers(users, filter=countryFilter)
+
+  joined <- joinCheckInsWithProfiles(ci, profiles)
+
+  #categories
+  maleC <- categoriesByGender(joined, "male")
+  femaleC <- categoriesByGender(joined, "female")
+  maleUniqueC <- categoriesByGender(joined, "male", uniqueUsers=TRUE)
+  femaleUniqueC <- categoriesByGender(joined, "female", uniqueUsers=TRUE)
+
+  #subcategories
+  maleSubC <- categoriesByGender(joined, "male", subcategory=TRUE)
+  femaleSubC <- categoriesByGender(joined, "female", subcategory=TRUE)
+  maleUniqueSubC <- categoriesByGender(joined, "male", subcategory=TRUE, uniqueUsers=TRUE)
+  femaleUniqueSubC <- categoriesByGender(joined, "female", subcategory=TRUE, uniqueUsers=TRUE)
+
+  femaleSubC <- completeSubcategories(maleSubC, femaleSubC, "maleSubC", "femaleSubC")
+  maleSubC <- completeSubcategories(femaleSubC, maleSubC, "femaleSubC", "maleSubC")
+  femaleUniqueSubC <- completeSubcategories(maleUniqueSubC, femaleUniqueSubC, "maleUniqueSubC", "femaleUniqueSubC")
+  maleUniqueSubC <- completeSubcategories(femaleUniqueSubC, maleUniqueSubC, "femaleUniqueSubC", "maleUniqueSubC")
+
+  # aggregate equivalent subcategories
+  maleSubC <- aggregateEquivalentSubC(substitutionRules, maleSubC)
+  femaleSubC <- aggregateEquivalentSubC(substitutionRules, femaleSubC)
+  maleUniqueSubC <- aggregateEquivalentSubC(substitutionRules, maleUniqueSubC)
+  femaleUniqueSubC <- aggregateEquivalentSubC(substitutionRules, femaleUniqueSubC)
+
+  # normalization - counting check-ins
+  maleC$count <- normalizeByAbsolutePercentage(maleC$count)
+  femaleC$count <- normalizeByAbsolutePercentage(femaleC$count)
+  maleSubC$count <- normalizeByAbsolutePercentage(maleSubC$count)
+  femaleSubC$count <- normalizeByAbsolutePercentage(femaleSubC$count)
+
+  # normalization – unique users
+  maleUniqueC$count <- normalizeByAbsolutePercentage(maleUniqueC$count)
+  femaleUniqueC$count <- normalizeByAbsolutePercentage(femaleUniqueC$count)
+  maleUniqueSubC$count <- normalizeByAbsolutePercentage(maleUniqueSubC$count)
+  femaleUniqueSubC$count <- normalizeByAbsolutePercentage(femaleUniqueSubC$count)
+
+  topN <- femaleUniqueSubC[1:nrow(femaleUniqueSubC),] # select all
+  # disable following line
+  topN <- filterTopNSubcategories(maleUniqueSubC, femaleUniqueSubC, 10,
+                                 function(x,y){abs(x+y)})
+
+  maleUniqueSubCTop <- maleUniqueSubC[topN,]
+  femaleUniqueSubCTop <- femaleUniqueSubC[topN,]
+
+  # correlation categories
+  # correlateCategories(maleC$count, femaleC$count, maleC$category, country=country)
+  # correlateCategories(maleUniqueC$count, femaleUniqueC$count, maleC$category, country=country,
+  #                     countMethod="unique users")
+
+  # correlateCategories(maleSubC$count, femaleSubC$count, maleSubC$subcategory, country=country,
+  #                     categories="Subcategories")
+  correlateCategories(maleUniqueSubCTop$count, femaleUniqueSubCTop$count, maleUniqueSubCTop$subcategory, country=country,
+                      categories="10 most popular subcategories", countMethod="unique users")
+}
+
 getCheckInsInCity <- function(cityName, countryCheckIns, countryUsers, countryFilter) {
   ci <- readCheckIns(countryCheckIns)
   users <- readUsers(countryUsers)
@@ -105,16 +167,16 @@ joinCheckInsWithProfiles <- function(checkIns, profiles) {
   return(sqldf("Select * from checkIns JOIN profiles using(idUserFoursquare)"))
 }
 
-categoriesByGender <- function(table, gender, uniqueUsers=FALSE, subcategory=FALSE) {
+categoriesByGender <- function(joinedTable, gender, uniqueUsers=FALSE, subcategory=FALSE) {
   category <- "category"
   if(subcategory==TRUE) {
     category <- "subcategory"
   }
-  queryString <- paste("Select *, count(*) as count from ", table,
-                     " where gender='", gender, "' group by ", category, sep="")
+  queryString <- paste("Select *, count(*) as count from joinedTable where gender='",
+    gender, "' group by ", category, sep="")
   if(uniqueUsers==TRUE) {
-    queryString <- paste("Select *, count(*) as count from  (select * from ", table,
-                      " where gender='", gender, "' group by user, ",
+    queryString <- paste("Select *, count(*) as count from  (select * from joinedTable where gender='",
+      gender, "' group by user, ",
                        category, " ) group by ",  category, sep="")
   }
   return(sqldf(queryString))
@@ -185,6 +247,7 @@ plot_density <-function(x) {
   plot(density(x))
 }
 
+
 ##########
 # Constants
 ##########
@@ -218,6 +281,6 @@ substitutionRules <- list(
 ##################
 # Run
 ##################
-checkInsInCity <- getCheckInsInCity("Abu Dhabi", uaeCheckIns, uaeUsers, uaeFilter)
-citySegregation(checkInsInCity, "Abu Dhabi")
-country <- "Germany"
+# checkInsInCity <- getCheckInsInCity("Abu Dhabi", uaeCheckIns, uaeUsers, uaeFilter)
+# citySegregation(checkInsInCity, "Abu Dhabi")
+subcategoryPreferencesByGender(uaeCheckIns, uaeUsers, uaeFilter, "UAE")
