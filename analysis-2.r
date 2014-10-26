@@ -2,8 +2,8 @@ library(sqldf)
 
 getCheckInsInCity <- function(cityName, countryCheckIns, countryUsers, countryFilter) {
   ci <- readCheckIns(countryCheckIns)
-  users <- readUsers(germanyUsers)
-  profiles <- cleanUsers(users, filter=germanyFilter)
+  users <- readUsers(countryUsers)
+  profiles <- cleanUsers(users, filter=countryFilter)
 
   joined <- joinCheckInsWithProfiles(ci, profiles)
   checkInsInCity <- sqldf(sprintf("Select * from joined where city LIKE %s", shQuote(cityName)))
@@ -218,6 +218,6 @@ substitutionRules <- list(
 ##################
 # Run
 ##################
+checkInsInCity <- getCheckInsInCity("Abu Dhabi", uaeCheckIns, uaeUsers, uaeFilter)
+citySegregation(checkInsInCity, "Abu Dhabi")
 country <- "Germany"
-checkInsInCity <- getCheckInsInCity("Berlin", germanyCheckIns, germanyUsers, germanyFilter)
-citySegregation(checkInsInCity, "Berlin")
