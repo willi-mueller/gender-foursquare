@@ -43,23 +43,32 @@ subcategoryPreferencesByGender <- function(countryCheckIns, countryUsers, countr
   maleUniqueSubC$count <- normalizeByAbsolutePercentage(maleUniqueSubC$count)
   femaleUniqueSubC$count <- normalizeByAbsolutePercentage(femaleUniqueSubC$count)
 
-  topN <- femaleUniqueSubC[1:nrow(femaleUniqueSubC),] # select all
+  return(list(maleCategories=maleC, femaleCategories=femaleC,
+              maleUniqueCategories=maleUniqueC, femaleUniqueCategories=femaleUniqueC,
+              maleSubcategories=maleSubC, femaleSubcategories=femaleSubC,
+              maleUniqueSubcategories=maleUniqueSubC, femaleUniqueSubcategories=femaleUniqueSubC))
+}
+
+correlateTopCategories <- function(group1, group2, country, categories, countMethod) {
+  top <- getTopNCategories(group1, group2)
+
+  correlateCategories(top$group1$count,
+                      top$group2$count,
+                      labels=top$group1$subcategory,
+                      country=country,
+                      categories=categories,
+                      countMethod=countMethod)
+}
+
+getTopNCategories <- function(group1, group2){
+  topN <- group1[1:nrow(group1),] # select all
   # disable following line
-  topN <- filterTopNSubcategories(maleUniqueSubC, femaleUniqueSubC, 10,
+  topN <- filterTopNSubcategories(group2, group1, 10,
                                  function(x,y){abs(x+y)})
 
-  maleUniqueSubCTop <- maleUniqueSubC[topN,]
-  femaleUniqueSubCTop <- femaleUniqueSubC[topN,]
-
-  # correlation categories
-  # correlateCategories(maleC$count, femaleC$count, maleC$category, country=country)
-  # correlateCategories(maleUniqueC$count, femaleUniqueC$count, maleC$category, country=country,
-  #                     countMethod="unique users")
-
-  # correlateCategories(maleSubC$count, femaleSubC$count, maleSubC$subcategory, country=country,
-  #                     categories="Subcategories")
-  correlateCategories(maleUniqueSubCTop$count, femaleUniqueSubCTop$count, maleUniqueSubCTop$subcategory, country=country,
-                      categories="10 most popular subcategories", countMethod="unique users")
+  group2Top <- group2[topN,]
+  group1Top <- group1[topN,]
+  return(list(group1=group1Top, group2=group2Top))
 }
 
 getCheckInsInCity <- function(cityName, countryCheckIns, countryUsers, countryFilter) {
@@ -190,8 +199,8 @@ normalizeByPercentageOfMax <- function(attribute) {
   return(attribute/max(attribute))
 }
 
-correlateCategories <- function(x, y, labels, country="Saudi Arabia", countMethod="check-ins", categories="Categories") {
-  plot(x, y, main=paste("Correlation of", categories, "counting", countMethod, "in", country),
+correlateCategories <- function(x, y, labels, country, countMethod="check-ins", categories="Categories") {
+  plot(x, y, main=sprintf("Correlation of %s counting %s in %s",categories, countMethod, country),
        xlab="Male", ylab="Female", xlim=c(0,0.1), ylim=c(0, 0.1))
   abline(0, 1, col="red")
   text(x, y, labels=labels, pos=3)
@@ -281,6 +290,29 @@ substitutionRules <- list(
 ##################
 # Run
 ##################
+country <- "UAE"
 # checkInsInCity <- getCheckInsInCity("Abu Dhabi", uaeCheckIns, uaeUsers, uaeFilter)
 # citySegregation(checkInsInCity, "Abu Dhabi")
-subcategoryPreferencesByGender(uaeCheckIns, uaeUsers, uaeFilter, "UAE")
+data <- subcategoryPreferencesByGender(uaeCheckIns, uaeUsers, uaeFilter, country)
+
+# correlation categories
+correlateCategories(data$maleCategories$count, data$femaleCategories$count,
+                    data$maleCategories$category,
+                    countMethod="check-ins",
+                    country=country)
+
+correlateCategories(data$maleUniqueCategories$count, data$femaleUniqueCategories$count,
+                    data$maleUniqueCategories$category,
+                    country=country,
+                    countMethod="unique users")
+
+correlateCategories(data$maleSubcategories$count, data$femaleSubcategories$count,
+                    data$maleSubcategories$subcategory,
+                    country=country,
+                    countMethod="check-ins",
+                    categories="Subcategories")
+
+correlateTopCategories(data$maleUniqueSubcategories, data$femaleUniqueSubcategories,
+                       country,
+                       "unique users",
+                       "10 most popular subcategories")                       )
