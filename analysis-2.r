@@ -199,9 +199,11 @@ normalizeByPercentageOfMax <- function(attribute) {
   return(attribute/max(attribute))
 }
 
-correlateCategories <- function(x, y, labels, country, countMethod="check-ins", categories="Categories") {
+correlateCategories <- function(x, y, labels, country, countMethod="check-ins",
+                                categories="Categories",
+                                xlim=0.1, ylim=0.1) {
   plot(x, y, main=sprintf("Correlation of %s counting %s in %s",categories, countMethod, country),
-       xlab="Male", ylab="Female", xlim=c(0,0.1), ylim=c(0, 0.1))
+       xlab="Male", ylab="Female", xlim=c(0, xlim), ylim=c(0, ylim))
   abline(0, 1, col="red")
   text(x, y, labels=labels, pos=3)
   print(cor.test(x, y))
@@ -291,28 +293,32 @@ substitutionRules <- list(
 # Run
 ##################
 country <- "UAE"
-# checkInsInCity <- getCheckInsInCity("Abu Dhabi", uaeCheckIns, uaeUsers, uaeFilter)
-# citySegregation(checkInsInCity, "Abu Dhabi")
-data <- subcategoryPreferencesByGender(uaeCheckIns, uaeUsers, uaeFilter, country)
+checkInsInCity <- getCheckInsInCity("Abu Dhabi", uaeCheckIns, uaeUsers, uaeFilter)
+citySegregation(checkInsInCity, "Abu Dhabi")
 
 # correlation categories
+data <- subcategoryPreferencesByGender(uaeCheckIns, uaeUsers, uaeFilter, country)
+
 correlateCategories(data$maleCategories$count, data$femaleCategories$count,
                     data$maleCategories$category,
                     countMethod="check-ins",
-                    country=country)
+                    country=country,
+                    xlim=0.3, ylim=0.3)
 
 correlateCategories(data$maleUniqueCategories$count, data$femaleUniqueCategories$count,
                     data$maleUniqueCategories$category,
                     country=country,
-                    countMethod="unique users")
+                    countMethod="unique users",
+                    xlim=0.3, ylim=0.3)
 
 correlateCategories(data$maleSubcategories$count, data$femaleSubcategories$count,
                     data$maleSubcategories$subcategory,
                     country=country,
                     countMethod="check-ins",
-                    categories="Subcategories")
+                    categories="Subcategories",
+                    xlim=0.1, ylim=0.1)
 
 correlateTopCategories(data$maleUniqueSubcategories, data$femaleUniqueSubcategories,
                        country,
                        "unique users",
-                       "10 most popular subcategories")                       )
+                       "10 most popular subcategories")
