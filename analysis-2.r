@@ -103,6 +103,8 @@ citySegregation <- function(checkInsInCity, cityName) {
 
   printTopLocations(completeMaleR, "male")
   printTopLocations(completeFemaleR, "female")
+
+  return(list(maleCIR=completeMaleR, femaleCIR=completeFemaleR))
 }
 
 completedCheckInsByGenderInCity <- function(checkInsInCity) {
@@ -247,11 +249,11 @@ filterTopNSubcategories <- function(x, y, n, fun=`+`) {
   return(order(uniqueSubC$sumCount, decreasing=TRUE)[1:n])
 }
 
-plot_pdf <- function(x, xlab="% of unique users checked in", ylab="Frequency") {
+plot_pdf <- function(x, main="Probability density of …", xlab="% of unique users checked in", ylab="Frequency") {
   # probability density function
-  h <- hist(completeFemaleR$count, breaks = 100, plot=FALSE)
+  h <- hist(x, breaks = 100, plot=FALSE)
   h$counts=h$counts/sum(h$counts)
-  plot(h, xlab=xlab, ylab=ylab)
+  plot(h, xlab=xlab, ylab=ylab, main=main)
 }
 
 plot_density <-function(x) {
@@ -294,7 +296,7 @@ substitutionRules <- list(
 ##################
 country <- "UAE"
 checkInsInCity <- getCheckInsInCity("Abu Dhabi", uaeCheckIns, uaeUsers, uaeFilter)
-citySegregation(checkInsInCity, "Abu Dhabi")
+segregation <- citySegregation(checkInsInCity, "Abu Dhabi")
 
 # correlation categories
 data <- subcategoryPreferencesByGender(uaeCheckIns, uaeUsers, uaeFilter, country)
@@ -322,3 +324,44 @@ correlateTopCategories(data$maleUniqueSubcategories, data$femaleUniqueSubcategor
                        country,
                        "unique users",
                        "10 most popular subcategories")
+
+
+####################
+
+distances <- function(masculine, feminine) {
+  stopifnot(length(male) == length(female))
+  distances <- list()
+  for(s in unique(masculine$subcategory)){
+    male <- masculine[masculine$subcategory==s, ]$count
+    female <- feminine[feminine$subcategory==s, ]$count
+    dist <- sqrt((0.5*(male+female) - female)^2 + (0.5*(male + female)-male)^2)
+
+    # determine side of the diagonale
+    for(i in seq(length(male))) {
+      if(female[i]>male[i]) {
+        dist[i] <- - dist[i]
+      }
+    }
+    distances <- c(distances, list(dist))
+  }
+  return(distances)
+}
+
+d <- distances(segregation$maleCIR, segregation$femaleCIR)
+d$subcategory <- unique(segregation$maleCIR$subcategory)
+
+
+dists <- dAD
+city <- "Abu Dhabi"
+dists <- dR
+city <- "Riyadh"
+
+plot(density(c(dists[[57]])), main=paste("Density of gender distance in universities in", city))
+
+plot(density(c(dists[[39]])), main=paste("Density of gender distance in malls in", city))
+
+plot(density(c(dists[[4]], dists[[38]])), main=paste("Density of gender distance in cafés in", city))
+plot_pdf(c(dists[[4]], dists[[38]]), main=paste("Probability density of Cafés in", city), xlab="gender distance")
+
+
+
