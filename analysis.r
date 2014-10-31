@@ -476,22 +476,7 @@ checkInsInCity <- getCheckInsInCity("Berlin", germanyCheckIns, germanyUsers, ger
 citySegregation(checkInsInCity, "Berlin")
 
 
-# works
-f <- function(foo) {
-  print(sqldf("select * from foo"))
-}
-foo <- data.frame(1,2,3)
-f(foo)
-
-# works
-f <- function() {
-  foo <- data.frame(1,2,3)
-  print(sqldf("select * from foo"))
-}
-
-f()
-
-
+#####################################
 # does not work
 inner <- function() {
   print(sqldf("select * from foo"))
