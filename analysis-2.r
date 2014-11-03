@@ -1,4 +1,5 @@
 library(sqldf)
+library(Hmisc) # Ecdf
 
 subcategoryPreferencesByGender <- function(countryCheckIns, countryUsers, countryFilter, country) {
   ci <- readCheckIns(countryCheckIns)
@@ -71,14 +72,18 @@ getTopNCategories <- function(group1, group2){
   return(list(group1=group1Top, group2=group2Top))
 }
 
-getCheckInsInCity <- function(cityName, countryCheckIns, countryUsers, countryFilter) {
+getCheckInsInCity <- function(cityFilters, countryCheckIns, countryUsers, countryFilter) {
   ci <- readCheckIns(countryCheckIns)
   users <- readUsers(countryUsers)
   profiles <- cleanUsers(users, filter=countryFilter)
 
   joined <- joinCheckInsWithProfiles(ci, profiles)
-  checkInsInCity <- sqldf(sprintf("Select * from joined where city LIKE %s", shQuote(cityName)))
-  return(checkInsInCity)
+
+  checkInsInCity <- c()
+  for(filter in cityFilters) {
+    checkInsInCity <- rbind(checkInsInCity, sqldf(sprintf("Select * from joined where city LIKE %s", shQuote(filter))))
+  }
+  return( subset(checkInsInCity, !duplicated(checkInsInCity)) )
 }
 
 
