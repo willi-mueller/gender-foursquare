@@ -349,12 +349,17 @@ distances <- function(masculine, feminine) {
     }
     distances <- c(distances, list(dist))
   }
+  distances$subcategory <- unique(masculine$subcategory)
   return(distances)
 }
 
-d <- distances(segregation$maleCIR, segregation$femaleCIR)
-d$subcategory <- unique(segregation$maleCIR$subcategory)
+ad.checkIns <- getCheckInsInCity("Abu Dhabi", uaeCheckIns, uaeUsers, uaeFilter)
+ad.segregation <- citySegregation(checkInsInCity, "Abu Dhabi")
+ad.dists <- distances(ad.segregation$maleCIR, ad.segregation$femaleCIR)
 
+r.checkIns <- getCheckInsInCity(c("Riyadh"), saudiCheckIns, saudiUsers, saudiFilter, "Saudi Arabia")
+r.segregation <- segregation(r.checkIns, "Riyadh")
+r.dists <- distances(ad.segregation$maleCIR, ad.segregation$femaleCIR)
 
 dists <- dAD
 city <- "Abu Dhabi"
