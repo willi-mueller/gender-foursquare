@@ -72,7 +72,7 @@ getTopNCategories <- function(group1, group2){
   return(list(group1=group1Top, group2=group2Top))
 }
 
-getCheckInsInCity <- function(cityFilters, countryCheckIns, countryUsers, countryFilter) {
+getCheckInsInCity <- function(cityFilters, countryCheckIns, countryUsers, countryFilter, substitutionRules=NULL) {
   ci <- readCheckIns(countryCheckIns)
   users <- readUsers(countryUsers)
   profiles <- cleanUsers(users, filter=countryFilter)
@@ -83,9 +83,23 @@ getCheckInsInCity <- function(cityFilters, countryCheckIns, countryUsers, countr
   for(filter in cityFilters) {
     checkInsInCity <- rbind(checkInsInCity, sqldf(sprintf("Select * from joined where city LIKE %s", shQuote(filter))))
   }
-  return( subset(checkInsInCity, !duplicated(checkInsInCity)) )
+  checkInsInCity <-subset(checkInsInCity, !duplicated(checkInsInCity))
+  if(!is.null(substitutionRules)) {
+    checkInsInCity <- combineEquivalentSubCategories(checkInsInCity, substitutionRules)
+  }
+  return(checkInsInCity)
 }
 
+combineEquivalentSubCategories <- function(checkIns, substitutionRules) {
+  for(pair in substitutionRules) {
+    for(equivalent in pair$equivalents) {
+      if(equivalent %in% checkIns$subcategory) {
+        checkIns[checkIns$subcategory==equivalent, ]$subcategory <- pair$original
+      }
+    }
+  }
+  return(checkIns)
+}
 
 citySegregation <- function(checkInsInCity, cityName) {
   checkIns <- completedCheckInsByGenderInCity(checkInsInCity)
