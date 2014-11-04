@@ -281,6 +281,37 @@ plot_density <-function(x) {
   plot(density(x))
 }
 
+distances <- function(masculine, feminine) {
+  stopifnot(length(male) == length(female))
+  distances <- list()
+  for(s in unique(masculine$subcategory)){
+    male <- masculine[masculine$subcategory==s, ]$count
+    female <- feminine[feminine$subcategory==s, ]$count
+    dist <- sqrt((0.5*(male+female) - female)^2 + (0.5*(male + female)-male)^2)
+
+    # determine side of the diagonale
+    for(i in seq(length(male))) {
+      if(female[i]>male[i]) {
+        dist[i] <- - dist[i]
+      }
+    }
+    distances <- c(distances, list(dist))
+  }
+  distances$subcategory <- unique(masculine$subcategory)
+  return(distances)
+}
+
+compareDistanceSegregationsIn <- function(checkInsInCategory1, checkInsInCategory2, cityName1, cityName2) {
+  g <- c( rep(cityName1, length(checkInsInCategory1)),
+          rep(cityName2, length(checkInsInCategory2)))
+  Ecdf(c(checkInsInCategory1, checkInsInCategory2), group=g,
+       col=c('blue', 'orange'), xlab="Gender distance", main="ECDF")
+  abline(v=0:1, untf=FALSE, col='red')
+  ####
+  ksTest <- ks.test(checkInsInCategory1, checkInsInCategory2) # ksTest.statistic holds difference
+  message("Largest difference: ", signif(ksTest$statistic, 3), " with p-value: ", signif(ksTest$p.value, 3))
+  return(ks.test)
+}
 
 ##########
 # Constants
@@ -347,47 +378,34 @@ correlateTopCategories(data$maleUniqueSubcategories, data$femaleUniqueSubcategor
                        "10 most popular subcategories")
 
 
-####################
+############
 
-distances <- function(masculine, feminine) {
-  stopifnot(length(male) == length(female))
-  distances <- list()
-  for(s in unique(masculine$subcategory)){
-    male <- masculine[masculine$subcategory==s, ]$count
-    female <- feminine[feminine$subcategory==s, ]$count
-    dist <- sqrt((0.5*(male+female) - female)^2 + (0.5*(male + female)-male)^2)
-
-    # determine side of the diagonale
-    for(i in seq(length(male))) {
-      if(female[i]>male[i]) {
-        dist[i] <- - dist[i]
-      }
-    }
-    distances <- c(distances, list(dist))
-  }
-  distances$subcategory <- unique(masculine$subcategory)
-  return(distances)
-}
-
-ad.checkIns <- getCheckInsInCity("Abu Dhabi", uaeCheckIns, uaeUsers, uaeFilter)
-ad.segregation <- citySegregation(checkInsInCity, "Abu Dhabi")
+ad.checkIns <- getCheckInsInCity("Abu Dhabi", uaeCheckIns, uaeUsers, uaeFilter, substitutionRules)
+ad.segregation <- citySegregation(ad.checkIns, "Abu Dhabi")
 ad.dists <- distances(ad.segregation$maleCIR, ad.segregation$femaleCIR)
 
-r.checkIns <- getCheckInsInCity(c("Riyadh"), saudiCheckIns, saudiUsers, saudiFilter, "Saudi Arabia")
-r.segregation <- segregation(r.checkIns, "Riyadh")
-r.dists <- distances(ad.segregation$maleCIR, ad.segregation$femaleCIR)
+r.checkIns <- getCheckInsInCity(c("Riyadh"), saudiCheckIns, saudiUsers, saudiFilter, substitutionRules)
+r.segregation <- citySegregation(r.checkIns, "Riyadh")
+r.dists <- distances(r.segregation$maleCIR, r.segregation$femaleCIR)
 
-dists <- dAD
+####
+# for copy'n paste into console
+####
+dists <- ad.dists
 city <- "Abu Dhabi"
-dists <- dR
+
+dists <- r.dists
 city <- "Riyadh"
 
-plot(density(c(dists[[57]])), main=paste("Density of gender distance in universities in", city))
+plot(density(dists[dists$subcategory=="University"][[1]]), main=paste("Density of gender distance in universities in", city))
 
-plot(density(c(dists[[39]])), main=paste("Density of gender distance in malls in", city))
+plot(density(dists[dists$subcategory=="Mall"][[1]]), main=paste("Density of gender distance in malls in", city))
 
-plot(density(c(dists[[4]], dists[[38]])), main=paste("Density of gender distance in cafés in", city))
-plot_pdf(c(dists[[4]], dists[[38]]), main=paste("Probability density of Cafés in", city), xlab="gender distance")
+plot(density(dists[dists$subcategory=="Café"][[1]]), main=paste("Density of gender distance in cafés in", city))
+plot_pdf(dists[dists$subcategory=="Café"][[1]], main=paste("Probability density of Cafés in", city), xlab="gender distance")
 
+#############
+r.cafe <- r.dists[r.dists$subcategory=="Café"][[1]]
+ad.cafe <- ad.dists[ad.dists$subcategory=="Café"][[1]]
 
-
+compareDistanceSegregationsIn(r.cafe, ad.cafe, "Riyadh", "Abu Dhabi")
