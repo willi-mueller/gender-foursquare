@@ -67,36 +67,33 @@ getTopNCategories <- function(group1, group2){
   return(list(group1=group1Top, group2=group2Top))
 }
 
-getCheckInsInCountry <- function(countryCheckIns, countryUsers, countryFilter) {
+getCheckInsInCountry <- function(countryCheckIns, countryUsers, countryFilter, substitutionRules) {
   ci <- readCheckIns(countryCheckIns)
   users <- readUsers(countryUsers)
   profiles <- cleanUsers(users, filter=countryFilter)
-  return(joinCheckInsWithProfiles(ci, profiles))
+  joined <- joinCheckInsWithProfiles(ci, profiles)
+  if(!missing(substitutionRules)) {
+    joined <- combineEquivalentSubCategories(joined, substitutionRules)
+  }
+  return(joined)
 }
 
-getCheckInsInCity <- function(cityFilters, countryCheckIns, countryUsers, countryFilter, substitutionRules) {
-  ci <- readCheckIns(countryCheckIns)
-  users <- readUsers(countryUsers)
-  profiles <- cleanUsers(users, filter=countryFilter)
+getCheckInsInRegion <- function(regionFilters, countryCheckIns, countryUsers, countryFilter, substitutionRules) {
+  joined <- getCheckInsInCountry(countryCheckIns, countryUsers, countryFilter, substitutionRules)
 
-  joined <- joinCheckInsWithProfiles(ci, profiles)
-
-  checkInsInCity <- c()
-  for(filter in cityFilters) {
-    checkInsInCity <- rbind(checkInsInCity, sqldf(sprintf("Select * from joined where city LIKE %s", shQuote(filter))))
+  checkInsInRegion <- c()
+  for(filter in RegionFilters) {
+    checkInsInRegion <- rbind(checkInsInRegion, sqldf(sprintf("Select * from joined where city LIKE %s", shQuote(filter))))
   }
-  checkInsInCity <-subset(checkInsInCity, !duplicated(checkInsInCity))
-  if(!missing(substitutionRules)) {
-    checkInsInCity <- combineEquivalentSubCategories(checkInsInCity, substitutionRules)
-  }
-  return(checkInsInCity)
+  return(subset(checkInsInRegion, !duplicated(checkInsInRegion)))
 }
 
 combineEquivalentSubCategories <- function(checkIns, substitutionRules) {
   for(pair in substitutionRules) {
     for(equivalent in pair$equivalents) {
       if(equivalent %in% checkIns$subcategory) {
-        checkIns[checkIns$subcategory==equivalent, ]$subcategory <- pair$original
+        tmp <- checkIns[checkIns$subcategory==equivalent, ]
+        tmp$subcategory <- pair$original
       }
     }
   }
@@ -104,7 +101,7 @@ combineEquivalentSubCategories <- function(checkIns, substitutionRules) {
 }
 
 segregation <- function(checkIns, location) {
-  checkIns <- completedCheckInsByGenderInCity(checkIns)
+  checkIns <- completeCheckInsByGenderForRegion(checkIns)
   completeFemale <- checkIns$female
   completeMale <- checkIns$male
 
@@ -113,8 +110,10 @@ segregation <- function(checkIns, location) {
 
   # check if the same subcategories exist
   # currently violated in Paris, where idLocal==4ba12ba3f964a520849e37e3 has different subcategories
-  # stopifnot(unique(completeMale$subcategory[order(completeMale$subcategory)]) ==
-  #  unique(completeFemale$subcategory[order(completeFemale$subcategory)]))
+  if(identical(unique(completeMale$subcategory[order(completeMale$subcategory)]),
+               unique(completeFemale$subcategory[order(completeFemale$subcategory)]))) {
+    print("Subcategories differ between genders")
+  }
 
   print(cor.test(completeMaleR$count, completeFemaleR$count))
 
@@ -132,18 +131,25 @@ segregation <- function(checkIns, location) {
   return(list(maleCIR=completeMaleR, femaleCIR=completeFemaleR))
 }
 
-completedCheckInsByGenderInCity <- function(checkInsInCity) {
-  fCity <- checkInsInCity[checkInsInCity$gender=='female', ]
-  mCity <- checkInsInCity[checkInsInCity$gender=='male', ]
+aggregateSegregationForRegion <- function(regionCheckIns, region) {
+  seg <- segregation(regionCheckIns, region)
+  distances <- euclideanDistance(seg$maleCIR$count, seg$femaleCIR$count)
+  boxplot(distances)
+  return(summary(distances))
+}
 
-  mCityLocations <- countLocationsByGender(mCity)
-  fCityLocations <- countLocationsByGender(fCity)
+completeCheckInsByGenderForRegion <- function(checkIns) {
+  femaleCI <- checkIns[checkIns$gender=='female', ]
+  maleCI <- checkIns[checkIns$gender=='male', ]
 
-  notInF <- locationsNotCheckedInByGender(fCityLocations, mCityLocations)
-  notInM <- locationsNotCheckedInByGender(mCityLocations, fCityLocations)
+  maleLocations <- countLocationsByGender(maleCI)
+  femaleLocations <- countLocationsByGender(femaleCI)
 
-  completeFemale <- completeLocationsWithOtherGender(fCityLocations, notInF)
-  completeMale <- completeLocationsWithOtherGender(mCityLocations, notInM)
+  notInF <- locationsNotCheckedInByGender(femaleLocations, maleLocations)
+  notInM <- locationsNotCheckedInByGender(maleLocations, femaleLocations)
+
+  completeFemale <- completeLocationsWithOtherGender(femaleLocations, notInF)
+  completeMale <- completeLocationsWithOtherGender(maleLocations, notInM)
 
   stopifnot( length(completeMale$count) == length(completeFemale$count) )
   stopifnot( completeMale[order(completeMale$idLocal), ]$idLocal ==
@@ -303,18 +309,22 @@ distances <- function(masculine, feminine) {
   for(s in unique(masculine$subcategory)){
     male <- masculine[masculine$subcategory==s, ]$count
     female <- feminine[feminine$subcategory==s, ]$count
-    dist <- sqrt((0.5*(male+female) - female)^2 + (0.5*(male + female)-male)^2)
-
-    # determine side of the diagonale
-    for(i in seq(length(male))) {
-      if(female[i]>male[i]) {
-        dist[i] <- - dist[i]
-      }
-    }
-    distances <- c(distances, list(dist))
+    distances <- c(distances, list(euclideanDistance(male, female)))
   }
   distances$subcategory <- unique(masculine$subcategory)
   return(distances)
+}
+
+euclideanDistance <- function(male, female) {
+  dist <- sqrt((0.5*(male+female) - female)^2 + (0.5*(male + female)-male)^2)
+
+  # determine side of the diagonale
+  for(i in seq(length(male))) {
+    if(female[i]>male[i]) {
+      dist[i] <- - dist[i]
+    }
+  }
+  return(dist)
 }
 
 compareDistanceSegregationsIn <- function(checkInsInCategory1, checkInsInCategory2, regionName1, regionName2, name) {
@@ -327,6 +337,22 @@ compareDistanceSegregationsIn <- function(checkInsInCategory1, checkInsInCategor
   ksTest <- ks.test(checkInsInCategory1, checkInsInCategory2) # ksTest.statistic holds difference
   message("Largest difference: ", signif(ksTest$statistic, 3), " with p-value: ", signif(ksTest$p.value, 3))
   return(ksTest)
+}
+
+genderDistanceForCountry <- function(countries, substitutionRules, main){
+  distances <- list()
+  for(country in countries) {
+    message(country$name)
+    ci <- getCheckInsInCountry(country$checkIns, country$users, country$filter,substitutionRules)
+    seg <- segregation(ci, country$name)
+    distances <- c(distances, list(euclideanDistance(seg$maleCIR$count, seg$femaleCIR$count)))
+  }
+  names <- list()
+  for(c in countries) {
+    names <- c(names, c$name)
+  }
+
+  do.call(boxplot, list(distances, names=names, main=main))
 }
 
 ##########
@@ -363,7 +389,7 @@ substitutionRules <- list(
 # Run
 ##################
 country <- "UAE"
-checkInsInCity <- getCheckInsInCity("Abu Dhabi", uaeCheckIns, uaeUsers, uaeFilter)
+checkInsInCity <- getCheckInsInRegion("Abu Dhabi", uaeCheckIns, uaeUsers, uaeFilter)
 segregation <- segregation(checkInsInCity, "Abu Dhabi")
 
 # correlation categories
@@ -396,11 +422,11 @@ correlateTopCategories(data$maleUniqueSubcategories, data$femaleUniqueSubcategor
 
 ############
 
-ad.checkIns <- getCheckInsInCity("Abu Dhabi", uaeCheckIns, uaeUsers, uaeFilter, substitutionRules)
+ad.checkIns <- getCheckInsInRegion("Abu Dhabi", uaeCheckIns, uaeUsers, uaeFilter, substitutionRules)
 ad.segregation <- segregation(ad.checkIns, "Abu Dhabi")
 ad.dists <- distances(ad.segregation$maleCIR, ad.segregation$femaleCIR)
 
-r.checkIns <- getCheckInsInCity(c("Riyadh"), saudiCheckIns, saudiUsers, saudiFilter, substitutionRules)
+r.checkIns <- getCheckInsInRegion(c("Riyadh"), saudiCheckIns, saudiUsers, saudiFilter, substitutionRules)
 r.segregation <- segregation(r.checkIns, "Riyadh")
 r.dists <- distances(r.segregation$maleCIR, r.segregation$femaleCIR)
 
@@ -424,3 +450,14 @@ ad.cafe <- ad.dists[ad.dists$subcategory=="Café"][[1]]
 
 compareDistanceSegregationsIn(r.cafe, ad.cafe, "Riyadh", "Abu Dhabi", "Café")
 
+############
+
+countries <- list(
+  list(checkIns=franceCheckIns, users=franceUsers, filter=franceFilter, name="France")
+  ,list(checkIns=germanyCheckIns, users=germanyUsers, filter=germanyFilter, name="Germany")
+  ,list(checkIns=swedenCheckIns, users=swedenUsers, filter=swedenFilter, name="Sweden")
+  ,list(checkIns=saudiCheckIns, users=saudiUsers, filter=saudiFilter, name="Saudi Arabia")
+  ,list(checkIns=uaeCheckIns, users=uaeUsers, filter=uaeFilter, name="UAE")
+  )
+
+genderDistanceForCountry(countries, substitutionRules, "Distribution of gender distance")
