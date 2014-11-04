@@ -103,12 +103,14 @@ combineEquivalentSubCategories <- function(checkIns, substitutionRules) {
 
 citySegregation <- function(checkInsInCity, cityName) {
   checkIns <- completedCheckInsByGenderInCity(checkInsInCity)
-
   completeFemale <- checkIns$female
   completeMale <- checkIns$male
 
   completeMaleR <- relativeCount(completeMale)
   completeFemaleR <- relativeCount(completeFemale)
+
+  stopifnot(unique(completeMale$subcategory[order(completeMale$subcategory)]) ==
+   unique(completeFemale$subcategory[order(completeFemale$subcategory)]))
 
   print(cor.test(completeMaleR$count, completeFemaleR$count))
 
