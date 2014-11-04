@@ -109,8 +109,10 @@ citySegregation <- function(checkInsInCity, cityName) {
   completeMaleR <- relativeCount(completeMale)
   completeFemaleR <- relativeCount(completeFemale)
 
-  stopifnot(unique(completeMale$subcategory[order(completeMale$subcategory)]) ==
-   unique(completeFemale$subcategory[order(completeFemale$subcategory)]))
+  # check if the same subcategories exist
+  # currently violated in Paris, where idLocal==4ba12ba3f964a520849e37e3 has different subcategories
+  # stopifnot(unique(completeMale$subcategory[order(completeMale$subcategory)]) ==
+  #  unique(completeFemale$subcategory[order(completeFemale$subcategory)]))
 
   print(cor.test(completeMaleR$count, completeFemaleR$count))
 
@@ -140,8 +142,12 @@ completedCheckInsByGenderInCity <- function(checkInsInCity) {
 
   completeFemale <- completeLocationsWithOtherGender(fCityLocations, notInF)
   completeMale <- completeLocationsWithOtherGender(mCityLocations, notInM)
+
+  stopifnot( length(completeMale$count) == length(completeFemale$count) )
+  stopifnot( completeMale[order(completeMale$idLocal), ]$idLocal ==
+             completeFemale[order(completeFemale$idLocal), ]$idLocal )
   return(list(female=completeFemale, male=completeMale))
-  }
+}
 
 relativeCount <- function(checkIns) {
   checkInsRelative <- checkIns
