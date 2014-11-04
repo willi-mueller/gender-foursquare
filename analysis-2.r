@@ -310,7 +310,7 @@ compareDistanceSegregationsIn <- function(checkInsInCategory1, checkInsInCategor
   ####
   ksTest <- ks.test(checkInsInCategory1, checkInsInCategory2) # ksTest.statistic holds difference
   message("Largest difference: ", signif(ksTest$statistic, 3), " with p-value: ", signif(ksTest$p.value, 3))
-  return(ks.test)
+  return(ksTest)
 }
 
 ##########
