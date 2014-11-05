@@ -355,6 +355,45 @@ genderDistanceForCountry <- function(countries, substitutionRules, main){
   do.call(boxplot, list(distances, names=names, main=main))
 }
 
+generateCheckIn <- function(checkIns) {
+  n <- length(checkIns[,1])
+  distributions <- list(
+    idUserFoursquare=empiricalAttributeDistribution(checkIns, "idUserFoursquare")
+    ,date=empiricalAttributeDistribution(checkIns, "date")
+    ,latitude=empiricalAttributeDistribution(checkIns, "latitude")
+    ,longitude=empiricalAttributeDistribution(checkIns, "longitude")
+    ,idLocal=empiricalAttributeDistribution(checkIns, "idLocal")
+    ,subcategory=empiricalAttributeDistribution(checkIns, "subcategory")
+    ,category=empiricalAttributeDistribution(checkIns, "category")
+    ,city=empiricalAttributeDistribution(checkIns, "city")
+    ,country=empiricalAttributeDistribution(checkIns, "country")
+    ,user=empiricalAttributeDistribution(checkIns, "user")
+    ,userLocal=empiricalAttributeDistribution(checkIns, "userLocal")
+    ,gender=empiricalAttributeDistribution(checkIns, "gender")
+  )
+  checkIns <- data.frame(
+    idUserFoursquare=sample(distributions$idUserFoursquare$attribute, n, prob=distributions$percentage, replace=TRUE)
+    ,date=sample(distributions$date$attribute, n, prob=distributions$date$percentage, replace=TRUE)
+    ,latitude=sample(distributions$latitude$attribute, n, prob=distributions$latitude$percentage, replace=TRUE)
+    ,longitude=sample(distributions$longitude$attribute, n, prob=distributions$longitude$percentage, replace=TRUE)
+    ,idLocal=sample(distributions$idLocal$attribute, n, prob=distributions$idLocal$percentage, replace=TRUE)
+    ,subcategory=sample(distributions$subcategory$attribute, n, prob=distributions$subcategory$percentage, replace=TRUE)
+    ,category=sample(distributions$category$attribute, n, prob=distributions$category$percentage, replace=TRUE)
+    ,city=sample(distributions$city$attribute, n, prob=distributions$city$percentage, replace=TRUE)
+    ,country=sample(distributions$country$attribute, n, prob=distributions$country$percentage, replace=TRUE)
+    ,user=sample(distributions$user$attribute, n, prob=distributions$user$percentage, replace=TRUE)
+    ,userLocal=sample(distributions$userLocal$attribute, n, prob=distributions$userLocal$percentage, replace=TRUE)
+    ,gender=sample(distributions$gender$attribute, n, prob=distributions$gender$percentage, replace=TRUE)
+  )
+}
+
+empiricalAttributeDistribution <- function(checkIns, attribute) {
+  ## attribute = {"category", "subcategory", "idLocal", "latitude", "gender", …}
+  distribution <- sqldf(sprintf("select %s as attribute, count(*) as percentage from checkIns group by %s", attribute, attribute))
+  distribution$percentage <- distribution$percentage / sum(distribution$percentage)
+  return(distribution)
+}
+
 ##########
 # Constants
 ##########
@@ -461,3 +500,5 @@ countries <- list(
   )
 
 genderDistanceForCountry(countries, substitutionRules, "Distribution of gender distance")
+
+s <- segregation(generateCheckIn(getCheckInsInCountry(franceCheckIns, franceUsers, franceFilter, substitutionRules)))
