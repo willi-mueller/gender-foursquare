@@ -82,7 +82,7 @@ getCheckInsInRegion <- function(regionFilters, countryCheckIns, countryUsers, co
   joined <- getCheckInsInCountry(countryCheckIns, countryUsers, countryFilter, substitutionRules)
 
   checkInsInRegion <- c()
-  for(filter in RegionFilters) {
+  for(filter in regionFilters) {
     checkInsInRegion <- rbind(checkInsInRegion, sqldf(sprintf("Select * from joined where city LIKE %s", shQuote(filter))))
   }
   return(subset(checkInsInRegion, !duplicated(checkInsInRegion)))
@@ -304,15 +304,15 @@ plotProbabilityDensityOfDistanceInSubcategory <- function(distances, subcategory
 }
 
 distances <- function(masculine, feminine) {
-  stopifnot(length(male) == length(female))
-  distances <- list()
+  stopifnot(length(masculine[,1]) == length(feminine[,1]))
+  dists <- list()
   for(s in unique(masculine$subcategory)){
-    male <- masculine[masculine$subcategory==s, ]$count
-    female <- feminine[feminine$subcategory==s, ]$count
-    distances <- c(distances, list(euclideanDistance(male, female)))
+    m <- masculine[masculine$subcategory==s, ]$count
+    f <- feminine[feminine$subcategory==s, ]$count
+    dists <- c(dists, list(euclideanDistance(m, f)))
   }
-  distances$subcategory <- unique(masculine$subcategory)
-  return(distances)
+  dists$subcategory <- unique(masculine$subcategory)
+  return(dists)
 }
 
 euclideanDistance <- function(male, female) {
@@ -461,7 +461,7 @@ correlateTopCategories(data$maleUniqueSubcategories, data$femaleUniqueSubcategor
 
 ############
 
-ad.checkIns <- getCheckInsInRegion("Abu Dhabi", uaeCheckIns, uaeUsers, uaeFilter, substitutionRules)
+ad.checkIns <- getCheckInsInRegion(c("Abu Dhabi"), uaeCheckIns, uaeUsers, uaeFilter, substitutionRules)
 ad.segregation <- segregation(ad.checkIns, "Abu Dhabi")
 ad.dists <- distances(ad.segregation$maleCIR, ad.segregation$femaleCIR)
 
@@ -469,6 +469,8 @@ r.checkIns <- getCheckInsInRegion(c("Riyadh"), saudiCheckIns, saudiUsers, saudiF
 r.segregation <- segregation(r.checkIns, "Riyadh")
 r.dists <- distances(r.segregation$maleCIR, r.segregation$femaleCIR)
 
+seg <- segregation(getCheckInsInRegion(c("Paris"), franceCheckIns, franceUsers, franceFilter, substitutionRules), "Paris")
+dists <- distances(seg$maleCIR, seg$femaleCIR)
 ####
 # for copy'n paste into console
 ####
@@ -501,4 +503,4 @@ countries <- list(
 
 genderDistanceForCountry(countries, substitutionRules, "Distribution of gender distance")
 
-s <- segregation(generateCheckIn(getCheckInsInCountry(franceCheckIns, franceUsers, franceFilter, substitutionRules)))
+s <- segregation(generateCheckIn(getCheckInsInCountry(saudiCheckIns, saudiUsers, saudiFilter, substitutionRules)), "Saudi Arabia")
