@@ -355,36 +355,78 @@ genderDistanceForCountry <- function(countries, substitutionRules, main){
   do.call(boxplot, list(distances, names=names, main=main))
 }
 
-generateCheckIn <- function(checkIns) {
-  n <- length(checkIns[,1])
-  distributions <- list(
-    idUserFoursquare=empiricalAttributeDistribution(checkIns, "idUserFoursquare")
-    ,date=empiricalAttributeDistribution(checkIns, "date")
-    ,latitude=empiricalAttributeDistribution(checkIns, "latitude")
-    ,longitude=empiricalAttributeDistribution(checkIns, "longitude")
-    ,idLocal=empiricalAttributeDistribution(checkIns, "idLocal")
-    ,subcategory=empiricalAttributeDistribution(checkIns, "subcategory")
-    ,category=empiricalAttributeDistribution(checkIns, "category")
-    ,city=empiricalAttributeDistribution(checkIns, "city")
-    ,country=empiricalAttributeDistribution(checkIns, "country")
-    ,user=empiricalAttributeDistribution(checkIns, "user")
-    ,userLocal=empiricalAttributeDistribution(checkIns, "userLocal")
-    ,gender=empiricalAttributeDistribution(checkIns, "gender")
+generateCheckIns <- function(checkIns) {
+  message("Generating…")
+  n <- nrow(checkIns)
+  locations <- sqldf("Select idLocal, latitude,longitude, subcategory, category, city, country, gender, count(gender) as genderCount
+                      From checkIns
+                      Group By city, idLocal, gender")
+  userIds <- sqldf("Select distinct(idUserFoursquare) from checkIns")
+  date <- Sys.time()
+  #date <- sqldf("Select distinct(date) from checkIns") # <- date independent from checkIns whcih is not reality
+
+  #generated <- matrix(nrow=n, ncol=12)
+  #colnames(generated) <- data.frame(
+  generated <- data.frame(
+    idUserFoursquare=NaN
+    ,date=NaN
+    ,latitude=NaN
+    ,longitude=NaN
+    ,idLocal=NaN
+    ,subcategory=NaN
+    ,category=NaN
+    ,city=NaN
+    ,country=NaN
+    ,user=NaN
+    ,userLocal=NaN
+    ,gender=NaN
   )
-  checkIns <- data.frame(
-    idUserFoursquare=sample(distributions$idUserFoursquare$attribute, n, prob=distributions$percentage, replace=TRUE)
-    ,date=sample(distributions$date$attribute, n, prob=distributions$date$percentage, replace=TRUE)
-    ,latitude=sample(distributions$latitude$attribute, n, prob=distributions$latitude$percentage, replace=TRUE)
-    ,longitude=sample(distributions$longitude$attribute, n, prob=distributions$longitude$percentage, replace=TRUE)
-    ,idLocal=sample(distributions$idLocal$attribute, n, prob=distributions$idLocal$percentage, replace=TRUE)
-    ,subcategory=sample(distributions$subcategory$attribute, n, prob=distributions$subcategory$percentage, replace=TRUE)
-    ,category=sample(distributions$category$attribute, n, prob=distributions$category$percentage, replace=TRUE)
-    ,city=sample(distributions$city$attribute, n, prob=distributions$city$percentage, replace=TRUE)
-    ,country=sample(distributions$country$attribute, n, prob=distributions$country$percentage, replace=TRUE)
-    ,user=sample(distributions$user$attribute, n, prob=distributions$user$percentage, replace=TRUE)
-    ,userLocal=sample(distributions$userLocal$attribute, n, prob=distributions$userLocal$percentage, replace=TRUE)
-    ,gender=sample(distributions$gender$attribute, n, prob=distributions$gender$percentage, replace=TRUE)
-  )
+  # for(c in locations$city) {
+  #   message("city: ", c)
+  #   generateForCity(checkIns, generated, locations, userIds, date, n)
+  # }
+  return(generateForCities(checkIns, generated, locations, userIds, date, n))
+}
+
+generateForCities <- function(checkIns, generated, locations, userIds, date, n) {
+  j <- 1
+  for(c in unique(locations$city)) {
+    message("City: ", c)
+    locationsInCity <- locations[locations$city==c, ]
+    maleCount <- sum(locationsInCity[locationsInCity$gender=="male", ]$genderCount)
+    femaleCount <- sum(locationsInCity[locationsInCity$gender=="female", ]$genderCount)
+    malePercentage <- maleCount/(maleCount+femaleCount)
+    genderDistribution <- c(malePercentage, 1 - malePercentage)
+    maleUserIds <- checkIns[checkIns$gender=="male", ]$idUserFoursquare
+    femaleUserIds <- checkIns[checkIns$gender=="female", ]$idUserFoursquare
+    nOfmaleOrFemaleCheckIns <- maleCount+femaleCount
+    message("#checkIns: ", nOfmaleOrFemaleCheckIns)
+
+    for(i in seq(nOfmaleOrFemaleCheckIns)) {
+      idLocal<-sample(locationsInCity$idLocal, 1)
+      localAttrs <- locationsInCity[locationsInCity$idLocal==idLocal, ][1,]
+      gender <- sample(c("male", "female"), 1, prob=genderDistribution)
+      userIds <- c()
+      if(gender=="male") {
+        userIds <- maleUserIds
+        } else{
+        userIds <- femaleUserIds
+        }
+      id <- sample(userIds, 1)
+      userLocal <- checkIns[checkIns$idUserFoursquare==id, ]$userLocal[1]
+
+      generated[j, ] <- as.matrix(data.frame(idUserFoursquare=id, date=date,
+        latitude=localAttrs$latitude, longitude=localAttrs$longitude,
+        idLocal=idLocal,
+        subcategory=localAttrs$subcategory, category=localAttrs$category,
+        city=localAttrs$city, country=localAttrs$country,
+        user=id, userLocal=userLocal,
+        gender=gender
+      ))
+      j <- j+1
+    }
+  }
+  return(generated)
 }
 
 empiricalAttributeDistribution <- function(checkIns, attribute) {
