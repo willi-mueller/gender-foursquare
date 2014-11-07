@@ -355,7 +355,7 @@ genderDistanceForCountry <- function(countries, substitutionRules, main){
   do.call(boxplot, list(distances, names=names, main=main))
 }
 
-generateCheckIns <- function(checkIns) {
+generateCheckIns <- function(checkIns, UNIFORM_LOCATION_PROBABILITY=FALSE) {
   message("Generating…")
   n <- nrow(checkIns)
   locations <- sqldf("Select idLocal, latitude,longitude, subcategory, category, city, country, gender, count(gender) as genderCount
@@ -385,14 +385,20 @@ generateCheckIns <- function(checkIns) {
   #   message("city: ", c)
   #   generateForCity(checkIns, generated, locations, userIds, date, n)
   # }
-  return(generateForCities(checkIns, generated, locations, userIds, date, n))
+  return(generateForCities(checkIns, generated, locations, userIds, date, n, UNIFORM_LOCATION_PROBABILITY))
 }
 
-generateForCities <- function(checkIns, generated, locations, userIds, date, n) {
+generateForCities <- function(checkIns, generated, locations, userIds, date, n, UNIFORM_LOCATION_PROBABILITY) {
   j <- 1
   for(c in unique(locations$city)) {
     message("City: ", c)
     locationsInCity <- locations[locations$city==c, ]
+    locationIDs <- c()
+    if(UNIFORM_LOCATION_PROBABILITY) {
+      locationIDs <- unique(locationsInCity$idLocal)
+    } else {
+      locationIDs <- locationsInCity$idLocal
+    }
     maleCount <- sum(locationsInCity[locationsInCity$gender=="male", ]$genderCount)
     femaleCount <- sum(locationsInCity[locationsInCity$gender=="female", ]$genderCount)
     malePercentage <- maleCount/(maleCount+femaleCount)
@@ -402,8 +408,12 @@ generateForCities <- function(checkIns, generated, locations, userIds, date, n) 
     nOfmaleOrFemaleCheckIns <- maleCount+femaleCount
     message("#checkIns: ", nOfmaleOrFemaleCheckIns)
 
+    # TODO speedup: kill loop
+    # sample(locationIDs, nOfmaleOrFemaleCheckIns)
+    # sample(users, nOfmaleOrFemaleCheckIns, prob=genderDistribution)
+    # generated[j:j+nOfmaleOrFemaleCheckIns,] <- data.frame(…)
     for(i in seq(nOfmaleOrFemaleCheckIns)) {
-      idLocal<-sample(locationsInCity$idLocal, 1)
+      idLocal<-sample(locationIDs, 1)
       localAttrs <- locationsInCity[locationsInCity$idLocal==idLocal, ][1,]
       gender <- sample(c("male", "female"), 1, prob=genderDistribution)
       userIds <- c()
