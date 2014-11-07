@@ -45,8 +45,8 @@ subcategoryPreferencesByGender <- function(countryCheckIns, countryUsers, countr
               maleUniqueSubcategories=maleUniqueSubC, femaleUniqueSubcategories=femaleUniqueSubC))
 }
 
-correlateTopCategories <- function(group1, group2, country, categories, countMethod) {
-  top <- getTopNCategories(group1, group2)
+correlateTopCategories <- function(group1, group2, country, categories, countMethod, popularityMeasure, topN=10) {
+  top <- getTopNCategories(group1, group2, topN, method=popularityMeasure)
 
   correlateCategories(top$group1$count,
                       top$group2$count,
@@ -56,12 +56,15 @@ correlateTopCategories <- function(group1, group2, country, categories, countMet
                       countMethod=countMethod)
 }
 
-getTopNCategories <- function(group1, group2){
+getTopNCategories <- function(group1, group2, N, method="most popular"){
   topN <- group1[1:nrow(group1),] # select all
-  # disable following line
-  topN <- filterTopNSubcategories(group2, group1, 10,
-                                 function(x,y){abs(x+y)})
-
+  filterFun <- function(){}
+  if(method=="most popular") {
+    filterFun <- function(x, y) { x + y }
+  } else if(method=="most different") {
+    filterFun <- function(x , y){ abs(x - y) }
+  } else {stop("Select a filter method = {'most popular'|'most different'}")}
+  topN <- filterTopNSubcategories(group2, group1, N, filterFun)
   group2Top <- group2[topN,]
   group1Top <- group1[topN,]
   return(list(group1=group1Top, group2=group2Top))
@@ -100,7 +103,7 @@ combineEquivalentSubCategories <- function(checkIns, substitutionRules) {
   return(checkIns)
 }
 
-segregation <- function(checkIns, location) {
+segregation <- function(checkIns, location, sub=NULL, xlim=c(0, 0.05), ylim=c(0, 0.05)) {
   checkIns <- completeCheckInsByGenderForRegion(checkIns)
   completeFemale <- checkIns$female
   completeMale <- checkIns$male
@@ -121,8 +124,8 @@ segregation <- function(checkIns, location) {
              completeFemaleR[order(completeFemaleR$count, decreasing=T),]$count))
 
   plot(completeMaleR$count, completeFemaleR$count,
-      main=paste("Gender separation in", location), xlab="male", ylab="female",
-      xlim=c(0,0.05), ylim=c(0, 0.05))
+      main=paste("Gender separation in", location), sub=sub, xlab="male", ylab="female",
+      xlim=ylim, ylim=ylim)
   abline(0, 1, col="red")
 
   printTopLocations(completeMaleR, "male")
