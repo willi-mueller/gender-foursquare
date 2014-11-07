@@ -486,8 +486,11 @@ country <- "UAE"
 checkInsInCity <- getCheckInsInRegion("Abu Dhabi", uaeCheckIns, uaeUsers, uaeFilter)
 segregation <- segregation(checkInsInCity, "Abu Dhabi")
 
+
 # correlation categories
 data <- subcategoryPreferencesByGender(uaeCheckIns, uaeUsers, uaeFilter, country)
+country <- "Saudi Arabia"
+data <- subcategoryPreferencesByGender(saudiCheckIns, saudiUsers, saudiFilter, country)
 
 correlateCategories(data$maleCategories$count, data$femaleCategories$count,
                     data$maleCategories$category,
@@ -508,12 +511,29 @@ correlateCategories(data$maleSubcategories$count, data$femaleSubcategories$count
                     categories="Subcategories",
                     xlim=0.1, ylim=0.1)
 
+correlateCategories(data$maleSubcategories$count, data$femaleSubcategories$count,
+                    data$maleSubcategories$subcategory,
+                    country=country,
+                    countMethod="unique users",
+                    categories="Subcategories",
+                    xlim=0.1, ylim=0.1)
+topN <- 10
+correlateTopCategories(data$maleUniqueSubcategories, data$femaleUniqueSubcategories,
+                       country,
+                       countMethod="unique users",
+                       sprintf("%s most popular subcategories", topN),
+                       "most popular",
+                       topN)
+
 correlateTopCategories(data$maleUniqueSubcategories, data$femaleUniqueSubcategories,
                        country,
                        "unique users",
-                       "10 most popular subcategories")
+                       sprintf("%s most different subcategories", topN),
+                       "most different",
+                       topN)
 
-
+############
+# Correlation Locations & Segregation
 ############
 
 ad.checkIns <- getCheckInsInRegion(c("Abu Dhabi"), uaeCheckIns, uaeUsers, uaeFilter, substitutionRules)
