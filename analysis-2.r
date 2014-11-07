@@ -304,7 +304,7 @@ plotProbabilityDensityOfDistanceInSubcategory <- function(distances, subcategory
 }
 
 distances <- function(masculine, feminine) {
-  stopifnot(length(masculine[,1]) == length(feminine[,1]))
+  stopifnot(nrow(masculine) == nrow(feminine))
   dists <- list()
   for(s in unique(masculine$subcategory)){
     m <- masculine[masculine$subcategory==s, ]$count
