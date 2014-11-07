@@ -579,3 +579,26 @@ countries <- list(
 genderDistanceForCountry(countries, substitutionRules, "Distribution of gender distance")
 
 s <- segregation(generateCheckIn(getCheckInsInCountry(saudiCheckIns, saudiUsers, saudiFilter, substitutionRules)), "Saudi Arabia")
+
+##########
+# Generate Null Model
+##########
+checkIns <- getCheckInsInCountry(saudiCheckIns, saudiUsers, saudiFilter, substitutionRules)
+gUniform <- generateCheckIns(checkIns, UNIFORM_LOCATION_PROBABILITY=TRUE)
+gPopularity <- generateCheckIns(checkIns, UNIFORM_LOCATION_PROBABILITY=FALSE)
+s <- segregation(gUniform, "Saudi Arabia Generated", sub="not considering location frequency")
+s <- segregation(gPopularity, "Saudi Arabia Generated", sub="considering location frequency")
+s <- segregation(gPopularity[gPopularity$city=="Riyadh",],xlim=c(0,0.01), ylim=c(0,0.01),"Riyadh Generated", sub="Considering observed frequency")
+s <- segregation(checkIns[checkIns$city=="Riyadh",] ,"Riyadh")
+s <- segregation(gPopularity[gPopularity$subcategory=="University",], xlim=c(0,0.01), ylim=c(0,0.01),"Saudi Arabia's Universities Generated", sub="Considering observed frequency")
+
+
+s <- segregation(gUniform, "Generated Saudi Arabia not considering location frequency")
+s <- segregation(gPopularity, "Generated Saudi Arabia considering location frequency")
+s<-segregation(gUniform[gUniform$subcategory=="University",], "Generated S. A. , University not considering location frequency", xlim=NULL, ylim=NULL)
+s<-segregation(gPopularity[gPopularity$subcategory=="University",], "Generated S. A., University considering location frequency", xlim=NULL, ylim=NULL)
+
+boxplot(s$maleCIR$count-s$femaleCIR$count, main="Distribution of Generated Gender Distance in …", sub="Considering observed frequency")
+
+plot(sqldf("select count(*) as count, idLocal from gPopularity group by idLocal")$count)
+plot(sqldf("select count(*) as count, idLocal from gUniform group by idLocal")$count)
