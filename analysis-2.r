@@ -329,7 +329,7 @@ euclideanDistance <- function(male, female) {
   return(dist)
 }
 
-compareDistanceSegregationsIn <- function(checkInsInCategory1, checkInsInCategory2, regionName1, regionName2, name) {
+compareDistanceSegregationsECDFin <- function(checkInsInCategory1, checkInsInCategory2, regionName1, regionName2, name) {
   g <- c( rep(regionName1, length(checkInsInCategory1)),
           rep(regionName2, length(checkInsInCategory2)))
   Ecdf(c(checkInsInCategory1, checkInsInCategory2), group=g,
@@ -563,7 +563,7 @@ plotProbabilityDensityOfDistanceInSubcategory(dists, "Café")
 r.cafe <- r.dists[r.dists$subcategory=="Café"][[1]]
 ad.cafe <- ad.dists[ad.dists$subcategory=="Café"][[1]]
 
-compareDistanceSegregationsIn(r.cafe, ad.cafe, "Riyadh", "Abu Dhabi", "Café")
+compareDistanceSegregationsECDFin(r.cafe, ad.cafe, "Riyadh", "Abu Dhabi", "Café")
 
 ############
 
