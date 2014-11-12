@@ -95,8 +95,7 @@ combineEquivalentSubCategories <- function(checkIns, substitutionRules) {
   for(pair in substitutionRules) {
     for(equivalent in pair$equivalents) {
       if(equivalent %in% checkIns$subcategory) {
-        tmp <- checkIns[checkIns$subcategory==equivalent, ]
-        tmp$subcategory <- pair$original
+        checkIns[checkIns$subcategory==equivalent, ]$subcategory <- pair$original
       }
     }
   }
