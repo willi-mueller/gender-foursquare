@@ -102,7 +102,7 @@ combineEquivalentSubCategories <- function(checkIns, substitutionRules) {
   return(checkIns)
 }
 
-segregation <- function(checkIns, location, sub=NULL, xlim=c(0, 0.05), ylim=c(0, 0.05)) {
+segregation <- function(checkIns, location="<location>", sub=NULL, xlim=c(0, 0.05), ylim=c(0, 0.05)) {
   checkIns <- completeCheckInsByGenderForRegion(checkIns)
   completeFemale <- checkIns$female
   completeMale <- checkIns$male
@@ -136,7 +136,7 @@ segregation <- function(checkIns, location, sub=NULL, xlim=c(0, 0.05), ylim=c(0,
 aggregateSegregationForRegion <- function(regionCheckIns, region) {
   seg <- segregation(regionCheckIns, region)
   distances <- euclideanDistance(seg$maleCIR$count, seg$femaleCIR$count)
-  boxplot(distances)
+  boxplot(distances, names=c(region))
   return(summary(distances))
 }
 
@@ -341,10 +341,10 @@ compareDistanceSegregationsECDFin <- function(checkInsInCategory1, checkInsInCat
   return(ksTest)
 }
 
-compareSegregationBoxplot <- function(segregationInRegion1, segregationInRegion2, regionName1, regionName2) {
+compareSegregationBoxplot <- function(segregationInRegion1, segregationInRegion2, regionName1, regionName2, main="Distribution of Gender Difference") {
   seg1 <- segregationInRegion1$femaleCIR$count-segregationInRegion1$maleCIR$count
   seg2 <- segregationInRegion2$femaleCIR$count-segregationInRegion2$maleCIR$count
-  boxplot(seg1, seg2, names=c(regionName1, regionName2), main="Distribution of Gender Difference")
+  boxplot(seg1, seg2, names=c(regionName1, regionName2), main=main)
   print(t.test(seg1, seg2))
   print(paste("SD region1: ", sd(seg1)))
   print(paste("SD region2: ", sd(seg2)))
@@ -617,7 +617,19 @@ boxplot(s$maleCIR$count-s$femaleCIR$count, main="Distribution of Generated Gende
 boxplot(sqldf("select count(*) as count, idLocal from gPopularity group by idLocal")$count)
 boxplot(sqldf("select count(*) as count, idLocal from gUniform group by idLocal")$count)
 
+rgen.checkIns <- gPopularity[gPopularity$city=="Riyadh",]
 r.checkIns <- checkIns[checkIns$city=="Riyadh",]
 r.segregation <- segregation(r.checkIns ,"Riyadh")
-r.segSim <- segregation(gPopularity[gPopularity$city=="Riyadh",] ,"Riyadh")
+rgen.segregation <- segregation(rgen.checkIns, "Riyadh")
 compareSegregationBoxplot(r.segregation, r.segSim, "Riyadh", "Riyadh Generated")
+
+compareSegregationBoxplot(segregation(r.checkIns[r.checkIns$subcategory=="Café", ]),
+                          segregation(rgen.checkIns[rgen.checkIns$subcategory=="Café", ]),
+                          "Riyadh", "Riyadh Generated",
+                          main="Distribution of gender difference in Cafés")
+
+rgen.dists <-distances(rgen.segregation$maleCIR, rgen.segregation$femaleCIR)
+r.dists <-distances(r.segregation$maleCIR, r.segregation$femaleCIR)
+compareDistanceSegregationsECDFin(rgen.dists[rgen.dists$subcategory=="Café" ][[1]],
+                                  r.dists[r.dists$subcategory=="Café"][[1]],
+                                  "Riyadh Generated", "Riyadh", "Café")
