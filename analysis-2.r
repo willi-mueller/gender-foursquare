@@ -403,10 +403,6 @@ generateCheckIns <- function(checkIns, UNIFORM_LOCATION_PROBABILITY=FALSE) {
     ,userLocal=NaN
     ,gender=NaN
   )
-  # for(c in locations$city) {
-  #   message("city: ", c)
-  #   generateForCity(checkIns, generated, locations, userIds, date, n)
-  # }
   return(generateForCities(checkIns, generated, locations, userIds, date, n, UNIFORM_LOCATION_PROBABILITY))
 }
 
