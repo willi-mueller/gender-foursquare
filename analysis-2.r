@@ -1,8 +1,8 @@
 library(sqldf)
 library(Hmisc) # Ecdf
 
-subcategoryPreferencesByGender <- function(countryCheckIns, countryUsers, countryFilter, country) {
-  joined <- getCheckInsInCountry(countryCheckIns, countryUsers, countryFilter)
+subcategoryPreferencesByGender <- function(checkIns) {
+  joined <- checkIns
 
   #categories
   maleC <- categoriesByGender(joined, "male")
@@ -500,9 +500,11 @@ segregation <- segregation(checkInsInCity, "Abu Dhabi")
 
 
 # correlation categories
-data <- subcategoryPreferencesByGender(uaeCheckIns, uaeUsers, uaeFilter, country)
+uae.ci <- getCheckInsInCountry(uaeCheckIns, uaeUsers, uaeFilter)
+data <- subcategoryPreferencesByGender(uae.ci)
 country <- "Saudi Arabia"
-data <- subcategoryPreferencesByGender(saudiCheckIns, saudiUsers, saudiFilter, country)
+saudi.ci <- getCheckInsInCountry(saudiCheckIns, saudiUsers, saudiFilter)
+data <- subcategoryPreferencesByGender(saudi.ci)
 
 correlateCategories(data$maleCategories$count, data$femaleCategories$count,
                     data$maleCategories$category,
