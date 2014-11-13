@@ -74,7 +74,7 @@ getCheckInsInCountry <- function(countryCheckIns, countryUsers, userLocalFilter,
   ci <- readCheckIns(countryCheckIns)
   if(!is.null(countryUsers)) {
     users <- readUsers(countryUsers)
-    profiles <- discardNonResidents(users, filter=countryFilter)
+    profiles <- discardNonResidents(users, filter=userLocalFilter)
     ci <- joinCheckInsWithProfiles(ci, profiles)
   }
   if(!missing(substitutionRules)) {
@@ -89,7 +89,7 @@ getCheckInsInCountry <- function(countryCheckIns, countryUsers, userLocalFilter,
 }
 
 getCheckInsInRegion <- function(regionFilters, countryCheckIns, countryUsers, userLocalFilter, substitutionRules) {
-  joined <- getCheckInsInCountry(countryCheckIns, countryUsers, countryFilter, substitutionRules)
+  joined <- getCheckInsInCountry(countryCheckIns, countryUsers, userLocalFilter, substitutionRules)
 
   checkInsInRegion <- c()
   for(filter in regionFilters) {
