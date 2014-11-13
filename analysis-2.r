@@ -433,7 +433,7 @@ generateForCities <- function(checkIns, generated, locations, userIds, date, n, 
     for(i in seq(nOfmaleOrFemaleCheckIns)) {
       idLocal<-sample(locationIDs, 1)
       localAttrs <- locationsInCity[locationsInCity$idLocal==idLocal, ][1,]
-      gender <- sample(c("male", "female"), 1, prob=0.5)
+      gender <- sample(c("male", "female"), 1)
       userIds <- c()
       if(gender=="male") {
         userIds <- maleUserIds
