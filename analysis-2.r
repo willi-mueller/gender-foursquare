@@ -70,18 +70,25 @@ getTopNCategories <- function(group1, group2, N, method="most popular"){
   return(list(group1=group1Top, group2=group2Top))
 }
 
-getCheckInsInCountry <- function(countryCheckIns, countryUsers, countryFilter, substitutionRules) {
+getCheckInsInCountry <- function(countryCheckIns, countryUsers, userLocalFilter, substitutionRules) {
   ci <- readCheckIns(countryCheckIns)
-  users <- readUsers(countryUsers)
-  profiles <- discardNonResidents(users, filter=countryFilter)
-  joined <- joinCheckInsWithProfiles(ci, profiles)
-  if(!missing(substitutionRules)) {
-    joined <- combineEquivalentSubCategories(joined, substitutionRules)
+  if(!is.null(countryUsers)) {
+    users <- readUsers(countryUsers)
+    profiles <- discardNonResidents(users, filter=countryFilter)
+    ci <- joinCheckInsWithProfiles(ci, profiles)
   }
-  return(joined)
+  if(!missing(substitutionRules)) {
+    ci <- combineEquivalentSubCategories(ci, substitutionRules)
+  }
+  ## for second data collection
+  if(grepl("paises", countryCheckIns)) {
+    colnames(ci) <- c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
+                     "subcategory", "category", "country", "city", "district", "gender", "timeOffset")
+  }
+  return(ci)
 }
 
-getCheckInsInRegion <- function(regionFilters, countryCheckIns, countryUsers, countryFilter, substitutionRules) {
+getCheckInsInRegion <- function(regionFilters, countryCheckIns, countryUsers, userLocalFilter, substitutionRules) {
   joined <- getCheckInsInCountry(countryCheckIns, countryUsers, countryFilter, substitutionRules)
 
   checkInsInRegion <- c()
@@ -179,7 +186,7 @@ locationsNotCheckedInByGender <- function(checkIns, checkInsOfOtherGender) {
 
 countLocationsByGender <- function(checkInsOfGender) {
     mCityLocations <- sqldf("Select *, count(*) as count from
-      (select * from checkInsOfGender group by user, idLocal) group by idLocal")
+      (select * from checkInsOfGender group by idUserFoursquare, idLocal) group by idLocal")
 }
 
 topLocations <- function(checkIns, n=7) {
@@ -224,7 +231,7 @@ categoriesByGender <- function(joinedTable, gender, uniqueUsers=FALSE, subcatego
     gender, "' group by ", category, sep="")
   if(uniqueUsers==TRUE) {
     queryString <- paste("Select *, count(*) as count from  (select * from joinedTable where gender='",
-      gender, "' group by user, ",
+      gender, "' group by idUserFoursquare, ",
                        category, " ) group by ",  category, sep="")
   }
   return(sqldf(queryString))
@@ -439,6 +446,10 @@ generateForCities <- function(checkIns, generated, locations, userIds, date, n, 
         }
       id <- sample(userIds, 1)
       userLocal <- checkIns[checkIns$idUserFoursquare==id, ]$userLocal[1]
+      # second data collection
+      if(is.null(userLocal)) {
+        userLocal <- localAttrs$city
+      }
 
       generated[j, ] <- as.matrix(data.frame(idUserFoursquare=id, date=date,
         latitude=localAttrs$latitude, longitude=localAttrs$longitude,
