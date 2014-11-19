@@ -377,7 +377,7 @@ genderDistanceForCountry <- function(countries, substitutionRules, main){
   do.call(boxplot, list(distances, names=names, main=main))
 }
 
-generateCheckIns <- function(checkIns, UNIFORM_LOCATION_PROBABILITY=FALSE) {
+generateCheckIns <- function(checkIns, UNIFORM_LOCATION_PROBABILITY=FALSE, UNIFORM_GENDER_PROBABILITY=TRUE) {
   message("Generating…")
   n <- nrow(checkIns)
   locations <- sqldf("Select idLocal, latitude,longitude, subcategory, category, city, country, gender, count(gender) as genderCount
@@ -385,10 +385,7 @@ generateCheckIns <- function(checkIns, UNIFORM_LOCATION_PROBABILITY=FALSE) {
                       Group By city, idLocal, gender")
   userIds <- sqldf("Select distinct(idUserFoursquare) from checkIns")
   date <- Sys.time()
-  #date <- sqldf("Select distinct(date) from checkIns") # <- date independent from checkIns whcih is not reality
 
-  #generated <- matrix(nrow=n, ncol=12)
-  #colnames(generated) <- data.frame(
   generated <- data.frame(
     idUserFoursquare=NaN
     ,date=NaN
@@ -403,33 +400,48 @@ generateCheckIns <- function(checkIns, UNIFORM_LOCATION_PROBABILITY=FALSE) {
     ,userLocal=NaN
     ,gender=NaN
   )
-  return(generateForCities(checkIns, generated, locations, userIds, date, n, UNIFORM_LOCATION_PROBABILITY))
+  return(generateForCities(checkIns, generated, locations, userIds, date, n,
+                            UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY))
 }
 
-generateForCities <- function(checkIns, generated, locations, userIds, date, n, UNIFORM_LOCATION_PROBABILITY=TRUE) {
+generateForCities <- function(checkIns, generated, locations, userIds, date, n,
+                              UNIFORM_LOCATION_PROBABILITY=TRUE,
+                              UNIFORM_GENDER_PROBABILITY=TRUE) {
   j <- 1
   for(c in unique(locations$city)) {
     message("City: ", c)
     locationsInCity <- locations[locations$city==c, ]
     locationIDs <- c()
-    if(UNIFORM_LOCATION_PROBABILITY) {
+    if(UNIFORM_LOCATION_PROBABILITY==TRUE) {
       locationIDs <- unique(locationsInCity$idLocal)
     } else {
       locationIDs <- locationsInCity$idLocal
     }
-    nCheckIns <- nrow(checkIns[checkIns$city==c,])
-    message("#checkIns: ", nCheckIns)
+    #count checkIns with male/female gender, discard 'other'
+    nMale <- sum(locationsInCity[locationsInCity$gender=="male", ]$genderCount)
+    nFemale <- sum(locationsInCity[locationsInCity$gender=="female", ]$genderCount)
+    nCheckIns <- nMale + nFemale
+    message("#checkIns male/female: ", nCheckIns)
 
+    randomIdLocal <- sample(locationIDs, nCheckIns, replace=TRUE)
     maleUserIds <- unique(checkIns[checkIns$gender=="male", ]$idUserFoursquare)
     femaleUserIds <- unique(checkIns[checkIns$gender=="female", ]$idUserFoursquare)
     randomMaleIds <- sample(maleUserIds, nCheckIns, replace=T)
     randomFemaleIds <- sample(femaleUserIds, nCheckIns, replace=T)
-    randomGender <- sample(c("male", "female"), nCheckIns, replace=TRUE)
+    randomGender <- c()
+
+    if(UNIFORM_GENDER_PROBABILITY==TRUE) {
+      randomGender <- sample(c("male", "female"), nCheckIns, replace=TRUE)
+    } else {
+      malePercentage <- nMale/nCheckIns
+      genderDistribution <- c(malePercentage, 1 - malePercentage)
+      randomGender <- sample(c("male", "female"), nCheckIns, prob=genderDistribution, replace=TRUE)
+    }
+
     maleCount <- 1
     femaleCount <- 1
-    randomIdLocal <- sample(locationIDs, nCheckIns, replace=TRUE)
 
-    for(i in seq(nCheckIns)) {
+    for(i in seq(2)) {
       idLocal <- randomIdLocal[i]
       localAttrs <- locationsInCity[locationsInCity$idLocal==idLocal, ][1,]
       id <- NULL
