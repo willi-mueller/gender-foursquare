@@ -411,32 +411,16 @@ generateForCities <- function(checkIns, generated, locations, userIds, date, n,
   for(c in unique(locations$city)) {
     message("City: ", c)
     locationsInCity <- locations[locations$city==c, ]
-    locationIDs <- c()
-    if(UNIFORM_LOCATION_PROBABILITY==TRUE) {
-      locationIDs <- unique(locationsInCity$idLocal)
-    } else {
-      locationIDs <- locationsInCity$idLocal
-    }
-    #count checkIns with male/female gender, discard 'other'
-    nMale <- sum(locationsInCity[locationsInCity$gender=="male", ]$genderCount)
-    nFemale <- sum(locationsInCity[locationsInCity$gender=="female", ]$genderCount)
-    nCheckIns <- nMale + nFemale
+
+    nCheckIns <- countCheckInsWithSpecifiedGender(locationsInCity)
     message("#checkIns male/female: ", nCheckIns)
 
-    randomIdLocal <- sample(locationIDs, nCheckIns, replace=TRUE)
+    randomIdLocal <- sampleLocationIds(locationsInCity, nCheckIns, UNIFORM_LOCATION_PROBABILITY)
     maleUserIds <- unique(checkIns[checkIns$gender=="male", ]$idUserFoursquare)
     femaleUserIds <- unique(checkIns[checkIns$gender=="female", ]$idUserFoursquare)
     randomMaleIds <- sample(maleUserIds, nCheckIns, replace=T)
     randomFemaleIds <- sample(femaleUserIds, nCheckIns, replace=T)
-    randomGender <- c()
-
-    if(UNIFORM_GENDER_PROBABILITY==TRUE) {
-      randomGender <- sample(c("male", "female"), nCheckIns, replace=TRUE)
-    } else {
-      malePercentage <- nMale/nCheckIns
-      genderDistribution <- c(malePercentage, 1 - malePercentage)
-      randomGender <- sample(c("male", "female"), nCheckIns, prob=genderDistribution, replace=TRUE)
-    }
+    randomGender <- sampleGender(nCheckIns, UNIFORM_GENDER_PROBABILITY)
 
     maleCount <- 1
     femaleCount <- 1
@@ -445,6 +429,7 @@ generateForCities <- function(checkIns, generated, locations, userIds, date, n,
       idLocal <- randomIdLocal[i]
       localAttrs <- locationsInCity[locationsInCity$idLocal==idLocal, ][1,]
       id <- NULL
+      # build gender column
       gender <- randomGender[i]
       if(gender=="male") {
         id <- randomMaleIds[maleCount]
@@ -465,6 +450,33 @@ generateForCities <- function(checkIns, generated, locations, userIds, date, n,
     }
   }
   return(generated)
+}
+
+sampleLocationIds <- function(locationsInCity, nCheckIns, UNIFORM_LOCATION_PROBABILITY) {
+  locationIDs <- c()
+  if(UNIFORM_LOCATION_PROBABILITY==TRUE) {
+    locationIDs <- unique(locationsInCity$idLocal)
+  } else {
+    locationIDs <- locationsInCity$idLocal
+  }
+  return(sample(locationIDs, nCheckIns, replace=TRUE))
+}
+
+sampleGender <- function(nCheckIns, UNIFORM_GENDER_PROBABILITY) {
+ if(UNIFORM_GENDER_PROBABILITY==TRUE) {
+    return(sample(c("male", "female"), nCheckIns, replace=TRUE))
+  } else {
+    malePercentage <- nMale/nCheckIns
+    genderDistribution <- c(malePercentage, 1 - malePercentage)
+    return(sample(c("male", "female"), nCheckIns, prob=genderDistribution, replace=TRUE) )
+  }
+}
+
+countCheckInsWithSpecifiedGender <- function(locationsInCity) {
+    # discard 'other' gender
+    nMale <- sum(locationsInCity[locationsInCity$gender=="male", ]$genderCount)
+    nFemale <- sum(locationsInCity[locationsInCity$gender=="female", ]$genderCount)
+    return(nMale + nFemale)
 }
 
 empiricalAttributeDistribution <- function(checkIns, attribute) {
