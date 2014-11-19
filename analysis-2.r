@@ -407,6 +407,7 @@ generateCheckIns <- function(checkIns, UNIFORM_LOCATION_PROBABILITY=FALSE, UNIFO
 generateForCities <- function(checkIns, generated, locations, userIds, date, n,
                               UNIFORM_LOCATION_PROBABILITY=TRUE,
                               UNIFORM_GENDER_PROBABILITY=TRUE) {
+  country <- locations$country[1]
   for(c in unique(locations$city)) {
     message("City: ", c)
     locationsInCity <- locations[locations$city==c, ]
@@ -427,20 +428,20 @@ generateForCities <- function(checkIns, generated, locations, userIds, date, n,
     countryVec <- vector(mode="character", length=nCheckIns)
 
     for(i in seq(nCheckIns)) {
+      # performance bottleneck is this loop
       idLocal <- randomIdLocal[i]
       localAttrs <- locationsInCity[locationsInCity$idLocal==idLocal, ][1,]
       longitudeVec[i] <- localAttrs$longitude
       latitudeVec[i] <- localAttrs$latitude
-      subcategoryVec[i] <- toString(localAttrs$subcategory)
-      categoryVec[i] <- toString(localAttrs$category)
-      cityVec[i] <- toString(localAttrs$city)
-      countryVec[i] <- toString(localAttrs$country)
+      subcategoryVec[i] <- as.matrix(localAttrs$subcategory)
+      categoryVec[i] <- as.matrix(localAttrs$category)
     }
+
     checkInsForCity <- as.matrix(data.frame(idUserFoursquare=userIdVec, date=date,
         latitude=latitudeVec, longitude=longitudeVec,
         idLocal=randomIdLocal,
         subcategory=subcategoryVec, category=categoryVec,
-        city=cityVec, country=countryVec,
+        city=c, country=country,
         user=userIdVec, userLocal=c,
         gender=randomGender
     ))
