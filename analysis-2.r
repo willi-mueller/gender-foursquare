@@ -406,7 +406,7 @@ generateCheckIns <- function(checkIns, UNIFORM_LOCATION_PROBABILITY=FALSE) {
   return(generateForCities(checkIns, generated, locations, userIds, date, n, UNIFORM_LOCATION_PROBABILITY))
 }
 
-generateForCities <- function(checkIns, generated, locations, userIds, date, n, UNIFORM_LOCATION_PROBABILITY) {
+generateForCities <- function(checkIns, generated, locations, userIds, date, n, UNIFORM_LOCATION_PROBABILITY=TRUE) {
   j <- 1
   for(c in unique(locations$city)) {
     message("City: ", c)
@@ -417,42 +417,36 @@ generateForCities <- function(checkIns, generated, locations, userIds, date, n, 
     } else {
       locationIDs <- locationsInCity$idLocal
     }
-    maleCount <- sum(locationsInCity[locationsInCity$gender=="male", ]$genderCount)
-    femaleCount <- sum(locationsInCity[locationsInCity$gender=="female", ]$genderCount)
-    malePercentage <- maleCount/(maleCount+femaleCount)
-    genderDistribution <- c(malePercentage, 1 - malePercentage)
-    maleUserIds <- checkIns[checkIns$gender=="male", ]$idUserFoursquare
-    femaleUserIds <- checkIns[checkIns$gender=="female", ]$idUserFoursquare
-    nOfmaleOrFemaleCheckIns <- maleCount+femaleCount
-    message("#checkIns: ", nOfmaleOrFemaleCheckIns)
+    nCheckIns <- nrow(checkIns[checkIns$city==c,])
+    message("#checkIns: ", nCheckIns)
 
-    # TODO speedup: kill loop
-    # sample(locationIDs, nOfmaleOrFemaleCheckIns)
-    # sample(users, nOfmaleOrFemaleCheckIns, prob=genderDistribution)
-    # generated[j:j+nOfmaleOrFemaleCheckIns,] <- data.frame(…)
-    for(i in seq(nOfmaleOrFemaleCheckIns)) {
-      idLocal<-sample(locationIDs, 1)
+    maleUserIds <- unique(checkIns[checkIns$gender=="male", ]$idUserFoursquare)
+    femaleUserIds <- unique(checkIns[checkIns$gender=="female", ]$idUserFoursquare)
+    randomMaleIds <- sample(maleUserIds, nCheckIns, replace=T)
+    randomFemaleIds <- sample(femaleUserIds, nCheckIns, replace=T)
+    randomGender <- sample(c("male", "female"), nCheckIns, replace=TRUE)
+    maleCount <- 1
+    femaleCount <- 1
+    randomIdLocal <- sample(locationIDs, nCheckIns, replace=TRUE)
+
+    for(i in seq(nCheckIns)) {
+      idLocal <- randomIdLocal[i]
       localAttrs <- locationsInCity[locationsInCity$idLocal==idLocal, ][1,]
-      gender <- sample(c("male", "female"), 1)
-      userIds <- c()
+      id <- NULL
+      gender <- randomGender[i]
       if(gender=="male") {
-        userIds <- maleUserIds
-        } else{
-        userIds <- femaleUserIds
-        }
-      id <- sample(userIds, 1)
-      userLocal <- checkIns[checkIns$idUserFoursquare==id, ]$userLocal[1]
-      # second data collection
-      if(is.null(userLocal)) {
-        userLocal <- localAttrs$city
+        id <- randomMaleIds[maleCount]
+        maleCount <- maleCount +1
+      } else {
+        id <- randomFemaleIds[femaleCount]
+        femaleCount <- femaleCount +1
       }
-
       generated[j, ] <- as.matrix(data.frame(idUserFoursquare=id, date=date,
         latitude=localAttrs$latitude, longitude=localAttrs$longitude,
         idLocal=idLocal,
         subcategory=localAttrs$subcategory, category=localAttrs$category,
         city=localAttrs$city, country=localAttrs$country,
-        user=id, userLocal=userLocal,
+        user=id, userLocal=c,
         gender=gender
       ))
       j <- j+1
