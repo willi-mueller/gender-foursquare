@@ -427,14 +427,17 @@ generateForCities <- function(checkIns, generated, locations, userIds, date, n,
     cityVec <- vector(mode="character", length=nCheckIns)
     countryVec <- vector(mode="character", length=nCheckIns)
 
+    locationsInCity$subcategory <- as.matrix(locationsInCity$subcategory)
+    locationsInCity$category <- as.matrix(locationsInCity$category)
+
     for(i in seq(nCheckIns)) {
       # performance bottleneck is this loop
       idLocal <- randomIdLocal[i]
       localAttrs <- locationsInCity[locationsInCity$idLocal==idLocal, ][1,]
       longitudeVec[i] <- localAttrs$longitude
       latitudeVec[i] <- localAttrs$latitude
-      subcategoryVec[i] <- as.matrix(localAttrs$subcategory)
-      categoryVec[i] <- as.matrix(localAttrs$category)
+      subcategoryVec[i] <- localAttrs$subcategory
+      categoryVec[i] <- localAttrs$category
     }
 
     checkInsForCity <- as.matrix(data.frame(idUserFoursquare=userIdVec, date=date,
