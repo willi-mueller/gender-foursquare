@@ -1,5 +1,6 @@
 library(sqldf)
 library(Hmisc) # Ecdf
+library(parallel)
 
 subcategoryPreferencesByGender <- function(checkIns) {
   joined <- checkIns
@@ -430,7 +431,7 @@ generateForCities <- function(checkIns, generated, locations, userIds, date, n,
     locationsInCity$subcategory <- as.matrix(locationsInCity$subcategory)
     locationsInCity$category <- as.matrix(locationsInCity$category)
 
-    for(i in seq(nCheckIns)) {
+    mclapply(seq(nCheckIns), function(i) {
       # performance bottleneck is this loop
       idLocal <- randomIdLocal[i]
       localAttrs <- locationsInCity[locationsInCity$idLocal==idLocal, ][1,]
@@ -438,7 +439,7 @@ generateForCities <- function(checkIns, generated, locations, userIds, date, n,
       latitudeVec[i] <- localAttrs$latitude
       subcategoryVec[i] <- localAttrs$subcategory
       categoryVec[i] <- localAttrs$category
-    }
+    }, mc.cores=detectCores())
 
     checkInsForCity <- as.matrix(data.frame(idUserFoursquare=userIdVec, date=date,
         latitude=latitudeVec, longitude=longitudeVec,
