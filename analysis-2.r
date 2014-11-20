@@ -701,6 +701,7 @@ compareDistanceSegregationsECDFin(rgen.dists[rgen.dists$subcategory=="Café" ][[
 #########################################
 
 r.checkIns <- getCheckInsInRegion(c("Riyadh"), saudiCheckIns, saudiUsers, saudiFilter, substitutionRules)
+r.checkIns <- rbind(r.checkIns[r.checkIns$gender=="male", ], r.checkIns[r.checkIns$gender=="female", ])
 r.segregation <- segregation(r.checkIns, "Riyadh")
 
 ####################
