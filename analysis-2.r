@@ -693,3 +693,94 @@ r.dists <-distances(r.segregation$maleCIR, r.segregation$femaleCIR)
 compareDistanceSegregationsECDFin(rgen.dists[rgen.dists$subcategory=="Café" ][[1]],
                                   r.dists[r.dists$subcategory=="Café"][[1]],
                                   "Riyadh Generated", "Riyadh", "Café")
+
+
+#########################################
+# Null Model Generation
+#########################################
+
+r.checkIns <- getCheckInsInRegion(c("Riyadh"), saudiCheckIns, saudiUsers, saudiFilter, substitutionRules)
+r.segregation <- segregation(r.checkIns, "Riyadh")
+
+####################
+runGenerate <- function(checkIns, segregation, UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY,
+                        folderName, plotName, k=100, alpha=0.1) {
+  rgen.segregation <- c()
+
+  nCheckIns <- nrow(r.checkIns)
+
+  x <- data.frame(idUserFoursquare=NaN ,date=NaN ,latitude=NaN ,longitude=NaN ,idLocal=NaN
+      ,subcategory=NaN ,category=NaN ,city=NaN ,country=NaN ,user=NaN ,userLocal=NaN ,gender=NaN)
+
+  for(i in seq(k)) {
+      x <- rbind(x, generateCheckIns(r.checkIns, UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY))
+      # segregation with all values crashes :(
+      s <- segregation(x, "Riyadh generated",
+                          sub=sprintf("uniform location: %s, uniform gender: %s",
+                              UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY))
+      rgen.segregation$maleCIR <- rbind(rgen.segregation$maleCIR, s$maleCIR)
+      rgen.segregation$femaleCIR <- rbind(rgen.segregation$femaleCIR, s$femaleCIR)
+  }
+  x <- x[2:(k*nCheckIns),] # discard first NaN row
+  write.csv(x, sprintf("generated-riyadh-%s.csv", plotName))
+
+  print(Sys.time())
+  for(location in unique(rgen.segregation$maleCIR$idLocal)) {
+    malePopularity <- rgen.segregation$maleCIR[rgen.segregation$maleCIR$idLocal==location, ]$count
+    femalePopularity <- rgen.segregation$femaleCIR[rgen.segregation$femaleCIR$idLocal==location, ]$count
+    empiricalDist <- femalePopularity - malePopularity
+    percentile <- quantile(empiricalDist, c(alpha/2, 1-alpha/2))
+
+    observedMale <- r.segregation$maleCIR[r.segregation$maleCIR$idLocal==location, ]$count
+    observedFemale <- r.segregation$femaleCIR[r.segregation$femaleCIR$idLocal==location, ]$count
+    observedDist <- observedFemale-observedMale
+
+    if((observedDist & percentile[1] & percentile[2]) & observedDist < percentile[1] | observedDist > percentile[2]) {
+      message(sprintf("Location: %s, subcategory: %s, distance: %s, anomalous with alpha=%s",
+                    location, r.checkIns[r.checkIns$idLocal==location, ]$subcategory, observedDist, alpha))
+      filename <- sprintf("%s/anomalous-%s.pdf", folderName, location)
+
+      pdf(filename)
+      hist(empiricalDist, main="Histogram of gender distance", xlab="gender distance",
+           sub=sprintf("Location: %s, subcategory: %s, distance: %s, anomalous with alpha=%s, k=%s",
+                    location, r.checkIns[r.checkIns$idLocal==location, ]$subcategory, observedDist, alpha, k))
+      abline(v=observedDist, col="blue")
+      abline(v=percentile[1], col="green")
+      abline(v=percentile[2], col="green")
+
+      dev.off()
+    }
+  }
+
+  browser()
+  pdf(sprintf("%s/avg-segregation-generated-riyadh.pdf", folderName))
+  plot(mean(malePopularity), mean(femalePopularity),
+        main="Gender separation in Generated Riyadh" ,
+        sub=sprintf("uniform location: %s, uniform gender: %s, k=%s",
+            UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY, k),
+        xlab="male", ylab="female")
+  abline(0, 1, col="red")
+  dev.off()
+}
+
+####################
+folderPrefix <- "results/null-model/"
+runGenerate(r.checkIns, r.segregation,
+            UNIFORM_LOCATION_PROBABILITY=TRUE, UNIFORM_GENDER_PROBABILITY=TRUE,
+            folderName=sprintf("%s/uniform-location-uniform-gender", folderPrefix),
+            plotName="observed-location-uniform-gender.csv")
+
+runGenerate(r.checkIns, r.segregation,
+            UNIFORM_LOCATION_PROBABILITY=FALSE, UNIFORM_GENDER_PROBABILITY=TRUE,
+            folderName=sprintf("%s/observed-location-uniform-gender", folderPrefix),
+            plotName="observed-location-uniform-gender.csv")
+
+runGenerate(r.checkIns, r.segregation,
+            UNIFORM_LOCATION_PROBABILITY=TRUE, UNIFORM_GENDER_PROBABILITY=FALSE,
+            folderName=sprintf("%s/uniform-location-observed-gender", folderPrefix),
+            plotName="observed-location-uniform-gender.csv")
+
+runGenerate(r.checkIns, r.segregation,
+            UNIFORM_LOCATION_PROBABILITY=FALSE, UNIFORM_GENDER_PROBABILITY=FALSE,
+            folderName=sprintf("%s/observed-location-observed-gender", folderPrefix),
+            plotName="observed-location-uniform-gender.csv")
