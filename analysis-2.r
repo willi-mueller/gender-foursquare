@@ -704,16 +704,16 @@ r.segregation <- segregation(r.checkIns, "Riyadh")
 
 ####################
 runGenerate <- function(checkIns, segregation, UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY,
-                        folderName, plotName, k=100, alpha=0.1) {
+                        folderName, plotName, SEARCH_FOR_ANOMALOUS_LOCATIONS=FALSE, k=100, alpha=0.1) {
   rgen.segregation <- c()
 
-  nCheckIns <- nrow(r.checkIns)
+  nCheckIns <- nrow(checkIns)
 
   x <- data.frame(idUserFoursquare=NaN ,date=NaN ,latitude=NaN ,longitude=NaN ,idLocal=NaN
       ,subcategory=NaN ,category=NaN ,city=NaN ,country=NaN ,user=NaN ,userLocal=NaN ,gender=NaN)
 
   for(i in seq(k)) {
-      x <- rbind(x, generateCheckIns(r.checkIns, UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY))
+      x <- rbind(x, generateCheckIns(checkIns, UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY))
       # segregation with all values crashes :(
       s <- segregation(x, "Riyadh generated",
                           sub=sprintf("uniform location: %s, uniform gender: %s",
@@ -725,40 +725,48 @@ runGenerate <- function(checkIns, segregation, UNIFORM_LOCATION_PROBABILITY, UNI
   write.csv(x, sprintf("generated-riyadh-%s.csv", plotName))
 
   print(Sys.time())
+  meanMalePopularities <- c()
+  meanFemalePopularities <- c()
   for(location in unique(rgen.segregation$maleCIR$idLocal)) {
     malePopularity <- rgen.segregation$maleCIR[rgen.segregation$maleCIR$idLocal==location, ]$count
     femalePopularity <- rgen.segregation$femaleCIR[rgen.segregation$femaleCIR$idLocal==location, ]$count
-    empiricalDist <- femalePopularity - malePopularity
-    percentile <- quantile(empiricalDist, c(alpha/2, 1-alpha/2))
+    meanMalePopularities <- c(meanMalePopularities, mean(malePopularity))
+    meanFemalePopularities <- c(meanFemalePopularities, mean(femalePopularity))
 
-    observedMale <- r.segregation$maleCIR[r.segregation$maleCIR$idLocal==location, ]$count
-    observedFemale <- r.segregation$femaleCIR[r.segregation$femaleCIR$idLocal==location, ]$count
-    observedDist <- observedFemale-observedMale
+    if (SEARCH_FOR_ANOMALOUS_LOCATIONS) {
+      empiricalDist <- femalePopularity - malePopularity
+      percentile <- quantile(empiricalDist, c(alpha/2, 1-alpha/2))
 
-    if((observedDist & percentile[1] & percentile[2]) & observedDist < percentile[1] | observedDist > percentile[2]) {
-      message(sprintf("Location: %s, subcategory: %s, distance: %s, anomalous with alpha=%s",
-                    location, r.checkIns[r.checkIns$idLocal==location, ]$subcategory, observedDist, alpha))
-      filename <- sprintf("%s/anomalous-%s.pdf", folderName, location)
+      # unnecessary because ids are ordered and r.segregation$maleCIR$idLocal == r.segregation$femaleCIR$idLocal
+      observedMale <- r.segregation$maleCIR[r.segregation$maleCIR$idLocal==location, ]$count
+      observedFemale <- r.segregation$femaleCIR[r.segregation$femaleCIR$idLocal==location, ]$count
+      observedDist <- observedFemale-observedMale
+       if((observedDist & percentile[1] & percentile[2]) & observedDist < percentile[1] | observedDist > percentile[2]) {
+        message(sprintf("Location: %s, subcategory: %s, distance: %s, anomalous with alpha=%s",
+                      location, checkIns[checkIns$idLocal==location, ]$subcategory, signif(observedDist), alpha))
+        filename <- sprintf("%s/anomalous-%s.pdf", folderName, location)
 
-      pdf(filename)
-      hist(empiricalDist, main="Histogram of gender distance", xlab="gender distance",
-           sub=sprintf("Location: %s, subcategory: %s, distance: %s, anomalous with alpha=%s, k=%s",
-                    location, r.checkIns[r.checkIns$idLocal==location, ]$subcategory, observedDist, alpha, k))
-      abline(v=observedDist, col="blue")
-      abline(v=percentile[1], col="green")
-      abline(v=percentile[2], col="green")
-
-      dev.off()
+        pdf(filename)
+        hist(empiricalDist, main="Histogram of gender distance", xlab="gender distance",
+             sub=sprintf("Location: %s, subcategory: %s, distance: %s, anomalous with alpha=%s, k=%s",
+                      location, checkIns[checkIns$idLocal==location, ]$subcategory, signif(observedDist), alpha, k))
+        abline(v=observedDist, col="blue")
+        abline(v=percentile[1], col="green")
+        abline(v=percentile[2], col="green")
+        dev.off()
+      }
     }
   }
 
-  browser()
   pdf(sprintf("%s/avg-segregation-generated-riyadh.pdf", folderName))
-  plot(mean(malePopularity), mean(femalePopularity),
+  plot(meanMalePopularities, meanFemalePopularities,
         main="Gender separation in Generated Riyadh" ,
         sub=sprintf("uniform location: %s, uniform gender: %s, k=%s",
             UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY, k),
-        xlab="male", ylab="female")
+        xlab="male", ylab="female",
+        # diagonal is diagonal
+        xlim=c(0, max(meanMalePopularities, meanFemalePopularities)),
+        ylim=c(0, max(meanMalePopularities, meanFemalePopularities)))
   abline(0, 1, col="red")
   dev.off()
 }
