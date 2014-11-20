@@ -704,8 +704,8 @@ r.segregation <- segregation(r.checkIns, "Riyadh")
 
 ####################
 runGenerate <- function(checkIns, segregation, UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY,
-                        folderName, plotName, SEARCH_FOR_ANOMALOUS_LOCATIONS=FALSE, k=100, alpha=0.1) {
-  rgen.segregation <- c()
+                        folderName, plotName, k=100) {
+  gen.segregation <- c()
 
   nCheckIns <- nrow(checkIns)
 
@@ -718,22 +718,33 @@ runGenerate <- function(checkIns, segregation, UNIFORM_LOCATION_PROBABILITY, UNI
       s <- segregation(x, "Riyadh generated",
                           sub=sprintf("uniform location: %s, uniform gender: %s",
                               UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY))
-      rgen.segregation$maleCIR <- rbind(rgen.segregation$maleCIR, s$maleCIR)
-      rgen.segregation$femaleCIR <- rbind(rgen.segregation$femaleCIR, s$femaleCIR)
+      gen.segregation$maleCIR <- rbind(gen.segregation$maleCIR, s$maleCIR)
+      gen.segregation$femaleCIR <- rbind(gen.segregation$femaleCIR, s$femaleCIR)
   }
   x <- x[2:(k*nCheckIns),] # discard first NaN row
-  write.csv(x, sprintf("generated-riyadh-%s.csv", plotName))
+  filename <- sprintf("%s/generated-riyadh-%s.csv", folderName, plotName)
+  write.csv(x, filename)
+  message("Wrote generated check-ins to %s", filename)
 
-  print(Sys.time())
+  filename <- sprintf("%s/generated-riyadh-%s-pop-female.csv", folderName, plotName)
+  write.csv(gen.segregation$femaleCIR, filename)
+  message("Wrote generated segregation to %s", filename)
+  filename <- sprintf("%s/generated-riyadh-%s-pop-male.csv", folderName, plotName)
+  write.csv(gen.segregation$maleCIR, filename)
+  message("Wrote generated segregation to %s", filename)
+}
+
+testObservationWithNullModel <- function(obs.checkIns, gen.segregation, SEARCH_FOR_ANOMALOUS_LOCATIONS=FALSE, alpha=0.5)
   meanMalePopularities <- c()
   meanFemalePopularities <- c()
-  for(location in unique(rgen.segregation$maleCIR$idLocal)) {
-    malePopularity <- rgen.segregation$maleCIR[rgen.segregation$maleCIR$idLocal==location, ]$count
-    femalePopularity <- rgen.segregation$femaleCIR[rgen.segregation$femaleCIR$idLocal==location, ]$count
+  for(location in unique(gen.segregation$maleCIR$idLocal)) {
+    malePopularity <- gen.segregation$maleCIR[gen.segregation$maleCIR$idLocal==location, ]$count
+    femalePopularity <- gen.segregation$femaleCIR[gen.segregation$femaleCIR$idLocal==location, ]$count
     meanMalePopularities <- c(meanMalePopularities, mean(malePopularity))
     meanFemalePopularities <- c(meanFemalePopularities, mean(femalePopularity))
 
     if (SEARCH_FOR_ANOMALOUS_LOCATIONS) {
+      print(location)
       empiricalDist <- femalePopularity - malePopularity
       percentile <- quantile(empiricalDist, c(alpha/2, 1-alpha/2))
 
@@ -742,14 +753,14 @@ runGenerate <- function(checkIns, segregation, UNIFORM_LOCATION_PROBABILITY, UNI
       observedFemale <- r.segregation$femaleCIR[r.segregation$femaleCIR$idLocal==location, ]$count
       observedDist <- observedFemale-observedMale
        if((observedDist & percentile[1] & percentile[2]) & observedDist < percentile[1] | observedDist > percentile[2]) {
-        message(sprintf("Location: %s, subcategory: %s, distance: %s, anomalous with alpha=%s",
-                      location, checkIns[checkIns$idLocal==location, ]$subcategory, signif(observedDist), alpha))
+        message(sprintf("Location: %s, subcategory: %s, distance: %s",
+                      location, obs.checkIns[obs.checkIns$idLocal==location, ]$subcategory, signif(observedDist)))
         filename <- sprintf("%s/anomalous-%s.pdf", folderName, location)
 
         pdf(filename)
         hist(empiricalDist, main="Histogram of gender distance", xlab="gender distance",
              sub=sprintf("Location: %s, subcategory: %s, distance: %s, anomalous with alpha=%s, k=%s",
-                      location, checkIns[checkIns$idLocal==location, ]$subcategory, signif(observedDist), alpha, k))
+                      location, obs.checkIns[obs.checkIns$idLocal==location, ]$subcategory, signif(observedDist), alpha, k))
         abline(v=observedDist, col="blue")
         abline(v=percentile[1], col="green")
         abline(v=percentile[2], col="green")
@@ -772,23 +783,27 @@ runGenerate <- function(checkIns, segregation, UNIFORM_LOCATION_PROBABILITY, UNI
 }
 
 ####################
-folderPrefix <- "results/null-model/"
+folderPrefix <- "results/null-model"
 runGenerate(r.checkIns, r.segregation,
             UNIFORM_LOCATION_PROBABILITY=TRUE, UNIFORM_GENDER_PROBABILITY=TRUE,
             folderName=sprintf("%s/uniform-location-uniform-gender", folderPrefix),
-            plotName="observed-location-uniform-gender.csv")
+            plotName="uniform-location-uniform-gender")
 
 runGenerate(r.checkIns, r.segregation,
             UNIFORM_LOCATION_PROBABILITY=FALSE, UNIFORM_GENDER_PROBABILITY=TRUE,
             folderName=sprintf("%s/observed-location-uniform-gender", folderPrefix),
-            plotName="observed-location-uniform-gender.csv")
+            plotName="observed-location-uniform-gender")
 
 runGenerate(r.checkIns, r.segregation,
             UNIFORM_LOCATION_PROBABILITY=TRUE, UNIFORM_GENDER_PROBABILITY=FALSE,
             folderName=sprintf("%s/uniform-location-observed-gender", folderPrefix),
-            plotName="observed-location-uniform-gender.csv")
+            plotName="uniform-location-observed-gender")
 
 runGenerate(r.checkIns, r.segregation,
             UNIFORM_LOCATION_PROBABILITY=FALSE, UNIFORM_GENDER_PROBABILITY=FALSE,
             folderName=sprintf("%s/observed-location-observed-gender", folderPrefix),
-            plotName="observed-location-uniform-gender.csv")
+            plotName="observed-location-observed-gender")
+
+## TODO generate mean plots for k=100 with saved gen.segregation
+
+## TODO generate plots for anomalous locations with saved gen.segregation
