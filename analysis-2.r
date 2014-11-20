@@ -756,13 +756,13 @@ testObservationWithNullModel <- function(obs.checkIns, gen.segregation, folderNa
       observedMale <- r.segregation$maleCIR[r.segregation$maleCIR$idLocal==location, ]$count
       observedFemale <- r.segregation$femaleCIR[r.segregation$femaleCIR$idLocal==location, ]$count
       observedDist <- observedFemale-observedMale
-       if((observedDist & percentile[1] & percentile[2]) & observedDist < percentile[1] | observedDist > percentile[2]) {
+      if((observedDist & percentile[1] & percentile[2]) & observedDist < percentile[1] | observedDist > percentile[2]) {
         message(sprintf("Location: %s, subcategory: %s, distance: %s",
                       location, obs.checkIns[obs.checkIns$idLocal==location, ]$subcategory, signif(observedDist)))
         filename <- sprintf("%s/anomalous-%s.pdf", folderName, location)
 
         pdf(filename)
-        hist(empiricalDist, main="Histogram of gender distance", xlab="gender distance",
+        hist(c(empiricalDist, observedDist), main="Histogram of gender distance", xlab="gender distance",
              sub=sprintf("Location: %s, subcategory: %s, distance: %s, anomalous with alpha=%s, k=%s",
                       location, obs.checkIns[obs.checkIns$idLocal==location, ]$subcategory, signif(observedDist), alpha, k))
         abline(v=observedDist, col="blue")
