@@ -157,7 +157,6 @@ completeCheckInsByGenderForRegion <- function(checkIns) {
 
   notInF <- locationsNotCheckedInByGender(femaleLocations, maleLocations)
   notInM <- locationsNotCheckedInByGender(maleLocations, femaleLocations)
-
   completeFemale <- completeLocationsWithOtherGender(femaleLocations, notInF)
   completeMale <- completeLocationsWithOtherGender(maleLocations, notInM)
 
@@ -380,7 +379,6 @@ genderDistanceForCountry <- function(countries, substitutionRules, main){
 
 generateCheckIns <- function(checkIns, UNIFORM_LOCATION_PROBABILITY=FALSE, UNIFORM_GENDER_PROBABILITY=TRUE) {
   message("Generating…")
-  n <- nrow(checkIns)
   locations <- sqldf("Select idLocal, latitude,longitude, subcategory, category, city, country, gender, count(gender) as genderCount
                       From checkIns
                       Group By city, idLocal, gender")
@@ -401,11 +399,11 @@ generateCheckIns <- function(checkIns, UNIFORM_LOCATION_PROBABILITY=FALSE, UNIFO
     ,userLocal=NaN
     ,gender=NaN
   )
-  return(generateForCities(checkIns, generated, locations, userIds, date, n,
+  return(generateForCities(checkIns, generated, locations, userIds, date,
                             UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY))
 }
 
-generateForCities <- function(checkIns, generated, locations, userIds, date, n,
+generateForCities <- function(checkIns, generated, locations, userIds, date,
                               UNIFORM_LOCATION_PROBABILITY=TRUE,
                               UNIFORM_GENDER_PROBABILITY=TRUE) {
   country <- locations$country[1]
