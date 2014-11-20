@@ -722,19 +722,23 @@ runGenerate <- function(checkIns, segregation, UNIFORM_LOCATION_PROBABILITY, UNI
       gen.segregation$femaleCIR <- rbind(gen.segregation$femaleCIR, s$femaleCIR)
   }
   x <- x[2:(k*nCheckIns),] # discard first NaN row
-  filename <- sprintf("%s/generated-riyadh-%s.csv", folderName, plotName)
-  write.csv(x, filename)
-  message("Wrote generated check-ins to %s", filename)
+  checkInFile <- sprintf("%s/generated-riyadh-%s.csv", folderName, plotName)
+  write.csv(x, checkInFile)
+  message("Wrote generated check-ins to %s", checkInFile)
 
-  filename <- sprintf("%s/generated-riyadh-%s-pop-female.csv", folderName, plotName)
-  write.csv(gen.segregation$femaleCIR, filename)
-  message("Wrote generated segregation to %s", filename)
-  filename <- sprintf("%s/generated-riyadh-%s-pop-male.csv", folderName, plotName)
-  write.csv(gen.segregation$maleCIR, filename)
-  message("Wrote generated segregation to %s", filename)
+  femaleSegregationFile <- sprintf("%s/generated-riyadh-%s-pop-female.csv", folderName, plotName)
+  write.csv(gen.segregation$femaleCIR, femaleSegregationFile)
+  message("Wrote generated segregation to %s", femaleSegregationFile)
+  maleSegregationFile <- sprintf("%s/generated-riyadh-%s-pop-male.csv", folderName, plotName)
+  write.csv(gen.segregation$maleCIR, maleSegregationFile)
+  message("Wrote generated segregation to %s", maleSegregationFile)
+  return(c(checkInFile, maleSegregationFile, femaleSegregationFile))
 }
 
-testObservationWithNullModel <- function(obs.checkIns, gen.segregation, SEARCH_FOR_ANOMALOUS_LOCATIONS=FALSE, alpha=0.5)
+testObservationWithNullModel <- function(obs.checkIns, gen.segregation, folderName,
+                                         UNIFORM_LOCATION_PROBABILITY,
+                                         UNIFORM_GENDER_PROBABILITY,
+                                         SEARCH_ANOMALOUS_LOCATIONS=FALSE, alpha=0.05) {
   meanMalePopularities <- c()
   meanFemalePopularities <- c()
   for(location in unique(gen.segregation$maleCIR$idLocal)) {
@@ -743,7 +747,7 @@ testObservationWithNullModel <- function(obs.checkIns, gen.segregation, SEARCH_F
     meanMalePopularities <- c(meanMalePopularities, mean(malePopularity))
     meanFemalePopularities <- c(meanFemalePopularities, mean(femalePopularity))
 
-    if (SEARCH_FOR_ANOMALOUS_LOCATIONS) {
+    if (SEARCH_ANOMALOUS_LOCATIONS) {
       print(location)
       empiricalDist <- femalePopularity - malePopularity
       percentile <- quantile(empiricalDist, c(alpha/2, 1-alpha/2))
@@ -782,28 +786,66 @@ testObservationWithNullModel <- function(obs.checkIns, gen.segregation, SEARCH_F
   dev.off()
 }
 
+readGeneratedDataAndPlot <- function(checkInFile, malePopularityFile, femalePopularityFile, folderName,
+                                     UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY) {
+  checkIns <- read.csv(checkInFile)
+  gen.segregation <-c()
+  gen.segregation$maleCIR <- read.csv(malePopularityFile)
+  gen.segregation$femaleCIR <- read.csv(femalePopularityFile)
+  testObservationWithNullModel(checkIns, gen.segregation, folderName, UNIFORM_LOCATION_PROBABILITY, FALSE)
+  testObservationWithNullModel(checkIns, gen.segregation, folderName, UNIFORM_GENDER_PROBABILITY, TRUE)
+}
+
 ####################
+fileNames <- c()
 folderPrefix <- "results/null-model"
-runGenerate(r.checkIns, r.segregation,
+folderNames <- c(sprintf("%s/uniform-location-uniform-gender", folderPrefix),
+                 sprintf("%s/observed-location-uniform-gender", folderPrefix),
+                 sprintf("%s/uniform-location-observed-gender", folderPrefix),
+                 sprintf("%s/observed-location-observed-gender", folderPrefix))
+plotNames <- c("uniform-location-uniform-gender", "observed-location-uniform-gender",
+               "uniform-location-observed-gender", "observed-location-observed-gender")
+
+uniformLocationProbability <- c(TRUE, FALSE, TRUE, FALSE)
+uniformGenderProbability <- c(TRUE, TRUE, FALSE, FALSE)
+
+# mapply/mcmapply does not work because of sqldf :(
+# fileNames <- mcmapply(runGenerate,
+#         checkIns=r.checkIns,
+#         segregation=r.segregation,
+#         UNIFORM_LOCATION_PROBABILITY=uniformLocationProbability,
+#         UNIFORM_GENDER_PROBABILITY=uniformGenderProbabilityy,
+#         folderName=folderNames,
+#         plotName=plotNames,
+#         k=2,
+#         mc.cores=detectCores())
+
+f <- runGenerate(r.checkIns, r.segregation,
             UNIFORM_LOCATION_PROBABILITY=TRUE, UNIFORM_GENDER_PROBABILITY=TRUE,
             folderName=sprintf("%s/uniform-location-uniform-gender", folderPrefix),
             plotName="uniform-location-uniform-gender")
+fileNames <- rbind(fileNames, f)
 
-runGenerate(r.checkIns, r.segregation,
+f <- runGenerate(r.checkIns, r.segregation,
             UNIFORM_LOCATION_PROBABILITY=FALSE, UNIFORM_GENDER_PROBABILITY=TRUE,
             folderName=sprintf("%s/observed-location-uniform-gender", folderPrefix),
             plotName="observed-location-uniform-gender")
+fileNames <- rbind(fileNames, f)
 
-runGenerate(r.checkIns, r.segregation,
+f <- runGenerate(r.checkIns, r.segregation,
             UNIFORM_LOCATION_PROBABILITY=TRUE, UNIFORM_GENDER_PROBABILITY=FALSE,
             folderName=sprintf("%s/uniform-location-observed-gender", folderPrefix),
             plotName="uniform-location-observed-gender")
+fileNames <- rbind(fileNames, f)
 
-runGenerate(r.checkIns, r.segregation,
+f <- runGenerate(r.checkIns, r.segregation,
             UNIFORM_LOCATION_PROBABILITY=FALSE, UNIFORM_GENDER_PROBABILITY=FALSE,
             folderName=sprintf("%s/observed-location-observed-gender", folderPrefix),
             plotName="observed-location-observed-gender")
 
-## TODO generate mean plots for k=100 with saved gen.segregation
+
+mapply(readGeneratedDataAndPlot,
+         fileNames[,1], fileNames[,2 ], fileNames[,3 ],
+         folderNames, uniformLocationProbability, uniformGenderProbability)
 
 ## TODO generate plots for anomalous locations with saved gen.segregation
