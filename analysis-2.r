@@ -652,7 +652,9 @@ readGeneratedDataAndPlot <- function(malePopularityFile, femalePopularityFile, f
   gen.segregation <-c()
   gen.segregation$maleCIR <- read.csv(malePopularityFile)
   gen.segregation$femaleCIR <- read.csv(femalePopularityFile)
-  testObservationWithNullModel(gen.segregation, folderName, UNIFORM_GENDER_PROBABILITY, TRUE, TRUE)
+  testObservationWithNullModel(gen.segregation, folderName,
+                               UNIFORM_GENDER_PROBABILITY, UNIFORM_LOCATION_PROBABILITY,
+                               SEARCH_ANOMALOUS_LOCATIONS=F, PLOT_ALL_DISTS=F)
 }
 
 
