@@ -110,7 +110,7 @@ combineEquivalentSubCategories <- function(checkIns, substitutionRules) {
   return(checkIns)
 }
 
-segregation <- function(checkIns, location="<location>", sub=NULL, xlim=SEGREGATION_AXES, ylim=SEGREGATION_AXES) {
+segregation <- function(checkIns, location="<location>", sub=NULL, axeslim=SEGREGATION_AXES) {
   checkIns <- completeCheckInsByGenderForRegion(checkIns)
   completeFemale <- checkIns$female
   completeMale <- checkIns$male
@@ -132,7 +132,7 @@ segregation <- function(checkIns, location="<location>", sub=NULL, xlim=SEGREGAT
 
   plot(completeMaleR$count, completeFemaleR$count,
       main=paste("Gender separation in", location), sub=sub, xlab="male", ylab="female",
-      xlim=ylim, ylim=ylim)
+      xlim=axeslim, ylim=axeslim)
   abline(0, 1, col="red")
 
   printTopLocations(completeMaleR, "male")
@@ -641,6 +641,7 @@ testObservationWithNullModel <- function(gen.segregation, folderName,
         main="Gender separation in Generated Riyadh" ,
         sub=sprintf("uniform location: %s, uniform gender: %s, k=%s",
             UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY, k),
+        xlim=SEGREGATION_AXES, ylim=SEGREGATION_AXES,
         xlab="male", ylab="female")
   abline(0, 1, col="red")
   dev.off()
