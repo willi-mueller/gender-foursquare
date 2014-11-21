@@ -110,7 +110,7 @@ combineEquivalentSubCategories <- function(checkIns, substitutionRules) {
   return(checkIns)
 }
 
-segregation <- function(checkIns, location="<location>", sub=NULL, xlim=c(0, 0.05), ylim=c(0, 0.05)) {
+segregation <- function(checkIns, location="<location>", sub=NULL, xlim=SEGREGATION_AXES, ylim=SEGREGATION_AXES) {
   checkIns <- completeCheckInsByGenderForRegion(checkIns)
   completeFemale <- checkIns$female
   completeMale <- checkIns$male
@@ -530,6 +530,7 @@ permutateGender <- function(checkIns) {
 ##########
 # Constants
 ##########
+SEGREGATION_AXES = c(0, 0.05)
 
 saudiCheckIns <- "base2/arabiaSaudita/Saudi-Arabia.txt"
 franceCheckIns <- "base2/France.txt"
@@ -820,10 +821,7 @@ testObservationWithNullModel <- function(gen.segregation, folderName,
         main="Gender separation in Generated Riyadh" ,
         sub=sprintf("uniform location: %s, uniform gender: %s, k=%s",
             UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY, k),
-        xlab="male", ylab="female",
-        # diagonal is diagonal
-        xlim=c(0, max(meanMalePopularities, meanFemalePopularities)),
-        ylim=c(0, max(meanMalePopularities, meanFemalePopularities)))
+        xlab="male", ylab="female")
   abline(0, 1, col="red")
   dev.off()
 }
