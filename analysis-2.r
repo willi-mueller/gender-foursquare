@@ -880,8 +880,9 @@ f <- runGenerate(r.checkIns, r.segregation,
             plotName=plotNames[4], k=k)
 fileNames <- rbind(fileNames, f)
 
-mapply(readGeneratedDataAndPlot,
-         fileNames[,1], fileNames[,2 ], fileNames[,3 ],
+print(fileNames)
+
+mapply(readGeneratedDataAndPlot, fileNames[,2 ], fileNames[,3 ],
          folderNames, uniformLocationProbability, uniformGenderProbability)
 
 
