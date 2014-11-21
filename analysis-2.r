@@ -882,8 +882,8 @@ mapply(readGeneratedDataAndPlot,
 ########################
 # Run Permutation Test
 ########################
-fileNames <- runPermutate(r.checkIns, r.segregation, "results/null-model/gender-permutation", "permutate-gender", k=100)
-tmp <- gen.segregation <-c()
-gen.segregation$maleCIR <- read.csv(fileNames[1])
-gen.segregation$femaleCIR <- read.csv(fileNames[2])
+f <- runPermutate(r.checkIns, r.segregation, "results/null-model/gender-permutation", "permutate-gender", k=100)
+gen.segregation <-c()
+gen.segregation$maleCIR <- read.csv(f[1])
+gen.segregation$femaleCIR <- read.csv(f[2])
 testObservationWithNullModel(gen.segregation, "results/null-model/gender-permutation", F, F, T)
