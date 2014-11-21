@@ -423,8 +423,6 @@ generateForCities <- function(checkIns, generated, locations, userIds, date,
     latitudeVec <- vector(mode="double", length=nCheckIns)
     subcategoryVec <- vector(mode="character", length=nCheckIns)
     categoryVec <- vector(mode="character", length=nCheckIns)
-    cityVec <- vector(mode="character", length=nCheckIns)
-    countryVec <- vector(mode="character", length=nCheckIns)
 
     locationsInCity$subcategory <- as.matrix(locationsInCity$subcategory)
     locationsInCity$category <- as.matrix(locationsInCity$category)
@@ -848,17 +846,6 @@ plotNames <- c("uniform-location-uniform-gender", "observed-location-uniform-gen
 uniformLocationProbability <- c(TRUE, FALSE, TRUE, FALSE)
 uniformGenderProbability <- c(TRUE, TRUE, FALSE, FALSE)
 
-# mapply/mcmapply does not work because of sqldf :(
-# fileNames <- mcmapply(runGenerate,
-#         checkIns=r.checkIns,
-#         segregation=r.segregation,
-#         UNIFORM_LOCATION_PROBABILITY=uniformLocationProbability,
-#         UNIFORM_GENDER_PROBABILITY=uniformGenderProbabilityy,
-#         folderName=folderNames,
-#         plotName=plotNames,
-#         k=2,
-#         mc.cores=detectCores())
-
 f <- runGenerate(r.checkIns, r.segregation,
             UNIFORM_LOCATION_PROBABILITY=TRUE, UNIFORM_GENDER_PROBABILITY=TRUE,
             folderName=sprintf("%s/uniform-location-uniform-gender", folderPrefix),
@@ -887,7 +874,6 @@ mapply(readGeneratedDataAndPlot,
          fileNames[,1], fileNames[,2 ], fileNames[,3 ],
          folderNames, uniformLocationProbability, uniformGenderProbability)
 
-## TODO generate plots for anomalous locations with saved gen.segregation
 
 ########################
 # Run Permutation Test
