@@ -630,11 +630,11 @@ testObservationWithNullModel <- function(gen.segregation, folderName,
           dev.off()
         }
       }
+    message(sprintf("%s of %s (%s%%) locations with observed anomalous segregation",
+              anomalyCount, length(uniqueLocations),
+              100*round(anomalyCount/length(uniqueLocations),3)))
     }
   }
-  message(sprintf("%s of %s (%s%%) locations with observed anomalous segregation",
-                  anomalyCount, length(uniqueLocations),
-                  100*round(anomalyCount/length(uniqueLocations),3)))
 
   pdf(sprintf("%s/avg-segregation-generated-riyadh.pdf", folderName))
   plot(meanMalePopularities, meanFemalePopularities,
