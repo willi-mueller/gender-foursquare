@@ -784,7 +784,7 @@ testObservationWithNullModel <- function(gen.segregation, folderName,
     meanFemalePopularities <- c(meanFemalePopularities, mean(femalePopularity))
 
     if (SEARCH_ANOMALOUS_LOCATIONS) {
-      empiricalDist <- femalePopularity - malePopularity
+      empiricalDist <- euclideanDistance(malePopularity, femalePopularity)
       percentile <- quantile(empiricalDist, c(alpha/2, 1-alpha/2))
 
       # unnecessary because ids are ordered and r.segregation$maleCIR$idLocal == r.segregation$femaleCIR$idLocal
