@@ -847,28 +847,32 @@ uniformLocationProbability <- c(TRUE, FALSE, TRUE, FALSE)
 uniformGenderProbability <- c(TRUE, TRUE, FALSE, FALSE)
 
 f <- runGenerate(r.checkIns, r.segregation,
-            UNIFORM_LOCATION_PROBABILITY=TRUE, UNIFORM_GENDER_PROBABILITY=TRUE,
-            folderName=sprintf("%s/uniform-location-uniform-gender", folderPrefix),
-            plotName="uniform-location-uniform-gender", k=k)
+            UNIFORM_LOCATION_PROBABILITY=uniformLocationProbability[1],
+            UNIFORM_GENDER_PROBABILITY=uniformGenderProbability[1],
+            folderName=folderNames[1],
+            plotName=plotNames[1], k=k)
 fileNames <- rbind(fileNames, f)
 
 f <- runGenerate(r.checkIns, r.segregation,
-            UNIFORM_LOCATION_PROBABILITY=FALSE, UNIFORM_GENDER_PROBABILITY=TRUE,
-            folderName=sprintf("%s/observed-location-uniform-gender", folderPrefix),
-            plotName="observed-location-uniform-gender", k=k)
+            UNIFORM_LOCATION_PROBABILITY=uniformLocationProbability[2],
+            UNIFORM_GENDER_PROBABILITY=uniformGenderProbability[2],
+            folderName=folderNames[2],
+            plotName=plotNames[2], k=k)
 fileNames <- rbind(fileNames, f)
 
 f <- runGenerate(r.checkIns, r.segregation,
-            UNIFORM_LOCATION_PROBABILITY=TRUE, UNIFORM_GENDER_PROBABILITY=FALSE,
-            folderName=sprintf("%s/uniform-location-observed-gender", folderPrefix),
-            plotName="uniform-location-observed-gender", k=k)
+            UNIFORM_LOCATION_PROBABILITY=uniformLocationProbability[3],
+            UNIFORM_GENDER_PROBABILITY=uniformGenderProbability[3],
+            folderName=folderNames[3],
+            plotName=plotNames[3], k=k)
 fileNames <- rbind(fileNames, f)
 
 f <- runGenerate(r.checkIns, r.segregation,
-            UNIFORM_LOCATION_PROBABILITY=FALSE, UNIFORM_GENDER_PROBABILITY=FALSE,
-            folderName=sprintf("%s/observed-location-observed-gender", folderPrefix),
-            plotName="observed-location-observed-gender", k=k)
-
+            UNIFORM_LOCATION_PROBABILITY=uniformLocationProbability[4],
+            UNIFORM_GENDER_PROBABILITY=uniformGenderProbability[4],
+            folderName=folderNames[4],
+            plotName=plotNames[4], k=k)
+fileNames <- rbind(fileNames, f)
 
 mapply(readGeneratedDataAndPlot,
          fileNames[,1], fileNames[,2 ], fileNames[,3 ],
