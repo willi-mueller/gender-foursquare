@@ -157,11 +157,8 @@ aggregateSegregationForRegion <- function(regionCheckIns, region) {
 }
 
 completeCheckInsByGenderForRegion <- function(checkIns) {
-  femaleCI <- checkIns[checkIns$gender=='female', ]
-  maleCI <- checkIns[checkIns$gender=='male', ]
-
-  maleLocations <- countLocationsByGender(maleCI)
-  femaleLocations <- countLocationsByGender(femaleCI)
+  maleLocations <- countLocationsByGender(copy(checkIns), 'male')
+  femaleLocations <- countLocationsByGender(copy(checkIns), 'female')
 
   notInF <- locationsNotCheckedInByGender(femaleLocations, maleLocations)
   notInM <- locationsNotCheckedInByGender(maleLocations, femaleLocations)
@@ -192,9 +189,8 @@ locationsNotCheckedInByGender <- function(checkIns, checkInsOfOtherGender) {
     return(sqldf("Select * from checkInsOfOtherGender where idLocal not in (Select idLocal from checkIns)"))
 }
 
-countLocationsByGender <- function(checkInsOfGender) {
-    mCityLocations <- sqldf("Select *, count(*) as count from
-      (select * from checkInsOfGender group by idUserFoursquare, idLocal) group by idLocal")
+countLocationsByGender <- function(checkIns, genderString) {
+    checkIns[, list(count=length(unique(idUserFoursquare[gender==genderString]))), by=idLocal]
 }
 
 topLocations <- function(checkIns, n=7) {
