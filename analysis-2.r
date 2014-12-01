@@ -73,10 +73,13 @@ getTopNCategories <- function(group1, group2, N, method="most popular"){
 
 getCheckInsInCountry <- function(countryCheckIns, countryUsers, userLocalFilter, substitutionRules) {
   ci <- readCheckIns(countryCheckIns)
-  if(!is.null(countryUsers)) {
+  if(!missing(countryUsers)) {
     users <- readUsers(countryUsers)
     profiles <- discardNonResidents(users, filter=userLocalFilter)
     ci <- joinCheckInsWithProfiles(ci, profiles)
+  }
+  if(!missing(userLocalFilter)) {
+    ci <- discardNonResidents(ci, filter=userLocalFilter)
   }
   if(!missing(substitutionRules)) {
     ci <- combineEquivalentSubCategories(ci, substitutionRules)
