@@ -226,19 +226,16 @@ joinCheckInsWithProfiles <- function(checkIns, profiles) {
   return(sqldf("Select * from checkIns JOIN profiles using(idUserFoursquare)"))
 }
 
-categoriesByGender <- function(joinedTable, gender, uniqueUsers=FALSE, subcategory=FALSE) {
-  category <- "category"
+categoriesByGender <- function(joinedTable, genderString, uniqueUsers=FALSE, subcategory=FALSE) {
+  categoryString <- "category"
   if(subcategory==TRUE) {
-    category <- "subcategory"
+    categoryString <- "subcategory"
   }
-  queryString <- paste("Select *, count(*) as count from joinedTable where gender='",
-    gender, "' group by ", category, sep="")
   if(uniqueUsers==TRUE) {
-    queryString <- paste("Select *, count(*) as count from  (select * from joinedTable where gender='",
-      gender, "' group by idUserFoursquare, ",
-                       category, " ) group by ",  category, sep="")
+    return(checkIns[, count:=length(unique(idUserFoursquare[gender==genderString]))), by=categoryString])
+  } else {
+    return(checkIns[, count:=length(idUserFoursquare[gender==genderString])), by=categoryString])
   }
-  return(sqldf(queryString))
 }
 
 normalizeByAbsolutePercentage <- function(attribute){
