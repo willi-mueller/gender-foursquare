@@ -92,8 +92,10 @@ getCheckInsInCountry <- function(countryCheckIns, countryUsers, userLocalFilter,
   return(ci)
 }
 
-getCheckInsInRegion <- function(regionFilters, countryCheckIns, countryUsers, userLocalFilter, substitutionRules) {
-  joined <- getCheckInsInCountry(countryCheckIns, countryUsers, userLocalFilter, substitutionRules)
+getCheckInsInRegion <- function(regionFilters, countryCheckIns, countryUsers, userLocalFilter, substitutionRules, checkIns) {
+  if(missing(checkIns)) {
+    checkIns <- getCheckInsInCountry(countryCheckIns, countryUsers, userLocalFilter, substitutionRules)
+  }
 
   checkInsInRegion <- c()
   for(filter in regionFilters) {
