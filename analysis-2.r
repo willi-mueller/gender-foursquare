@@ -99,7 +99,7 @@ getCheckInsInRegion <- function(regionFilters, countryCheckIns, countryUsers, us
 
   checkInsInRegion <- c()
   for(filter in regionFilters) {
-    checkInsInRegion <- rbind(checkInsInRegion, sqldf(sprintf("Select * from joined where city LIKE %s", shQuote(filter))))
+    checkInsInRegion <- rbind(checkInsInRegion, sqldf(sprintf("Select * from checkIns where city LIKE %s", shQuote(filter))))
   }
   return(subset(checkInsInRegion, !duplicated(checkInsInRegion)))
 }
@@ -206,17 +206,17 @@ printTopLocations <- function(checkIns, gender) {
 
 readUsers <- function(path) {
   fullPath <- paste("~/studium/Lehrveranstaltungen/informationRetrieval/GenderSocialMedia/datasets/", path, sep="")
-  saU <- read.csv(fullPath, header=F, sep="\t")
-  colnames(saU) <- c("idUserFoursquare", "user", "userLocal", "gender")
-  return(saU)
+  users <- read.csv(fullPath, header=F, sep="\t")
+  colnames(users) <- c("idUserFoursquare", "user", "userLocal", "gender")
+  return(users)
 }
 
 readCheckIns <- function(path) {
   fullPath <- paste("~/studium/Lehrveranstaltungen/informationRetrieval/GenderSocialMedia/datasets/", path, sep="")
-  sa <- read.csv(fullPath, header=F, sep="\t")
-  colnames(sa) <- c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
+  ci <- read.csv(fullPath, header=F, sep="\t")
+  colnames(ci) <- c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
                      "subcategory", "category", "city", "country")
-  return(sa)
+  return(ci)
 }
 
 discardNonResidents <- function(users, filter) {
