@@ -1,6 +1,7 @@
 library(sqldf)
 library(Hmisc) # Ecdf
 library(parallel)
+library(data.table)
 
 subcategoryPreferencesByGender <- function(checkIns) {
   joined <- checkIns
@@ -89,7 +90,7 @@ getCheckInsInCountry <- function(countryCheckIns, countryUsers, userLocalFilter,
     colnames(ci) <- c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
                      "subcategory", "category", "country", "city", "district", "gender", "timeOffset")
   }
-  return(ci)
+  return(as.data.table(ci))
 }
 
 getCheckInsInRegion <- function(regionFilters, countryCheckIns, countryUsers, userLocalFilter, substitutionRules, checkIns) {
@@ -101,7 +102,9 @@ getCheckInsInRegion <- function(regionFilters, countryCheckIns, countryUsers, us
   for(filter in regionFilters) {
     checkInsInRegion <- rbind(checkInsInRegion, sqldf(sprintf("Select * from checkIns where city LIKE %s", shQuote(filter))))
   }
-  return(subset(checkInsInRegion, !duplicated(checkInsInRegion)))
+  #return(subset(checkInsInRegion, !duplicated(checkInsInRegion)))
+  stopifnot(haskey(checkInsInRegion)==FALSE) # unique only works without keys!
+  return(unique(checkInsInRegion))
 }
 
 combineEquivalentSubCategories <- function(checkIns, substitutionRules) {
