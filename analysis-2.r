@@ -136,7 +136,7 @@ segregation <- function(checkIns, location="<location>", sub=NULL, axeslim=SEGRE
              completeFemaleR[order(completeFemaleR$count, decreasing=T),]$count))
 
   plot(completeMaleR$count, completeFemaleR$count,
-      main=paste("Gender separation in", location), sub=sub, xlab="male", ylab="female",
+      main=paste("Gender separation in", location), sub=sub, xlab="Male Popularity", ylab="Female Popularity",
       xlim=axeslim, ylim=axeslim)
   abline(0, 1, col="red")
 
