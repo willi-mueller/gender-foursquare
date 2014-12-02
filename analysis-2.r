@@ -843,3 +843,55 @@ gen.segregation <-c()
 gen.segregation$maleCIR <- read.csv(f[1])
 gen.segregation$femaleCIR <- read.csv(f[2])
 testObservationWithNullModel(gen.segregation, "results/null-model/gender-permutation", F, F, T)
+########################
+# Plots correlation
+########################
+
+usa <- getCheckInsInCountry("paises/United-States.dat", substitutionRules=substitutionRules)
+sa <- getCheckInsInCountry("paises/Saudi-Arabia.dat", substitutionRules=substitutionRules)
+uae <- getCheckInsInCountry("paises/United-Arab-Emirates.dat", substitutionRules=substitutionRules)
+japan <- getCheckInsInCountry("paises/Japan.dat", substitutionRules=substitutionRules)
+brazil <- getCheckInsInCountry("paises/Brazil.dat", substitutionRules=substitutionRules)
+france <- getCheckInsInCountry("paises/France.dat", substitutionRules=substitutionRules)
+# china <- getCheckInsInCountry("paises/China.dat", substitutionRules=substitutionRules)
+# saf <- getCheckInsInCountry("paises/South-Africa.dat", substitutionRules=substitutionRules)
+# ger <- getCheckInsInCountry("paises/Germany.dat", substitutionRules=substitutionRules)
+indonesia <- getCheckInsInCountry("paises/Indonesia.dat", substitutionRules=substitutionRules)
+
+ny <- usa[city=="New York City",] # 6647
+riyadh <- sa[city=="Riyadh",] # 6278
+ad <- uae[city=="Abu Dhabi",] # 667
+tokyo <- japan[city=="Tokyo",] # 32834
+sp <- brazil[city=="Sao Paulo", ] # 12569
+paris <- france[city=="Paris",] # 1767
+jakarta <- indonesia[city=="Jakarta"] # 6245
+
+beijing <- china[city=="Beijing",] # 474 checkins
+jb <- saf[city=="Johannesburg",] #294 checkins
+berlin <- ger[city=="Berlin",] # 183 checkins
+
+usa.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(usa, 5), "USA")
+sa.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(sa, 5), "Saudi Arabia")
+uae.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(uae, 5), "United Arab Emirates")
+japan.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(japan, 5), "Japan")
+brazil.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(brazil, 5), "Brazil")
+france.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(france, 5), "France")
+indonesia.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(indonesia, 5), "Indonesia")
+
+china.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(china, 5), "China")
+saf.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(china, 5), "South Africa")
+
+countries <- ("USA", "UAE", "Saudi Arabia", "Japan", "Brazil", "France", "Indonesia")
+countryVars <- list(usa, uae, sa, japan, brazil, france, indonesia)
+for(i in 1:length(countries)) {
+  data <- subcategoryPreferencesByGender(countryVars[[i]])
+  png(sprintf("results/segregation-country/%s.png", countries[i]))
+  correlateCategories(data$maleUniqueSubcategories$count, data$femaleUniqueSubcategories$count,
+                    data$maleUniqueSubcategories$category,
+                    country=countries[i],
+                    countMethod="unique users",
+                    categories="Subcategories")
+  dev.off()
+}
+
+
