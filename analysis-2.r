@@ -229,9 +229,9 @@ categoriesByGender <- function(joinedTable, genderString, uniqueUsers=FALSE, sub
     categoryString <- "subcategory"
   }
   if(uniqueUsers==TRUE) {
-    return(checkIns[, count:=length(unique(idUserFoursquare[gender==genderString]))), by=categoryString])
+    return(checkIns[, count:=length(unique(idUserFoursquare[gender==genderString])), by=categoryString])
   } else {
-    return(checkIns[, count:=length(idUserFoursquare[gender==genderString])), by=categoryString])
+    return(checkIns[, count:=length(idUserFoursquare[gender==genderString]), by=categoryString])
   }
 }
 
