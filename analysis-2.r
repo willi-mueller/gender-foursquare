@@ -596,7 +596,6 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
     if (SEARCH_ANOMALOUS_LOCATIONS) {
       empiricalDist <- euclideanDistance(malePopularity, femalePopularity)
       percentile <- quantile(empiricalDist, c(alpha/2, 1-alpha/2))
-
       observedMale <- observedSegregation[idLocal==location, ]$maleCount[[1]] # same value for each check-in
       observedFemale <- observedSegregation[idLocal==location, ]$femaleCount[[1]]
       observedDist <- observedFemale-observedMale
@@ -943,6 +942,14 @@ france <- getCheckInsInCountry("paises/France.dat", substitutionRules=substituti
 # ger <- getCheckInsInCountry("paises/Germany.dat", substitutionRules=substitutionRules)
 indonesia <- getCheckInsInCountry("paises/Indonesia.dat", substitutionRules=substitutionRules)
 
+usa <- checkInsInlocationsWithMinimumCheckIns(usa, 5)
+sa <- checkInsInlocationsWithMinimumCheckIns(sa, 5)
+uae <- checkInsInlocationsWithMinimumCheckIns(uae, 5)
+japan <- checkInsInlocationsWithMinimumCheckIns(japan, 5)
+brazil <- checkInsInlocationsWithMinimumCheckIns(brazil, 5)
+france <- checkInsInlocationsWithMinimumCheckIns(france, 5)
+indonesia <- checkInsInlocationsWithMinimumCheckIns(indonesia, 5)
+
 ny <- usa[city=="New York City",] # 6647
 riyadh <- sa[city=="Riyadh",] # 6278
 ad <- uae[city=="Abu Dhabi",] # 667
@@ -955,16 +962,24 @@ beijing <- china[city=="Beijing",] # 474 checkins
 jb <- saf[city=="Johannesburg",] #294 checkins
 berlin <- ger[city=="Berlin",] # 183 checkins
 
-usa.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(usa, 5), "USA")
-sa.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(sa, 5), "Saudi Arabia")
-uae.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(uae, 5), "United Arab Emirates")
-japan.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(japan, 5), "Japan")
-brazil.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(brazil, 5), "Brazil")
-france.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(france, 5), "France")
-indonesia.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(indonesia, 5), "Indonesia")
+usa.segregation <- segregation(usa, "USA")
+sa.segregation <- segregation(sa, "Saudi Arabia")
+uae.segregation <- segregation(uae, "United Arab Emirates")
+japan.segregation <- segregation(japan, "Japan")
+brazil.segregation <- segregation(brazil, "Brazil")
+france.segregation <- segregation(france, "France")
+indonesia.segregation <- segregation(indonesia, "Indonesia")
 
-# china.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(china, 5), "China")
-# saf.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(china, 5), "South Africa")
+ny.segregation <- segregation(ny, "New York City")
+sp.segregation <- segregation(sp, "São Paulo")
+riyadh.segregation <- segregation(riyadh, "Riyadh")
+ad.segregation <- segregation(ad, "Abu Dhabi")
+tokyo.segregation <- segregation(tokyo, "Tokyo")
+paris.segregation <- segregation(paris, "Paris")
+jakarta.segregation <- segregation(jakarta, "Jakarta")
+
+# china.segregation <- segregation(china, "China")
+# saf.segregation <- segregation(china, "South Africa")
 
 countries <- ("USA", "UAE", "Saudi Arabia", "Japan", "Brazil", "France", "Indonesia")
 countryVars <- list(usa, uae, sa, japan, brazil, france, indonesia)
