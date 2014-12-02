@@ -119,34 +119,28 @@ combineEquivalentSubCategories <- function(checkIns, substitutionRules) {
 }
 
 segregation <- function(checkIns, location="<location>", sub=NULL, axeslim=SEGREGATION_AXES) {
-  checkIns <- completeCheckInsByGenderForRegion(checkIns)
-  completeFemale <- checkIns$female
-  completeMale <- checkIns$male
+  totalMaleSum <- checkIns[, list(maleCount=sum(gender=='male'))]$maleCount
+  totalFemaleSum <- checkIns[, list(femaleCount=sum(gender=='female'))]$femaleCount
 
-  completeMaleR <- relativeCount(completeMale)
-  completeFemaleR <- relativeCount(completeFemale)
+  checkIns[, maleCount:=length(unique(idUserFoursquare[gender=='male']))/totalMaleSum, by=idLocal]
+  checkIns[, femaleCount:=length(unique(idUserFoursquare[gender=='female']))/totalFemaleSum, by=idLocal]
 
-  # check if the same subcategories exist
-  # currently violated in Paris, where idLocal==4ba12ba3f964a520849e37e3 has different subcategories
-  if(identical(unique(completeMale$subcategory[order(completeMale$subcategory)]),
-               unique(completeFemale$subcategory[order(completeFemale$subcategory)]))) {
-    print("Subcategories differ between genders")
-  }
+  print(cor.test(checkIns$maleCount, checkIns$femaleCount))
 
-  print(cor.test(completeMaleR$count, completeFemaleR$count))
+  print(chisq.test(checkIns$maleCount, checkIns$femaleCount))
 
-  print(chisq.test(completeMaleR[order(completeMaleR$count, decreasing=T),]$count,
-             completeFemaleR[order(completeFemaleR$count, decreasing=T),]$count))
-
-  plot(completeMaleR$count, completeFemaleR$count,
+  plot(checkIns$maleCount, checkIns$femaleCount,
       main=paste("Gender separation in", location), sub=sub, xlab="Male Popularity", ylab="Female Popularity",
       xlim=axeslim, ylim=axeslim)
   abline(0, 1, col="red")
 
-  printTopLocations(completeMaleR, "male")
-  printTopLocations(completeFemaleR, "female")
+  topMale <- checkIns[order(-rank(maleCount))][1:10]
+  print(topMale[, list(maleCount, subcategory, idLocal, latitude, longitude)])
+  print("Top female")
+  topFemale <- checkIns[order(-rank(femaleCount))][1:10]
+  print(topFemale[, list(femaleCount, subcategory, idLocal, latitude, longitude)])
 
-  return(list(maleCIR=completeMaleR, femaleCIR=completeFemaleR))
+  return(checkIns)
 }
 
 aggregateSegregationForRegion <- function(regionCheckIns, region) {
@@ -171,13 +165,6 @@ completeCheckInsByGenderForRegion <- function(checkIns) {
   return(list(female=completeFemale, male=completeMale))
 }
 
-relativeCount <- function(checkIns) {
-  checkInsRelative <- checkIns
-  checkInsRelative$count <- checkInsRelative$count/sum(checkInsRelative$count)
-  # sort
-  return(checkInsRelative[order(checkInsRelative$idLocal, decreasing=T), ])
-}
-
 completeLocationsWithOtherGender <- function(checkIns, checkInsNotMade){
     checkInsNotMade$count <- 0
     complete <- rbind(checkIns, checkInsNotMade)
@@ -195,12 +182,6 @@ countLocationsByGender <- function(checkIns, genderString) {
 
 topLocations <- function(checkIns, n=7) {
     return(checkIns[order(checkIns$count, decreasing=T),][1:n,])
-}
-
-printTopLocations <- function(checkIns, gender) {
-  top <- topLocations(checkIns)
-  print(sprintf("Top %s:", gender))
-  print(top[, c("gender", "count", "subcategory", "idLocal", "latitude", "longitude")])
 }
 
 readUsers <- function(path) {
