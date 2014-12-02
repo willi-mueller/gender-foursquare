@@ -245,12 +245,12 @@ normalizeByPercentageOfMax <- function(attribute) {
 
 correlateCategories <- function(x, y, labels, country, file, countMethod="check-ins",
                                 categories="Categories",
-                                xlim=0.1, ylim=0.1) {
+                                axeslim=SEGREGATION_AXES) {
   if(!missing(file)) {
     png(file)
   }
   plot(x, y, main=sprintf("Correlation of %s counting %s in %s",categories, countMethod, country),
-       xlab="Male Popularity", ylab="Female Popularity", xlim=c(0, xlim), ylim=c(0, ylim))
+       xlab="Male Popularity", ylab="Female Popularity", xlim=SEGREGATION_AXES, ylim=SEGREGATION_AXES)
   abline(0, 1, col="red")
   text(x, y, labels=labels, pos=3)
   print(cor.test(x, y))
@@ -383,6 +383,7 @@ genderDistanceForCountry <- function(countries, substitutionRules, main){
 
 generateCheckIns <- function(checkIns, UNIFORM_LOCATION_PROBABILITY=FALSE, UNIFORM_GENDER_PROBABILITY=TRUE) {
   message("Generating…")
+  #TODO check count(gender) group by city, idLocal, gender
   locations <- sqldf("Select idLocal, latitude,longitude, subcategory, category, city, country, gender, count(gender) as genderCount
                       From checkIns
                       Group By city, idLocal, gender")
