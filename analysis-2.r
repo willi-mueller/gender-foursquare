@@ -664,6 +664,11 @@ readGeneratedDataAndPlot <- function(malePopularityFile, femalePopularityFile, f
                                SEARCH_ANOMALOUS_LOCATIONS=F, PLOT_ALL_DISTS=F)
 }
 
+checkInsInlocationsWithMinimumCheckIns <- function(checkIns, n=7) {
+  locations <- ny[, list(hasMore=length(unique(idUserFoursquare))>=7), by=idLocal]$hasMore==TRUE
+  checkIns[idLocal %in% locations, ]
+}
+
 
 ##########
 # Constants
