@@ -127,11 +127,13 @@ combineEquivalentSubCategories <- function(checkIns, substitutionRules) {
 }
 
 segregation <- function(checkIns, location="<location>", sub=NULL, axeslim=SEGREGATION_AXES) {
-  totalMaleSum <- checkIns[, list(maleCount=sum(gender=='male'))]$maleCount
-  totalFemaleSum <- checkIns[, list(femaleCount=sum(gender=='female'))]$femaleCount
+  # given that we have 1 checkin for user and location
 
-  checkIns[, maleCount:=sum(gender=='male')/totalMaleSum, by=idLocal]
-  checkIns[, femaleCount:=sum(gender=='female')/totalFemaleSum, by=idLocal]
+  nMaleUsers <- length(unique(ny[gender=='male', ]$idUserFoursquare))
+  nFemaleUsers <- length(unique(ny[gender=='female', ]$idUserFoursquare))
+
+  checkIns[, maleCount:=sum(gender=='male')/nMaleUsers, by=idLocal]
+  checkIns[, femaleCount:=sum(gender=='female')/nFemaleUsers, by=idLocal]
 
   print(cor.test(checkIns$maleCount, checkIns$femaleCount))
 
