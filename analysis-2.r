@@ -6,44 +6,24 @@ library(data.table)
 subcategoryPreferencesByGender <- function(checkIns) {
   joined <- checkIns
 
-  #categories
-  maleC <- categoriesByGender(joined, "male")
-  femaleC <- categoriesByGender(joined, "female")
-  maleUniqueC <- categoriesByGender(joined, "male", uniqueUsers=TRUE)
-  femaleUniqueC <- categoriesByGender(joined, "female", uniqueUsers=TRUE)
+  nOfUsersByGenderAndCategory <- checkIns[, list(count=length(unique(idUserFoursquare))), by=list(category, gender)]
+  nOfUsersByGenderAndSubcategory <- checkIns[, list(count=length(unique(idUserFoursquare))), by=list(category, gender)]
 
-  #subcategories
-  maleSubC <- categoriesByGender(joined, "male", subcategory=TRUE)
-  femaleSubC <- categoriesByGender(joined, "female", subcategory=TRUE)
-  maleUniqueSubC <- categoriesByGender(joined, "male", subcategory=TRUE, uniqueUsers=TRUE)
-  femaleUniqueSubC <- categoriesByGender(joined, "female", subcategory=TRUE, uniqueUsers=TRUE)
+  femaleUniqueC <- nOfUsersByGenderAndCategory[gender=='female']
+  maleUniqueC <- nOfUsersByGenderAndCategory[gender=='female']
+  femaleUniqueC$count <- femaleUniqueC$count/sum(femaleUniqueC$count)
+  maleUniqueC$count <- maleUniqueC$count/sum(maleUniqueC$count)
 
-  femaleSubC <- completeSubcategories(maleSubC, femaleSubC)
-  maleSubC <- completeSubcategories(femaleSubC, maleSubC)
-  femaleUniqueSubC <- completeSubcategories(maleUniqueSubC, femaleUniqueSubC)
-  maleUniqueSubC <- completeSubcategories(femaleUniqueSubC, maleUniqueSubC)
-
-  # aggregate equivalent subcategories
-  maleSubC <- aggregateEquivalentSubC(substitutionRules, maleSubC)
-  femaleSubC <- aggregateEquivalentSubC(substitutionRules, femaleSubC)
+  femaleUniqueSubC <- nOfUsersByGenderAndSubcategory[gender=='female']
+  maleUniqueSubC <- nOfUsersByGenderAndSubcategory[gender=='male']
+  femaleUniqueSubC$count <- femaleUniqueSubC$count/sum(femaleUniqueSubC$count)
+  maleUniqueSubC$count <- maleUniqueSubC$count/sum(maleUniqueSubC$count)
+  # # aggregate equivalent subcategories
   maleUniqueSubC <- aggregateEquivalentSubC(substitutionRules, maleUniqueSubC)
   femaleUniqueSubC <- aggregateEquivalentSubC(substitutionRules, femaleUniqueSubC)
 
-  # normalization - counting check-ins
-  maleC$count <- normalizeByAbsolutePercentage(maleC$count)
-  femaleC$count <- normalizeByAbsolutePercentage(femaleC$count)
-  maleSubC$count <- normalizeByAbsolutePercentage(maleSubC$count)
-  femaleSubC$count <- normalizeByAbsolutePercentage(femaleSubC$count)
 
-  # normalization – unique users
-  maleUniqueC$count <- normalizeByAbsolutePercentage(maleUniqueC$count)
-  femaleUniqueC$count <- normalizeByAbsolutePercentage(femaleUniqueC$count)
-  maleUniqueSubC$count <- normalizeByAbsolutePercentage(maleUniqueSubC$count)
-  femaleUniqueSubC$count <- normalizeByAbsolutePercentage(femaleUniqueSubC$count)
-
-  return(list(maleCategories=maleC, femaleCategories=femaleC,
-              maleUniqueCategories=maleUniqueC, femaleUniqueCategories=femaleUniqueC,
-              maleSubcategories=maleSubC, femaleSubcategories=femaleSubC,
+  return(list(maleUniqueCategories=maleUniqueC, femaleUniqueCategories=femaleUniqueC,
               maleUniqueSubcategories=maleUniqueSubC, femaleUniqueSubcategories=femaleUniqueSubC))
 }
 
@@ -129,8 +109,8 @@ combineEquivalentSubCategories <- function(checkIns, substitutionRules) {
 segregation <- function(checkIns, location="<location>", sub=NULL, axeslim=SEGREGATION_AXES) {
   # given that we have 1 checkin for user and location
 
-  nMaleUsers <- length(unique(ny[gender=='male', ]$idUserFoursquare))
-  nFemaleUsers <- length(unique(ny[gender=='female', ]$idUserFoursquare))
+  nMaleUsers <- length(unique(checkIns[gender=='male', ]$idUserFoursquare))
+  nFemaleUsers <- length(unique(checkIns[gender=='female', ]$idUserFoursquare))
 
   checkIns[, maleCount:=sum(gender=='male')/nMaleUsers, by=idLocal]
   checkIns[, femaleCount:=sum(gender=='female')/nFemaleUsers, by=idLocal]
@@ -145,7 +125,6 @@ segregation <- function(checkIns, location="<location>", sub=NULL, axeslim=SEGRE
   abline(0, 1, col="red")
 
   print("Top male")
-
   topMale <- sqldf("Select maleCount, subcategory, idLocal, latitude, longitude from checkIns
                    group by idLocal
                    order by maleCount desc limit 10")
