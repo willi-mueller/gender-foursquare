@@ -515,7 +515,7 @@ empiricalAttributeDistribution <- function(checkIns, attribute) {
 ######## Permutation #############
 runPermutate <- function(checkIns, segregation, folderName, plotName, regionName, k=100) {
   gen.segregation <- c()
-  checkIns <- rbind(checkIns[checkIns$gender=="male", ], checkIns[checkIns$gender=="female", ])
+  checkIns <- checkIns[gender=="male" || gender=="female", ]
   nCheckIns <- nrow(checkIns)
   for(i in seq(k)) {
       gen.checkIns <- permutateGender(checkIns)
