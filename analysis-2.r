@@ -5,17 +5,23 @@ library(data.table)
 
 subcategoryPreferencesByGender <- function(checkIns) {
   joined <- checkIns
-
-  nOfUsersByGenderAndCategory <- checkIns[, list(count=length(unique(idUserFoursquare))), by=list(category, gender)]
-  nOfUsersByGenderAndSubcategory <- checkIns[, list(count=length(unique(idUserFoursquare))), by=list(category, gender)]
+  nOfUsersByGenderAndCategory <- checkIns[, list(count=length(unique(idUserFoursquare))),
+                                             by=list(category, gender)]
+  nOfUsersByGenderAndSubcategory <- checkIns[, list(count=length(unique(idUserFoursquare))),
+                                               by=list(subcategory, gender)]
 
   femaleUniqueC <- nOfUsersByGenderAndCategory[gender=='female']
-  maleUniqueC <- nOfUsersByGenderAndCategory[gender=='female']
+  maleUniqueC <- nOfUsersByGenderAndCategory[gender=='male']
+
   femaleUniqueC$count <- femaleUniqueC$count/sum(femaleUniqueC$count)
   maleUniqueC$count <- maleUniqueC$count/sum(maleUniqueC$count)
 
   femaleUniqueSubC <- nOfUsersByGenderAndSubcategory[gender=='female']
   maleUniqueSubC <- nOfUsersByGenderAndSubcategory[gender=='male']
+
+  femaleUniqueSubC <- completeSubcategories(maleUniqueSubC, femaleUniqueSubC)
+  maleUniqueSubC <- completeSubcategories(femaleUniqueSubC, maleUniqueSubC)
+
   femaleUniqueSubC$count <- femaleUniqueSubC$count/sum(femaleUniqueSubC$count)
   maleUniqueSubC$count <- maleUniqueSubC$count/sum(maleUniqueSubC$count)
   # # aggregate equivalent subcategories
@@ -651,8 +657,9 @@ checkInsInlocationsWithMinimumCheckIns <- function(checkIns, n=7) {
 ##########
 # Constants
 ##########
-SEGREGATION_AXES = c(0, 0.05)
+SEGREGATION_AXES = c(0, 0.20)
 
+# FOR DATA BASE 2
 saudiCheckIns <- "base2/arabiaSaudita/Saudi-Arabia.txt"
 franceCheckIns <- "base2/France.txt"
 swedenCheckIns <- "base2/Sweden.txt"
@@ -885,12 +892,23 @@ countries <- ("USA", "UAE", "Saudi Arabia", "Japan", "Brazil", "France", "Indone
 countryVars <- list(usa, uae, sa, japan, brazil, france, indonesia)
 for(i in 1:length(countries)) {
   data <- subcategoryPreferencesByGender(countryVars[[i]])
-  png(sprintf("results/segregation-country/%s.png", countries[i]))
+  png(sprintf("results/segregation-subcategory-country/%s.png", countries[i]))
+    SEGREGATION_AXES <- 0.15
   correlateCategories(data$maleUniqueSubcategories$count, data$femaleUniqueSubcategories$count,
-                    data$maleUniqueSubcategories$category,
+                    data$maleUniqueSubcategories$subcategory,
                     country=countries[i],
                     countMethod="unique users",
-                    categories="Subcategories")
+                    categories="Subcategories",
+                    axeslim=c(0, 0.15))
+  dev.off()
+  SEGREGATION_AXES <- 0.3
+  png(sprintf("results/segregation-category-country/%s.png", countries[i]))
+  correlateCategories(data$maleUniqueCategories$count, data$femaleUniqueCategories$count,
+                    data$maleUniqueCategories$category,
+                    country=countries[i],
+                    countMethod="unique users",
+                    categories="Categories",
+                    axeslim=c(0, 0.3))
   dev.off()
 }
 
