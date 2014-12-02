@@ -90,7 +90,15 @@ getCheckInsInCountry <- function(countryCheckIns, countryUsers, userLocalFilter,
     colnames(ci) <- c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
                      "subcategory", "category", "country", "city", "district", "gender", "timeOffset")
   }
-  return(as.data.table(ci))
+  ci <- as.data.table(ci)
+  return(oneCheckInForUserAndLocation(ci))
+}
+
+oneCheckInForUserAndLocation <- function(checkIns) {
+  setkey(checkIns, idLocal, idUserFoursquare)
+  checkIns <- unique(checkIns)
+  setkey(checkIns, NULL)
+  return(checkIns)
 }
 
 getCheckInsInRegion <- function(regionFilters, countryCheckIns, countryUsers, userLocalFilter, substitutionRules, checkIns) {
@@ -122,8 +130,8 @@ segregation <- function(checkIns, location="<location>", sub=NULL, axeslim=SEGRE
   totalMaleSum <- checkIns[, list(maleCount=sum(gender=='male'))]$maleCount
   totalFemaleSum <- checkIns[, list(femaleCount=sum(gender=='female'))]$femaleCount
 
-  checkIns[, maleCount:=length(unique(idUserFoursquare[gender=='male']))/totalMaleSum, by=idLocal]
-  checkIns[, femaleCount:=length(unique(idUserFoursquare[gender=='female']))/totalFemaleSum, by=idLocal]
+  checkIns[, maleCount:=sum(gender=='male')/totalMaleSum, by=idLocal]
+  checkIns[, femaleCount:=sum(gender=='female')/totalFemaleSum, by=idLocal]
 
   print(cor.test(checkIns$maleCount, checkIns$femaleCount))
 
@@ -646,8 +654,9 @@ readGeneratedDataAndPlot <- function(malePopularityFile, femalePopularityFile, f
 }
 
 checkInsInlocationsWithMinimumCheckIns <- function(checkIns, n=7) {
-  locations <- ny[, list(hasMore=length(unique(idUserFoursquare))>=7), by=idLocal]$hasMore==TRUE
-  checkIns[idLocal %in% locations, ]
+  x <- checkIns[, list(hasMore=length(unique(idUserFoursquare))>=7), by=idLocal]
+  locations <- x[hasMore==TRUE]$idLocal
+  return(checkIns[idLocal %in% locations, ])
 }
 
 
