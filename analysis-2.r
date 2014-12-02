@@ -668,6 +668,8 @@ testObservationWithNullModelForCategories<-function(observedSegregation, gen.seg
       categoryDistDistribution[i] <- list(allOfACategory)
     }
     percentiles <- lapply(categoryDistDistribution,quantile, c(alpha/2, 1-alpha/2))
+    write.csv(percentiles, sprintf("%s-category-percentiles-%s.csv", folder, region))
+    write.csv(observedDist, sprintf("%s-category-observed-dist-%s.csv", folder, region))
 
     observedMale <- observedSegregation[,list(pop=mean(maleCount)), by=list(idLocal, category)][,list(pop=sum(pop)), by=category]
     observedMale <- observedMale[order(rank(category))]$pop
