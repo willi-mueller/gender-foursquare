@@ -578,10 +578,10 @@ runGenerate <- function(checkIns, segregation, UNIFORM_LOCATION_PROBABILITY, UNI
 }
 
 testObservationWithNullModel <- function(observedSegregation, gen.segregation, folderName, regionName,
-                                         UNIFORM_LOCATION_PROBABILITY,
-                                         UNIFORM_GENDER_PROBABILITY,
-                                         k,
-                                         SEARCH_ANOMALOUS_LOCATIONS=TRUE, alpha=0.05, PLOT_ALL_DISTS=F) {
+                                         UNIFORM_LOCATION_PROBABILITY=FALSE,
+                                         UNIFORM_GENDER_PROBABILITY=FALSE,
+                                         SEARCH_ANOMALOUS_LOCATIONS=TRUE,
+                                         k, alpha=0.05, PLOT_ALL_DISTS=F) {
   meanMalePopularities <- c()
   meanFemalePopularities <- c()
   uniqueLocations <- unique(gen.segregation$idLocal)
@@ -597,9 +597,8 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
       empiricalDist <- euclideanDistance(malePopularity, femalePopularity)
       percentile <- quantile(empiricalDist, c(alpha/2, 1-alpha/2))
 
-      # unnecessary because ids are ordered and r.segregation$maleCIR$idLocal == r.segregation$femaleCIR$idLocal
-      observedMale <- observedSegregation[idLocal==location, ]$maleCount
-      observedFemale <- observedSegregation[idLocal==location, ]$femaleCount
+      observedMale <- observedSegregation[idLocal==location, ]$maleCount[[1]] # same value for each check-in
+      observedFemale <- observedSegregation[idLocal==location, ]$femaleCount[[1]]
       observedDist <- observedFemale-observedMale
       if((observedDist & percentile[1] & percentile[2]) & observedDist < percentile[1] | observedDist > percentile[2]) {
         anomalyCount <- anomalyCount +1
@@ -623,7 +622,6 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
       }
     }
   }
-
   pdf(sprintf("%s/avg-segregation-generated-%s.pdf", folderName, regionName))
   plot(meanMalePopularities, meanFemalePopularities,
         main=sprintf("Gender separation in Generated %s", regionName),
@@ -632,6 +630,85 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
         xlim=SEGREGATION_AXES, ylim=SEGREGATION_AXES,
         xlab="Male Popularity", ylab="Female Popularity")
   abline(0, 1, col="red")
+  dev.off()
+}
+
+testObservationWithNullModelForCategories<-function(observedSegregation, gen.segregation,
+                                                    folderName, regionName,
+                                                    UNIFORM_LOCATION_PROBABILITY=FALSE,
+                                                    UNIFORM_GENDER_PROBABILITY=FALSE,
+                                                    SEARCH_ANOMALOUS_CATEGORIES=TRUE,
+                                                    k, alpha=0.05, PLOT_ALL_DISTS=TRUE){
+  maleCategoryPopularities <- c()
+  femaleCategoryPopularities <- c()
+  for (i in seq(k)) {
+    generationRange <- seq((i-1)*nrow(gen.segregation)/k+1, (i * nrow(gen.segregation)/k))
+    iter <- gen.segregation[generationRange]
+    gen.male <- iter[,list(pop=mean(maleCount)), by=list(idLocal, category)][,list(pop=sum(pop)), by=category]
+    gen.male <- gen.male[order(rank(category))]$pop
+    gen.female <- iter[,list(pop=mean(femaleCount)), by=list(idLocal, category)][,list(pop=sum(pop)), by=category]
+    gen.female <- gen.female[order(rank(category))]$pop
+
+    maleCategoryPopularities <- c(maleCategoryPopularities, gen.male)
+    femaleCategoryPopularities <- c(femaleCategoryPopularities, gen.female)
+  }
+
+  # mean category popularity over all generations for plotting
+  gen.male.mean <- gen.segregation[,list(pop=mean(maleCount)), by=list(idLocal, category)][,list(pop=sum(pop)), by=category]
+  gen.female.mean <- gen.segregation[,list(pop=mean(femaleCount)), by=list(idLocal, category)][,list(pop=sum(pop)), by=category]
+
+  if (SEARCH_ANOMALOUS_CATEGORIES) {
+    empiricalDist <- euclideanDistance(maleCategoryPopularities, femaleCategoryPopularities)
+    nCategories <- length(unique(observedSegregation$category))
+
+    stopifnot(nCategories == length(empiricalDist)/k)
+
+    categoryDistDistribution <- list()
+    for (i in seq(nCategories)) {
+      allOfACategory <- empiricalDist[seq(i, length(empiricalDist), nCategories)]
+      categoryDistDistribution[i] <- list(allOfACategory)
+    }
+    percentiles <- lapply(categoryDistDistribution,quantile, c(alpha/2, 1-alpha/2))
+
+    observedMale <- observedSegregation[,list(pop=mean(maleCount)), by=list(idLocal, category)][,list(pop=sum(pop)), by=category]
+    observedMale <- observedMale[order(rank(category))]$pop
+    observedFemale <- observedSegregation[,list(pop=mean(femaleCount)), by=list(idLocal, category)][,list(pop=sum(pop)), by=category]
+    observedFemale <- observedFemale[order(rank(category))]$pop
+    observedDist <- observedFemale-observedMale
+
+    categories <- unique(observedSegregation$category)
+    anomalyCount <- 0
+    for(i in seq(nCategories)) {
+      if(observedDist[i] < percentiles[[i]][1] | observedDist[i] > percentiles[[i]][2]) {
+          anomalyCount <- anomalyCount + 1
+          message(sprintf("Anomalous category: %s, distance: %s\n",
+                        categories[i], signif(observedDist[i])))
+          if(PLOT_ALL_DISTS | sample(c(T, F), 1, prob=c(0.05, 0.95))) {
+            filename <- sprintf("%s/anomalous-category-%s.pdf", folderName, categories[i])
+            pdf(filename)
+            hist(c(categoryDistDistribution[[i]], observedDist[i]), main="Histogram of gender distance", xlab="gender distance",
+                 sub=sprintf("Category: %s, distance: %s, anomalous with alpha=%s, k=%s",
+                          categories[i], signif(observedDist[i]), alpha, k))
+            abline(v=percentiles[[i]][1], col="green")
+            abline(v=percentiles[[i]][2], col="green")
+            abline(v=observedDist[i], col="blue")
+            dev.off()
+          }
+          message(sprintf("%s of %s (%s%%) categories with observed anomalous segregation",
+                anomalyCount, nCategories,
+                100*round(anomalyCount/nCategories, 3)))
+        }
+      }
+  }
+  pdf(sprintf("%s/avg-segregation-generated-category-%s.pdf", folderName, regionName))
+  plot(gen.male.mean$pop, gen.female.mean$pop,
+        main=sprintf("Gender separation in Generated %s", regionName),
+        sub=sprintf("uniform location: %s, uniform gender: %s, k=%s",
+            UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY, k),
+        xlim=c(0,0.4), ylim=c(0,0.4),
+        xlab="Male Popularity", ylab="Female Popularity")
+  abline(0, 1, col="red")
+  text(gen.male.mean$pop, gen.female.mean$pop, labels=categories, pos=3)
   dev.off()
 }
 
@@ -842,12 +919,14 @@ mapply(readGeneratedDataAndPlot, fileNames[,2 ], fileNames[,3 ],
 ########################
 # Run Permutation Test
 ########################
-k=10
+k=100
 ny <- usa[usa$city=="New York City",]
 ny <- checkInsInlocationsWithMinimumCheckIns(ny, n=5)
 ny.segregation <- segregation(ny, "New York City")
 gen.segregation <- runPermutate(ny, ny.segregation, "results/null-model/ny/gender-permutation", "permutate-gender", "New York City", k=k)
-testObservationWithNullModel(ny.segregation, gen.segregation, "results/null-model/ny/gender-permutation", "New York City", F, F, k=k, T)
+testObservationWithNullModel(ny.segregation, gen.segregation,
+                             "results/null-model/ny/gender-permutation", "New York City",
+                             F, F, SEARCH_ANOMALOUS_LOCATIONS=T, k=k)
 
 ########################
 # Plots correlation
@@ -884,8 +963,8 @@ brazil.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(brazil,
 france.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(france, 5), "France")
 indonesia.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(indonesia, 5), "Indonesia")
 
-china.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(china, 5), "China")
-saf.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(china, 5), "South Africa")
+# china.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(china, 5), "China")
+# saf.segregation <- segregation(checkInsInlocationsWithMinimumCheckIns(china, 5), "South Africa")
 
 countries <- ("USA", "UAE", "Saudi Arabia", "Japan", "Brazil", "France", "Indonesia")
 countryVars <- list(usa, uae, sa, japan, brazil, france, indonesia)
