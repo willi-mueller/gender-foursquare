@@ -231,7 +231,7 @@ correlateCategories <- function(x, y, labels, country, file, countMethod="check-
                                 categories="Categories",
                                 axeslim=SEGREGATION_AXES) {
   if(!missing(file)) {
-    png(file)
+    pdf(file)
   }
   plot(x, y, main=sprintf("Correlation of %s counting %s in %s",categories, countMethod, country),
        xlab="Male Popularity", ylab="Female Popularity", xlim=SEGREGATION_AXES, ylim=SEGREGATION_AXES)
@@ -764,7 +764,7 @@ substitutionRules <- list(
 # Run
 ##################
 country <- "UAE"
-checkInsInCity <- getCheckInsInRegion("Abu Dhabi", uaeCheckIns, uaeUsers, uaeFilter)
+checkInsInCity <- getCheckInsInRegion(c("Abu Dhabi"), uaeCheckIns, uaeUsers, uaeFilter)
 segregation <- segregation(checkInsInCity, "Abu Dhabi")
 
 
@@ -970,7 +970,7 @@ countries <- ("USA", "UAE", "Saudi Arabia", "Japan", "Brazil", "France", "Indone
 countryVars <- list(usa, uae, sa, japan, brazil, france, indonesia)
 for(i in 1:length(countries)) {
   data <- subcategoryPreferencesByGender(countryVars[[i]])
-  png(sprintf("results/segregation-subcategory-country/%s.png", countries[i]))
+  pdf(sprintf("results/segregation-subcategory-country/%s.pdf", countries[i]))
   SEGREGATION_AXES <- 0.15
   correlateCategories(data$maleUniqueSubcategories$count, data$femaleUniqueSubcategories$count,
                     data$maleUniqueSubcategories$subcategory,
@@ -980,7 +980,7 @@ for(i in 1:length(countries)) {
                     axeslim=c(0, 0.15))
   dev.off()
   SEGREGATION_AXES <- 0.3
-  png(sprintf("results/segregation-category-country/%s.png", countries[i]))
+  pdf(sprintf("results/segregation-category-country/%s.pdf", countries[i]))
   correlateCategories(data$maleUniqueCategories$count, data$femaleUniqueCategories$count,
                     data$maleUniqueCategories$category,
                     country=countries[i],
