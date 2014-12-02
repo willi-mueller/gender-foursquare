@@ -986,9 +986,10 @@ jakarta.segregation <- segregation(jakarta, "Jakarta")
 countries <- ("USA", "UAE", "Saudi Arabia", "Japan", "Brazil", "France", "Indonesia")
 countryVars <- list(usa, uae, sa, japan, brazil, france, indonesia)
 for(i in 1:length(countries)) {
+  axesOld <- SEGREGATION_AXES
   data <- subcategoryPreferencesByGender(countryVars[[i]])
   pdf(sprintf("results/segregation-subcategory-country/%s.pdf", countries[i]))
-  SEGREGATION_AXES <- 0.15
+  SEGREGATION_AXES <- c(0,0.15)
   correlateCategories(data$maleUniqueSubcategories$count, data$femaleUniqueSubcategories$count,
                     data$maleUniqueSubcategories$subcategory,
                     country=countries[i],
@@ -996,7 +997,7 @@ for(i in 1:length(countries)) {
                     categories="Subcategories",
                     axeslim=c(0, 0.15))
   dev.off()
-  SEGREGATION_AXES <- 0.3
+  SEGREGATION_AXES <- c(0, 0.3)
   pdf(sprintf("results/segregation-category-country/%s.pdf", countries[i]))
   correlateCategories(data$maleUniqueCategories$count, data$femaleUniqueCategories$count,
                     data$maleUniqueCategories$category,
@@ -1005,6 +1006,7 @@ for(i in 1:length(countries)) {
                     categories="Categories",
                     axeslim=c(0, 0.3))
   dev.off()
+  SEGREGATION_AXES <- axesOld
 }
 
 
