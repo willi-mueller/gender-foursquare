@@ -1006,3 +1006,75 @@ for(i in 1:length(countries)) {
 }
 
 
+###################
+# Permutation Test
+###################
+
+ny.gen.segregation <- runPermutate(ny, ny.segregation,
+                                   "results/null-model/ny/gender-permutation",
+                                   "permutate-gender", "New York City", k=k)
+testObservationWithNullModel(ny.segregation, ny..segregation,
+                             "results/null-model/ny/gender-permutation",
+                              "New York City", F, F, T, k=k)
+
+sp.gen.segregation <- runPermutate(sp, sp.segregation,
+                                  "results/null-model/sao-paulo/gender-permutation",
+                                  "permutate-gender", "São Paulo", k=k)
+testObservationWithNullModel(sp.segregation, sp.gen.segregation,
+                            "results/null-model/sao-paulo/gender-permutation", F, F, T, k, T)
+testObservationWithNullModelForCategories(sp.segregation, sp.gen.segregation,
+                                 "results/null-model/sao-paulo/gender-permutation",
+                                 "São Paulo",
+                                 k=k, alpha=0.01)
+
+tokyo.gen.segregation <- runPermutate(tokyo, tokyo.segregation,
+                                     "results/null-model/tokyo/gender-permutation",
+                                    "permutate-gender", "Tokyo", k=k)
+testObservationWithNullModel(tokyo.segregation, tokyo.gen.segregation,
+                            "results/null-model/tokyo/gender-permutation", F, F, T, k, T)
+testObservationWithNullModelForCategories(tokyo.segregation, tokyo.gen.segregation,
+                                 "results/null-model/tokyo/gender-permutation",
+                                 "Tokyo",
+                                 k=k, alpha=0.01)
+
+riyadh.gen.segregation <- runPermutate(riyadh, riyadh.segregation,
+                                       "results/null-model/riyadh/gender-permutation",
+                                       "permutate-gender", "Riyadh", k=k)
+testObservationWithNullModel(riyadh.segregation, riyadh.gen.segregation,
+                            "results/null-model/riyadh/gender-permutation", F, F, T, k, T)
+testObservationWithNullModelForCategories(riyadh.segregation, riyadh.gen.segregation,
+                                 "results/null-model/riyadh/gender-permutation",
+                                 "Riyadh",
+                                 k=k, alpha=0.01)
+
+ad.gen.segregation <- runPermutate(ad, ad.segregation,
+                                       "results/null-model/abu-dhabi/gender-permutation",
+                                       "permutate-gender", "Abu Dhabi", k=k)
+testObservationWithNullModel(ad.segregation, ad.gen.segregation,
+                            "results/null-model/abu-dhabi/gender-permutation", F, F, T, k, T)
+testObservationWithNullModelForCategories(ad.segregation, ad.gen.segregation,
+                                 "results/null-model/abu-dhabi/gender-permutation",
+                                 "Abu Dhabi",
+                                 k=k, alpha=0.01)
+
+
+paris.gen.segregation <- runPermutate(paris, paris.segregation,
+                                       "results/null-model/Paris/gender-permutation",
+                                       "permutate-gender", "Paris", k=k)
+testObservationWithNullModel(paris.segregation, paris.gen.segregation,
+                            "results/null-model/paris/gender-permutation", F, F, T, k, T)
+testObservationWithNullModelForCategories(paris.segregation, paris.gen.segregation,
+                                 "results/null-model/paris/gender-permutation",
+                                 "Paris",
+                                 k=k, alpha=0.01)
+
+
+jakarta.gen.segregation <- runPermutate(jakarta, jakarta.segregation,
+                                       "results/null-model/jakarta/gender-permutation",
+                                       "permutate-gender", "jakarta", k=k)
+testObservationWithNullModel(jakarta.segregation, jakarta.gen.segregation,
+                            "results/null-model/jakarta/gender-permutation", F, F, T, k, T)
+testObservationWithNullModelForCategories(sp.segregation, sp.gen.segregation,
+                                 "results/null-model/jakarta/gender-permutation",
+                                 "jakarta",
+                                 k=k, alpha=0.01)
