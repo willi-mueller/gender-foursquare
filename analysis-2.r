@@ -142,11 +142,17 @@ segregation <- function(checkIns, location="<location>", sub=NULL, axeslim=SEGRE
       xlim=axeslim, ylim=axeslim)
   abline(0, 1, col="red")
 
-  topMale <- checkIns[order(-rank(maleCount))][1:10]
-  print(topMale[, list(maleCount, subcategory, idLocal, latitude, longitude)])
+  print("Top male")
+
+  topMale <- sqldf("Select maleCount, subcategory, idLocal, latitude, longitude from checkIns
+                   group by idLocal
+                   order by maleCount desc limit 10")
+  print(topMale)
   print("Top female")
-  topFemale <- checkIns[order(-rank(femaleCount))][1:10]
-  print(topFemale[, list(femaleCount, subcategory, idLocal, latitude, longitude)])
+  topFemale <- sqldf("Select femaleCount, subcategory, idLocal, latitude, longitude from checkIns
+                     group by idLocal
+                     order by femaleCount desc limit 10")
+  print(topFemale)
 
   return(checkIns)
 }
