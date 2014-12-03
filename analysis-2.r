@@ -598,7 +598,7 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
       percentile <- quantile(empiricalDist, c(alpha/2, 1-alpha/2))
       observedMale <- observedSegregation[idLocal==location, ]$maleCount[[1]] # same value for each check-in
       observedFemale <- observedSegregation[idLocal==location, ]$femaleCount[[1]]
-      observedDist <- observedFemale-observedMale
+      observedDist <- euclideanDistance(observedMale, observedFemale)
       if((observedDist & percentile[1] & percentile[2]) & observedDist < percentile[1] | observedDist > percentile[2]) {
         anomalyCount <- anomalyCount +1
         # message(sprintf("Anomalous location: %s, subcategory: %s, distance: %s\n",
@@ -675,7 +675,8 @@ testObservationWithNullModelForCategories<-function(observedSegregation, gen.seg
     observedMale <- observedMale[order(rank(category))]$pop
     observedFemale <- observedSegregation[,list(pop=mean(femaleCount)), by=list(idLocal, category)][,list(pop=sum(pop)), by=category]
     observedFemale <- observedFemale[order(rank(category))]$pop
-    observedDist <- observedFemale-observedMale
+    observedDist <- euclideanDistance(observedMale, observedFemale)
+
     sortedCategories <- gen.male.mean$category
 
     write.csv(percentiles, sprintf("%s-category-percentiles-%s.csv", folderName, regionName))
