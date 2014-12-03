@@ -654,7 +654,9 @@ testObservationWithNullModelForCategories<-function(observedSegregation, gen.seg
 
   # mean category popularity over all generations for plotting
   gen.male.mean <- gen.segregation[,list(pop=mean(maleCount)), by=list(idLocal, category)][,list(pop=sum(pop)), by=category]
+  gen.male.mean <- gen.male.mean[order(rank(category))]
   gen.female.mean <- gen.segregation[,list(pop=mean(femaleCount)), by=list(idLocal, category)][,list(pop=sum(pop)), by=category]
+  gen.female.mean <- gen.female.mean[order(rank(category))]
 
   if (SEARCH_ANOMALOUS_CATEGORIES) {
     empiricalDist <- euclideanDistance(maleCategoryPopularities, femaleCategoryPopularities)
@@ -668,28 +670,30 @@ testObservationWithNullModelForCategories<-function(observedSegregation, gen.seg
       categoryDistDistribution[i] <- list(allOfACategory)
     }
     percentiles <- lapply(categoryDistDistribution,quantile, c(alpha/2, 1-alpha/2))
-    write.csv(percentiles, sprintf("%s-category-percentiles-%s.csv", folder, region))
-    write.csv(observedDist, sprintf("%s-category-observed-dist-%s.csv", folder, region))
 
     observedMale <- observedSegregation[,list(pop=mean(maleCount)), by=list(idLocal, category)][,list(pop=sum(pop)), by=category]
     observedMale <- observedMale[order(rank(category))]$pop
     observedFemale <- observedSegregation[,list(pop=mean(femaleCount)), by=list(idLocal, category)][,list(pop=sum(pop)), by=category]
     observedFemale <- observedFemale[order(rank(category))]$pop
     observedDist <- observedFemale-observedMale
+    sortedCategories <- gen.male.mean$category
 
-    categories <- unique(observedSegregation$category)
+    write.csv(percentiles, sprintf("%s-category-percentiles-%s.csv", folderName, regionName))
+    write.csv(observedDist, sprintf("%s-category-observed-dist-%s.csv", folderName, regionName))
+    write.csv(sortedCategories, sprintf("%s-category-sorted-categories-%s.csv", folderName, regionName))
+
     anomalyCount <- 0
     for(i in seq(nCategories)) {
       if(observedDist[i] < percentiles[[i]][1] | observedDist[i] > percentiles[[i]][2]) {
           anomalyCount <- anomalyCount + 1
           message(sprintf("Anomalous category: %s, distance: %s\n",
-                        categories[i], signif(observedDist[i])))
+                        sortedCategories[i], signif(observedDist[i])))
           if(PLOT_ALL_DISTS | sample(c(T, F), 1, prob=c(0.05, 0.95))) {
-            filename <- sprintf("%s/anomalous-category-%s.pdf", folderName, categories[i])
+            filename <- sprintf("%s/anomalous-category-%s.pdf", folderName, sortedCategories[i])
             pdf(filename)
             hist(c(categoryDistDistribution[[i]], observedDist[i]), main="Histogram of gender distance", xlab="gender distance",
                  sub=sprintf("Category: %s, distance: %s, anomalous with alpha=%s, k=%s",
-                          categories[i], signif(observedDist[i]), alpha, k))
+                          sortedCategories[i], signif(observedDist[i]), alpha, k))
             abline(v=percentiles[[i]][1], col="green")
             abline(v=percentiles[[i]][2], col="green")
             abline(v=observedDist[i], col="blue")
@@ -709,7 +713,7 @@ testObservationWithNullModelForCategories<-function(observedSegregation, gen.seg
         xlim=c(0,0.4), ylim=c(0,0.4),
         xlab="Male Popularity", ylab="Female Popularity")
   abline(0, 1, col="red")
-  text(gen.male.mean$pop, gen.female.mean$pop, labels=categories, pos=3)
+  text(gen.male.mean$pop, gen.female.mean$pop, labels=sortedCategories, pos=3)
   dev.off()
 }
 
