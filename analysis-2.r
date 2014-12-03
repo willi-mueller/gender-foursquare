@@ -581,7 +581,7 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
                                          UNIFORM_LOCATION_PROBABILITY=FALSE,
                                          UNIFORM_GENDER_PROBABILITY=FALSE,
                                          SEARCH_ANOMALOUS_LOCATIONS=TRUE,
-                                         k, alpha=0.05, PLOT_ALL_DISTS=F) {
+                                         k, alpha=0.01, PLOT_ALL_DISTS=F, SEGREGATION_AXES=SEGREGATION_AXES) {
   meanMalePopularities <- c()
   meanFemalePopularities <- c()
   uniqueLocations <- unique(gen.segregation$idLocal)
@@ -637,7 +637,7 @@ testObservationWithNullModelForCategories<-function(observedSegregation, gen.seg
                                                     UNIFORM_LOCATION_PROBABILITY=FALSE,
                                                     UNIFORM_GENDER_PROBABILITY=FALSE,
                                                     SEARCH_ANOMALOUS_CATEGORIES=TRUE,
-                                                    k, alpha=0.05, PLOT_ALL_DISTS=TRUE){
+                                                    k, alpha=0.01, PLOT_ALL_DISTS=TRUE){
   maleCategoryPopularities <- c()
   femaleCategoryPopularities <- c()
   for (i in seq(k)) {
