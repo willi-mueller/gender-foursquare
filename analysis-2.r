@@ -645,6 +645,7 @@ testObservationWithNullModelForCategories<-function(observedSegregation, gen.seg
     generationRange <- seq((i-1)*nrow(gen.segregation)/k+1, (i * nrow(gen.segregation)/k))
     iter <- gen.segregation[generationRange]
     gen.male <- iter[,list(pop=mean(maleCount)), by=list(idLocal, category)][,list(pop=sum(pop)), by=category]
+    # sort lexicographically
     gen.male <- gen.male[order(rank(category))]$pop
     gen.female <- iter[,list(pop=mean(femaleCount)), by=list(idLocal, category)][,list(pop=sum(pop)), by=category]
     gen.female <- gen.female[order(rank(category))]$pop
@@ -970,7 +971,7 @@ beijing <- china[city=="Beijing",] # 474 checkins
 jb <- saf[city=="Johannesburg",] #294 checkins
 berlin <- ger[city=="Berlin",] # 183 checkins
 
-usa.segregation <- segregation(usa, "USA")
+usa.segregation <- segregation(usa, "the USA")
 sa.segregation <- segregation(sa, "Saudi Arabia")
 uae.segregation <- segregation(uae, "United Arab Emirates")
 japan.segregation <- segregation(japan, "Japan")
@@ -1026,6 +1027,10 @@ ny.gen.segregation <- runPermutate(ny, ny.segregation,
 testObservationWithNullModel(ny.segregation, ny.gen.segregation,
                              "results/null-model/ny/gender-permutation",
                               "New York City", F, F, T, k=k)
+testObservationWithNullModelForCategories(ny.segregation, ny.gen.segregation,
+                                 "results/null-model/ny/gender-permutation",
+                                 "New York City",
+                                 k=k, alpha=0.01)
 
 sp.gen.segregation <- runPermutate(sp, sp.segregation,
                                   "results/null-model/sao-paulo/gender-permutation",
@@ -1067,7 +1072,6 @@ testObservationWithNullModelForCategories(ad.segregation, ad.gen.segregation,
                                  "Abu Dhabi",
                                  k=k, alpha=0.01)
 
-
 paris.gen.segregation <- runPermutate(paris, paris.segregation,
                                        "results/null-model/Paris/gender-permutation",
                                        "permutate-gender", "Paris", k=k)
@@ -1078,7 +1082,6 @@ testObservationWithNullModelForCategories(paris.segregation, paris.gen.segregati
                                  "Paris",
                                  k=k, alpha=0.01)
 
-
 jakarta.gen.segregation <- runPermutate(jakarta, jakarta.segregation,
                                        "results/null-model/jakarta/gender-permutation",
                                        "permutate-gender", "Jakarta", k=k)
@@ -1087,4 +1090,22 @@ testObservationWithNullModel(jakarta.segregation, jakarta.gen.segregation,
 testObservationWithNullModelForCategories(jakarta.segregation, jakarta.gen.segregation,
                                  "results/null-model/jakarta/gender-permutation",
                                  "jakarta",
+                                 k=k, alpha=0.01)
+
+brazil.gen.segregation <- runPermutate(brazil, brazil.segregation,
+                                       "results/null-model/brazil/gender-permutation",
+                                       "permutate-gender", "Brazil", k=k)
+testObservationWithNullModel(brazil.segregation, brazil.gen.segregation,
+                            "results/null-model/brazil/gender-permutation", F, F, T, k, T)
+testObservationWithNullModelForCategories(brazil.segregation, brazil.gen.segregation,
+                                 "results/null-model/brazil/gender-permutation",
+                                 "Brazil",
+                                 k=k, alpha=0.01)
+
+usa.gen.segregation <- runPermutate(usa, usa.segregation,
+                                       "results/null-model/usa/gender-permutation",
+                                       "permutate-gender", "the USA", k=k)
+testObservationWithNullModelForCategories(usa.segregation, usa.gen.segregation,
+                                 "results/null-model/usa/gender-permutation",
+                                 "the USA",
                                  k=k, alpha=0.01)
