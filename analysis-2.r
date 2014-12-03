@@ -630,6 +630,7 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
         xlab="Male Popularity", ylab="Female Popularity")
   abline(0, 1, col="red")
   dev.off()
+  return(list(meanMalePopularities=meanMalePopularities, meanFemalePopularities=meanFemalePopularities))
 }
 
 testObservationWithNullModelForCategories<-function(observedSegregation, gen.segregation,
