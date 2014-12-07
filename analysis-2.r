@@ -140,7 +140,7 @@ segregation <- function(checkIns, location="<location>", sub=NULL, axeslim=SEGRE
 
 aggregateSegregationForRegion <- function(regionCheckIns, region) {
   seg <- segregation(regionCheckIns, region)
-  distances <- euclideanDistance(seg$maleCount seg$femaleCount)
+  distances <- euclideanDistance(seg$maleCount, seg$femaleCount)
   boxplot(distances, names=c(region))
   return(summary(distances))
 }
