@@ -876,7 +876,7 @@ r.checkIns <- getCheckInsInRegion(c("Riyadh"), saudiCheckIns, saudiUsers, saudiF
 r.checkIns <- rbind(r.checkIns[r.checkIns$gender=="male", ], r.checkIns[r.checkIns$gender=="female", ])
 r.segregation <- segregation(r.checkIns, "Riyadh")
 
-k=10
+k<-10
 fileNames <- c()
 folderPrefix <- "results/null-model"
 folderNames <- c(sprintf("%s/uniform-location-uniform-gender", folderPrefix),
@@ -926,7 +926,7 @@ mapply(readGeneratedDataAndPlot, fileNames[,2 ], fileNames[,3 ],
 ########################
 # Run Permutation Test
 ########################
-k=100
+k <- 100
 ny <- usa[usa$city=="New York City",]
 ny <- checkInsInlocationsWithMinimumCheckIns(ny, n=5)
 ny.segregation <- segregation(ny, "New York City")
