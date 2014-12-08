@@ -222,18 +222,21 @@ normalizeByPercentageOfMax <- function(attribute) {
   return(attribute/max(attribute))
 }
 
-correlateCategories <- function(x, y, labels, country, file, countMethod="check-ins",
+correlateCategories <- function(countrySegregation, country, file,
                                 categories="Categories",
                                 axeslim=SEGREGATION_AXES) {
+  x <- countrySegregation[,list(pop=mean(maleCount)), by=list(idLocal, category)][,list(pop=sum(pop)), by=category]
+  y <- countrySegregation[,list(pop=mean(femaleCount)), by=list(idLocal, category)][,list(pop=sum(pop)), by=category]
+  labels <- x$category
   if(!missing(file)) {
     pdf(file)
   }
-  plot(x, y, main=sprintf("Correlation of %s counting %s in %s",categories, countMethod, country),
-       xlab="Male Popularity", ylab="Female Popularity", xlim=SEGREGATION_AXES, ylim=SEGREGATION_AXES)
+  plot(x$pop, y$pop, main=sprintf("Correlation of %s in %s",categories, country),
+       xlab="Male Popularity", ylab="Female Popularity", xlim=axeslim, ylim=axeslim)
   abline(0, 1, col="red")
-  text(x, y, labels=labels, pos=3)
-  print(cor.test(x, y))
-  print(chisq.test(x, y))
+  text(x$pop, y$pop, labels=labels, pos=3)
+  print(cor.test(x$pop, y$pop))
+  print(chisq.test(x$pop, y$pop))
   if(!missing(file)) {
     dev.off()
   }
