@@ -58,7 +58,7 @@ getTopNCategories <- function(group1, group2, N, method="most popular"){
   return(list(group1=group1Top, group2=group2Top))
 }
 
-getCheckInsInCountry <- function(countryCheckIns, countryUsers, userLocalFilter, substitutionRules) {
+getCheckInsInCountry <- function(countryCheckIns, substitutionRules, countryUsers, userLocalFilter) {
   ci <- readCheckIns(countryCheckIns)
   if(!missing(countryUsers)) {
     users <- readUsers(countryUsers)
@@ -71,12 +71,6 @@ getCheckInsInCountry <- function(countryCheckIns, countryUsers, userLocalFilter,
   if(!missing(substitutionRules)) {
     ci <- combineEquivalentSubCategories(ci, substitutionRules)
   }
-  ## for second data collection
-  if(grepl("paises", countryCheckIns)) {
-    colnames(ci) <- c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
-                     "subcategory", "category", "country", "city", "district", "gender", "timeOffset")
-  }
-  ci <- as.data.table(ci)
   return(oneCheckInForUserAndLocation(ci))
 }
 
@@ -89,7 +83,7 @@ oneCheckInForUserAndLocation <- function(checkIns) {
 
 getCheckInsInRegion <- function(regionFilters, countryCheckIns, countryUsers, userLocalFilter, substitutionRules, checkIns) {
   if(missing(checkIns)) {
-    checkIns <- getCheckInsInCountry(countryCheckIns, countryUsers, userLocalFilter, substitutionRules)
+    checkIns <- getCheckInsInCountry(countryCheckIns, substitutionRules, countryUsers, userLocalFilter)
   }
 
   checkInsInRegion <- c()
@@ -187,10 +181,11 @@ readUsers <- function(path) {
 }
 
 readCheckIns <- function(path) {
-  fullPath <- paste("~/studium/Lehrveranstaltungen/informationRetrieval/GenderSocialMedia/datasets/", path, sep="")
-  ci <- read.csv(fullPath, header=F, sep="\t")
-  colnames(ci) <- c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
-                     "subcategory", "category", "city", "country")
+  fullPath <- sprintf("~/studium/Lehrveranstaltungen/informationRetrieval/GenderSocialMedia/datasets/%s", path)
+  # ci <- read.csv(fullPath, header=F, sep="\t", stringsAsFactors=FALSE)
+  ci <- fread(fullPath, header=F, sep="\t", stringsAsFactors=FALSE, )
+  setnames(ci, 1:12,c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
+                      "subcategory", "category", "country", "city", "district", "gender", "timeOffset"))
   return(ci)
 }
 
@@ -351,7 +346,7 @@ genderDistanceForCountry <- function(countries, substitutionRules, main){
   distances <- list()
   for(country in countries) {
     message(country$name)
-    ci <- getCheckInsInCountry(country$checkIns, country$users, country$filter,substitutionRules)
+    ci <- getCheckInsInCountry(country$checkIns, substitutionRules, country$users, country$filter)
     seg <- segregation(ci, country$name)
     distances <- c(distances, list(euclideanDistance(seg$maleCIR$count, seg$femaleCIR$count)))
   }
@@ -779,10 +774,10 @@ segregation <- segregation(checkInsInCity, "Abu Dhabi")
 
 
 # correlation categories
-uae.ci <- getCheckInsInCountry(uaeCheckIns, uaeUsers, uaeFilter)
+uae.ci <- getCheckInsInCountry("paises/United-Arab-Emirates.dat", substitutionRules)
 data <- subcategoryPreferencesByGender(uae.ci)
 country <- "Saudi Arabia"
-saudi.ci <- getCheckInsInCountry(saudiCheckIns, saudiUsers, saudiFilter)
+saudi.ci <- getCheckInsInCountry("paises/Saudi-Arabia.dat", substitutionRules)
 data <- subcategoryPreferencesByGender(saudi.ci)
 
 correlateCategories(data$maleCategories$count, data$femaleCategories$count,
