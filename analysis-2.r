@@ -519,6 +519,7 @@ runPermutate <- function(checkIns, segregation, folderName, plotName, regionName
   }
 
   segregationFile <- sprintf("%s/generated-%s-%s-pop.csv", folderName, regionName, plotName)
+  write.csv(gen.segregation, segregationFile)
   message("Wrote generated segregation to %s", segregationFile)
 
   return(gen.segregation)
