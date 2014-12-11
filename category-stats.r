@@ -1,4 +1,5 @@
 library(data.table)
+source('foursquare-analysis.r')
 
 checkInsInlocationsWithMinimumCheckIns <- function(checkIns, n=5) {
   locations <- checkIns[, list(hasMore=length(unique(idUserFoursquare))>=n), by=idLocal][hasMore==TRUE]$idLocal

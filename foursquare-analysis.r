@@ -1,4 +1,4 @@
-library(sqldf)
+# library(sqldf)
 library(Hmisc) # Ecdf
 library(parallel)
 library(data.table)
