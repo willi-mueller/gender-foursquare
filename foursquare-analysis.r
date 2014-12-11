@@ -517,8 +517,9 @@ runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=
   }
   gen.segregation <- data.table()
   checkIns <- checkIns[gender=="male" || gender=="female", ]
+  randomizedCheckIns <- copy(checkIns)
   for(i in seq(k)) {
-      gen.checkIns <- permutateGender(checkIns)
+      gen.checkIns <- permutateGender(randomizedCheckIns)
       gen.checkIns[,iterPermutation:=i]
       s <- segregation(gen.checkIns, regionName,
                           sub="permutating gender", log=log)
@@ -534,11 +535,10 @@ runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=
 
 permutateGender <- function(checkIns) {
   # Expects only a single check-in per user per local
-  checkIns <- copy(checkIns)
   # TODO: shuffle gender of USERS not check-ins
-  checkIns$gender <- sample(checkIns$gender)
-  return(checkIns)
+  checkIns[, gender:=sample(checkIns[, gender])]
 }
+
 
 ######## Check-in generation #############
 
