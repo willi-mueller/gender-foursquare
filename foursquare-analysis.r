@@ -184,7 +184,7 @@ readUsers <- function(path) {
 readCheckIns <- function(path) {
   fullPath <- sprintf("~/studium/Lehrveranstaltungen/informationRetrieval/GenderSocialMedia/datasets/%s", path)
   # ci <- read.csv(fullPath, header=F, sep="\t", stringsAsFactors=FALSE)
-  ci <- fread(fullPath, header=F, sep="\t", stringsAsFactors=FALSE, )
+  ci <- fread(fullPath, header=F, sep="\t", stringsAsFactors=FALSE)
   setnames(ci, 1:12,c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
                       "subcategory", "category", "country", "city", "district", "gender", "timeOffset"))
   return(ci)
@@ -506,10 +506,17 @@ empiricalAttributeDistribution <- function(checkIns, attribute) {
 ####################
 
 ######## Permutation #############
-runPermutate <- function(checkIns, segregation, folderName, plotName, regionName, k=100, log=FALSE) {
+runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=FALSE) {
+  generatedFile <- sprintf("%s/generated-%s-%s-pop.csv", folderName, regionName, plotName)
+  if(file.exists(generatedFile)) {
+    message("Already randomized check-ins for ", regionName)
+    return(fread(generatedFile, header=T, sep=",", stringsAsFactors=FALSE))
+  }
+  if(!file.exists(folderName)) {
+    dir.create(folderName)
+  }
   gen.segregation <- data.table()
   checkIns <- checkIns[gender=="male" || gender=="female", ]
-  nCheckIns <- nrow(checkIns)
   for(i in seq(k)) {
       gen.checkIns <- permutateGender(checkIns)
       gen.checkIns[,iterPermutation:=i]
@@ -518,9 +525,9 @@ runPermutate <- function(checkIns, segregation, folderName, plotName, regionName
 
       gen.segregation <- rbindlist(list(gen.segregation, s), use.names=TRUE)
   }
-  segregationFile <- sprintf("%s/generated-%s-%s-pop.csv", folderName, regionName, plotName)
-  write.csv(gen.segregation, segregationFile)
-  message("Wrote generated segregation to %s", segregationFile)
+  message("Generated. Writing…")
+  write.table(gen.segregation, generatedFile, row.names=FALSE)
+  message("Wrote generated segregation to ", generatedFile)
 
   return(gen.segregation)
 }
