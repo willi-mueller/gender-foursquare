@@ -638,12 +638,6 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
   return(list(meanMalePopularities=meanMalePopularities, meanFemalePopularities=meanFemalePopularities))
 }
 
-meanPopularity <- function(ci, genderCount, catOrSubCat) {
-  ci <- ci[,list(pop=mean(eval(genderCount))), by=list(idLocal, eval(catOrSubCat))][,list(pop=sum(pop)), by=list(eval(catOrSubCat))]
-  setnames(ci, 1, paste(catOrSubCat))
-  return(ci)
-}
-
 testObservationWithNullModelForCategories<-function(observedSegregation, gen.segregation, folderName, regionName,
                                                     k, catOrSubCat,
                                                     UNIFORM_LOCATION_PROBABILITY=FALSE,
@@ -742,6 +736,101 @@ testObservationWithNullModelForCategories<-function(observedSegregation, gen.seg
   dev.off()
   return(categoryStats)
 }
+
+###################### Analysing Null Model ######
+nMaleUsers <- function(checkIns) {
+  checkIns[, list(n=length(unique(idUserFoursquare[ gender=="male" ]))) ]$n
+}
+
+nFemaleUsers <- function(checkIns) {
+  checkIns[, list(n=length(unique(idUserFoursquare[ gender=="female" ]))) ]$n
+}
+
+############# Percentage #####
+percentagesOfGenderForCategory <- function(checkIns, nMaleUsers, nFemaleUsers) {
+  checkIns[,list(percOfMale=length(idUserFoursquare[gender=='male'])/nMaleUsers,
+                percOfFemale=length(idUserFoursquare[gender=='female'])/nFemaleUsers),
+            by=category]
+}
+
+percentagesForCategory <- function(checkIns) {
+  checkIns[,list(percMaleCat=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
+                percFemaleCat=length(idUserFoursquare[gender=='female'])/length(idUserFoursquare)),
+            by=category]
+}
+
+percentagesForLocation <- function(checkIns) {
+  checkIns[,list(percMaleLoc=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
+                percFemaleLoc=length(idUserFoursquare[gender=='female'])/length(idUserFoursquare)),
+            by=idLocal]
+}
+
+############# Euclidean Distance #####
+euclideanDistanceForCategory <- function(checkIns) {
+  checkIns[,list(eucDistCat=euclideanDistance(percMaleCat, percFemaleCat)), by=category]
+}
+
+euclideanDistanceForLocation <- function(checkIns) {
+  checkIns[ ,list(eucDistLoc=euclideanDistance(percMaleLoc, percFemaleLoc)), by=idLocal]
+}
+
+meanEuclidDist <- function(checkIns) {
+  checkIns[ ,list(meanEucDistLoc=mean(eucDistLoc)), by=category]
+}
+
+medianEuclidDist <- function(checkIns) {
+  checkIns[ ,list(medianEucDistLoc=median(eucDistLoc)), by=category]
+}
+
+varEuclidDist <- function(checkIns) {
+  checkIns[ ,list(varEucDistLoc=var(eucDistLoc)), by=category]
+}
+
+sdEuclidDist <- function(checkIns) {
+  checkIns[ ,list(sdEucDistLoc=sd(eucDistLoc)), by=category]
+}
+
+skewnessEuclidDist <- function(checkIns) {
+  checkIns[ ,list(skewnessEucDistLoc=skewness(eucDistLoc)), by=category]
+}
+
+
+############# Difference of percentages #####
+differenceOfLocation <- function(checkIns) {
+  checkIns[, list(diffLoc=percMaleLoc - percFemaleLoc), by=idLocal]
+}
+
+differenceOfCategory <- function(checkIns) {
+  checkIns[, list(diffCat=percMaleLoc - percFemaleLoc), by=category]
+}
+
+meanDifferenceOfCategory <- function(checkIns){
+  checkIns[, list(meanDiff=mean(diffLoc)), by=category]
+}
+
+medianDifferenceOfCategory <- function(checkIns){
+  checkIns[, list(medianDiff=median(diffLoc)), by=category]
+}
+
+varDifferenceOfCategory <- function(checkIns){
+  checkIns[, list(varDiff=var(diffLoc)), by=category]
+}
+
+sdDifferenceOfCategory <- function(checkIns){
+  checkIns[, list(sdDiff=sd(diffLoc)), by=category]
+}
+
+skewnessDifferenceOfCategory <- function(checkIns){
+  checkIns[, list(skewnessDiff=skewness(diffLoc)), by=category]
+}
+
+meanPopularity <- function(ci, genderCount, catOrSubCat) {
+  # old stuff: describe difference and popularity in one number
+  ci <- ci[,list(pop=mean(eval(genderCount))), by=list(idLocal, eval(catOrSubCat))][,list(pop=sum(pop)), by=list(eval(catOrSubCat))]
+  setnames(ci, 1, paste(catOrSubCat))
+  return(ci)
+}
+
 
 readGeneratedDataAndPlot <- function(segregationFile, folderName, regionName,
                                      UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY) {
