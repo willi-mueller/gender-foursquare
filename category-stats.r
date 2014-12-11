@@ -13,7 +13,9 @@ oneCheckInForUserAndLocation <- function(checkIns) {
   return(checkIns)
 }
 
+THRESH<-100
 countries <- dir("paises")
+
 
 generateNullModel <- function() {
 	k <- 100
@@ -21,9 +23,12 @@ generateNullModel <- function() {
 	for(i in seq(countries)) {
 		country <- countries[i]
 		f <- sprintf("paises/%s", countries[i])
-		ci <- try(fread(f, header=F, sep="\t", stringsAsFactors=FALSE))
 		country <- strsplit(country, ".", fixed=T)[[1]][[1]] # remove .dat
 		message(country)
+		ci <- try(fread(f, header=F, sep="\t", stringsAsFactors=FALSE))
+		if(nrow(ci) < THRESH) {
+			message("<", THRESH, "check-ins")
+		}
 		if(length(ci)>2) {
 			setnames(ci, 1:12, c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
                       "subcategory", "category", "country", "city", "district", "gender", "timeOffset"))
