@@ -116,6 +116,8 @@ segregation <- function(checkIns, location="<location>", sub=NULL, axeslim=SEGRE
   checkIns[, maleCount:=sum(gender=='male')/nMaleUsers, by=idLocal]
   checkIns[, femaleCount:=sum(gender=='female')/nFemaleUsers, by=idLocal]
 
+  checkIns <- replace(checkIns, is.na(checkIns), 0)
+
   popularityByLocation <- checkIns[, .SD[1], by=idLocal]
 
   if(log==TRUE) {
