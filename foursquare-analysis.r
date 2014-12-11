@@ -510,7 +510,7 @@ runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=
   generatedFile <- sprintf("%s/generated-%s-%s-pop.csv", folderName, regionName, plotName)
   if(file.exists(generatedFile)) {
     message("Already randomized check-ins for ", regionName)
-    return(fread(generatedFile, header=T, sep=",", stringsAsFactors=FALSE))
+    return(fread(generatedFile, header=T, sep="\t", stringsAsFactors=FALSE))
   }
   if(!file.exists(folderName)) {
     dir.create(folderName)
@@ -527,7 +527,7 @@ runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=
       gen.segregation <- rbindlist(list(gen.segregation, s), use.names=TRUE)
   }
   message("Generated. Writing…")
-  write.table(gen.segregation, generatedFile, row.names=FALSE)
+  write.table(gen.segregation, generatedFile, sep="\t", row.names=FALSE)
   message("Wrote generated segregation to ", generatedFile)
 
   return(gen.segregation)
