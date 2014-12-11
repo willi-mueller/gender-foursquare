@@ -2,6 +2,7 @@ library(sqldf)
 library(Hmisc) # Ecdf
 library(parallel)
 library(data.table)
+library(moments) # skewness
 
 subcategoryPreferencesByGender <- function(checkIns) {
   joined <- checkIns
@@ -686,7 +687,10 @@ testObservationWithNullModelForCategories<-function(observedSegregation, gen.seg
     sortedCategories <- c()
     sortedCategories <- gen.male.mean[, eval(catOrSubCat)]
 
-    categoryStats <- data.table(category=sortedCategories, observedDistance=observedDist,
+    categoryStats <- data.table(category=sortedCategories,
+                                observedDistance=observedDist,
+                                variance=var(observedDist),
+                                skewness=skewness(observedDist),
                                 isAnomalous=F, alpha=alpha,
                                 lowerPercentile=lapply(percentiles, function(x) {x[[1]]}),
                                 upperPercentile=lapply(percentiles, function(x) {x[[2]]}))
