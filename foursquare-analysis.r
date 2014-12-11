@@ -751,6 +751,16 @@ checkInsInlocationsWithMinimumCheckIns <- function(checkIns, n=5) {
 ##########
 SEGREGATION_AXES <- c(0, 0.20)
 
+substitutionRules <- list(
+    list(original="Café", equivalents=c("Coffee Shop", "College Cafeteria")),
+    list(original="Airport", equivalents=c("Airport Lounge", "Airport Gate", "Airport Terminal")),
+    list(original="Train Station", equivalents=c("Train", "Platform", "Light Rail")),
+    list(original="Bus Station", equivalents=c("Bus Line", "Bus Terminal")),
+    list(original="Library", equivalents=c("College Library")),
+    list(original="Movie Theater", equivalents=c("Indie Movie Theater", "Multiplex")),
+    list(original="University", equivalents=c("General College & University", "College & University")),
+    list(original="Gym", equivalents=c("Gym / Fitness Center", "College Gym")))
+
 # FOR DATA BASE 2
 saudiCheckIns <- "base2/arabiaSaudita/Saudi-Arabia.txt"
 franceCheckIns <- "base2/France.txt"
@@ -765,13 +775,3 @@ uaeFilter <- "Dubai|United Arab Emirates|Abu Dhabi|Sharjah|Al Ain|Ras Al-Khaimah
 germanyFilter <- "Deutschland|Berlin|Germany|München|Munich|Frankfurt|Hamburg|Stuttgart|Mainz|Düsseldorf|Köln|Cologne|Thüringen|Hessen|Sachsen|Bremen|Schleswig|Mecklenburg|Saarbrücken|Saarland|Bayern|Bavaria|Nordrhein-Westfalen"
 franceUsers=germanyUsers=swedenUsers=uaeUsers <- "base2/profileFiltredGermanyFranceEmiratesSweden.dat"
 saudiUsers <- "base2/arabiaSaudita/profilesArabia.dat"
-
-substitutionRules <- list(
-    list(original="Café", equivalents=c("Coffee Shop", "College Cafeteria")),
-    list(original="Airport", equivalents=c("Airport Lounge", "Airport Gate", "Airport Terminal")),
-    list(original="Train Station", equivalents=c("Train", "Platform", "Light Rail")),
-    list(original="Bus Station", equivalents=c("Bus Line", "Bus Terminal")),
-    list(original="Library", equivalents=c("College Library")),
-    list(original="Movie Theater", equivalents=c("Indie Movie Theater", "Multiplex")),
-    list(original="University", equivalents=c("General College & University", "College & University")),
-    list(original="Gym", equivalents=c("Gym / Fitness Center", "College Gym")))
