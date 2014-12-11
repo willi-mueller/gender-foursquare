@@ -6,6 +6,13 @@ checkInsInlocationsWithMinimumCheckIns <- function(checkIns, n=5) {
   return(checkIns[idLocal %in% locations, ])
 }
 
+oneCheckInForUserAndLocation <- function(checkIns) {
+  setkey(checkIns, idLocal, idUserFoursquare)
+  checkIns <- unique(checkIns)
+  setkey(checkIns, NULL)
+  return(checkIns)
+}
+
 THRESH=100
 
 countries <- dir("paises")
@@ -15,10 +22,42 @@ femaleCI <- vector(mode="double", length=n)
 nCheckIns <-  vector(mode="double", length=n)
 
 allCheckIns <- list()
-# filter: removing locations with less than 5 check-ins
 filteredMaleCI <- vector(mode="double", length=n)
 filteredFemaleCI <- vector(mode="double", length=n)
 filteredNCheckIns <-  vector(mode="double", length=n)
+
+generateNullModel <- function() {
+	k <- 100
+	categoryStats <- list()
+	for(i in seq(countries)) {
+		country <- countries[i]
+		f <- sprintf("paises/%s", countries[i])
+		ci <- try(fread(f, header=F, sep="\t", stringsAsFactors=FALSE))
+		country <- strsplit(country, ".", fixed=T)[[1]][[1]] # remove .dat
+		message(country)
+		if(length(ci)>2) {
+			setnames(ci, 1:12, c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
+                      "subcategory", "category", "country", "city", "district", "gender", "timeOffset"))
+
+			ci <- ci[gender== "male" | gender=="female", ]
+			ci<- oneCheckInForUserAndLocation(ci)
+			ci <- checkInsInlocationsWithMinimumCheckIns(ci, n=5)
+			if(nrow(ci) > 0) {
+				gen.segregation <- runPermutate(ci, sprintf("results/null-model/%s/gender-permutation", country),
+	                                  "permutate-gender", country, k=k)
+				ci.segregation <- segregation(ci, country, log=F)
+
+				folderName <- sprintf("results/null-model/%s/gender-permutation", country)
+				stats <- testObservationWithNullModelForCategories(ci.segregation,
+																			gen.segregation, folderName, country,
+	                                                    					k, quote(category))
+				print(stats)
+				categoryStats[[i]] <- stats
+			}
+		}
+	}
+	write.table(categoryStats, "results/null-modell/category-stats.csv", sep="\t", row.names=FALSE)
+}
 
 countriesWithoutCheckIns <- 0
 for(i in seq(n)) {

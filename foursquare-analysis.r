@@ -110,8 +110,8 @@ combineEquivalentSubCategories <- function(checkIns, substitutionRules) {
 segregation <- function(checkIns, location="<location>", sub=NULL, axeslim=SEGREGATION_AXES, log=TRUE) {
   # given that we have 1 checkin for user and location
 
-  nMaleUsers <- length(unique(checkIns[gender=='male', ]$idUserFoursquare))
-  nFemaleUsers <- length(unique(checkIns[gender=='female', ]$idUserFoursquare))
+  nMaleUsers <- length(unique(checkIns[, idUserFoursquare[gender=="male"]]))
+  nFemaleUsers <- length(unique(checkIns[, idUserFoursquare[gender=="female"]]))
 
   checkIns[, maleCount:=sum(gender=='male')/nMaleUsers, by=idLocal]
   checkIns[, femaleCount:=sum(gender=='female')/nFemaleUsers, by=idLocal]
@@ -513,7 +513,7 @@ runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=
     return(fread(generatedFile, header=T, sep="\t", stringsAsFactors=FALSE))
   }
   if(!file.exists(folderName)) {
-    dir.create(folderName)
+    dir.create(folderName, recursive=TRUE)
   }
   gen.segregation <- data.table()
   checkIns <- checkIns[gender=="male" || gender=="female", ]
@@ -654,7 +654,7 @@ testObservationWithNullModelForCategories<-function(observedSegregation, gen.seg
   maleCategoryPopularities <- c()
   femaleCategoryPopularities <- c()
   for (i in seq(k)) {
-    generationRange <- seq((i-1)*nrow(gen.segregation)/k+1, (i * nrow(gen.segregation)/k))
+    generationRange <- seq((i-1)*nrow(gen.segregation)/k +1, (i * nrow(gen.segregation)/k))
     iter <- gen.segregation[generationRange]
     gen.male <- meanPopularity(iter, quote(maleCount), catOrSubCat)
     # sort lexicographically
