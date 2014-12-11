@@ -686,15 +686,17 @@ testObservationWithNullModelForCategories<-function(observedSegregation, gen.seg
     sortedCategories <- c()
     sortedCategories <- gen.male.mean[, eval(catOrSubCat)]
 
+    categoryStats <- data.table(category=sortedCategories, observedDistance=observedDist,
+                                isAnomalous=F, alpha=alpha,
+                                lowerPercentile=lapply(percentiles, function(x) {x[[1]]}),
+                                upperPercentile=lapply(percentiles, function(x) {x[[2]]}))
 
-    write.csv(percentiles, sprintf("%s-category-percentiles-%s.csv", folderName, regionName))
-    write.csv(observedDist, sprintf("%s-category-observed-dist-%s.csv", folderName, regionName))
-    write.csv(sortedCategories, sprintf("%s-category-sorted-categories-%s.csv", folderName, regionName))
 
     anomalyCount <- 0
     for(i in seq(nCategories)) {
       if(observedDist[i] < percentiles[[i]][1] | observedDist[i] > percentiles[[i]][2]) {
           anomalyCount <- anomalyCount + 1
+          categoryStats[i]$isAnomalous <- T
           message(sprintf("Anomalous category: %s, distance: %s\n",
                         sortedCategories[i], signif(observedDist[i])))
           if(PLOT_ALL_DISTS) {
@@ -725,6 +727,7 @@ testObservationWithNullModelForCategories<-function(observedSegregation, gen.seg
   abline(0, 1, col="red")
   text(gen.male.mean$pop, gen.female.mean$pop, labels=sortedCategories, pos=3)
   dev.off()
+  return(categoryStats)
 }
 
 readGeneratedDataAndPlot <- function(segregationFile, folderName, regionName,
