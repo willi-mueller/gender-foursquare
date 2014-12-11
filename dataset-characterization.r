@@ -62,13 +62,13 @@ generateNullModel <- function() {
 countriesWithoutCheckIns <- 0
 for(i in seq(n)) {
 	message(countries[i])
-	f <- paste("paises", countries[i], sep="/")
+	f <- sprintf("paises/%s", countries[i])
 	if(file.exists(f)){
-		ci <- try(read.csv(f, sep="\t"))
+		ci <- try(fread(f, header=F, sep="\t", stringsAsFactors=FALSE))
+
 		if(length(ci)>2) {
-			colnames(ci) <- c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
-			                 "subcategory", "category", "country", "city", "district", "gender", "timeOffset")
-			ci <- as.data.table(ci)
+			setnames(ci, 1:12,c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
+                      "subcategory", "category", "country", "city", "district", "gender", "timeOffset"))
 			allCheckIns[[i]] <- ci
 			maleCI[i] <- nrow(ci[ci$gender=="male", ]) # [, length(idUserFoursquare[gender=='male'])]
 			femaleCI[i] <- nrow(ci[ci$gender=="female", ])
@@ -150,21 +150,3 @@ Ecdf(c(maleCI[filter]/nCheckIns[filter], femaleCI[filter]/nCheckIns[filter], oth
        #,main=sprintf("ECDF Gender Proportions of check-ins across 120 countries with >%s check-ins", THRESH)
        )
 dev.off()
-
-
-
-
-
-country <- c(france, turkey, brazil, uae)
-countryName <- c("France", "Turkey", "Brazil", "UAE")
-for(i in seq(length(countryName))) {
-	sc <- subcategoryPreferencesByGender(country[i])
-	correlateCategories(sc$maleSubcategories$count,
-					sc$femaleSubcategories$count,
-                     sc$maleSubcategories$subcategory,
-                     file=paste("results/characterize-dataset/2014-11-27-subcategories", countryName[i], sep="-"),
-                     country=countryName[i],
-                     countMethod="unique users",
-                     categories="Subcategories",
-                     xlim=0.1, ylim=0.1)
-}
