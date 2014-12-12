@@ -46,12 +46,12 @@ generateNullModel <- function() {
 																				gen.segregation, folderName, country,
 		                                                    					k, quote(category))
 					print(stats)
+					write.table(stats, "results/null-modell/category-stats.csv", sep="\t", row.names=FALSE, append=TRUE)
 					categoryStats[[i]] <- stats
 				}
 			}
 		}
 	}
-	write.table(categoryStats, "results/null-modell/category-stats.csv", sep="\t", row.names=FALSE)
 }
 
 generateNullModel()
