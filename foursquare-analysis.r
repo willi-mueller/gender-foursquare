@@ -184,9 +184,7 @@ readUsers <- function(path) {
 }
 
 readCheckIns <- function(path) {
-  fullPath <- sprintf("~/studium/Lehrveranstaltungen/informationRetrieval/GenderSocialMedia/datasets/%s", path)
-  # ci <- read.csv(fullPath, header=F, sep="\t", stringsAsFactors=FALSE)
-  ci <- fread(fullPath, header=F, sep="\t", stringsAsFactors=FALSE)
+  ci <- fread(path, header=F, sep="\t", stringsAsFactors=FALSE)
   setnames(ci, 1:12,c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
                       "subcategory", "category", "country", "city", "district", "gender", "timeOffset"))
   return(ci)
