@@ -13,7 +13,8 @@ oneCheckInForUserAndLocation <- function(checkIns) {
   return(checkIns)
 }
 
-THRESH<-100
+THRESH <- 100
+MAX_CI <- 4e+5
 countries <- dir("paises")
 
 
@@ -25,7 +26,6 @@ generateNullModel <- function() {
 		f <- sprintf("paises/%s", countries[i])
 		country <- strsplit(country, ".", fixed=T)[[1]][[1]] # remove .dat
 		message(country)
-		ci <- try(fread(f, header=F, sep="\t", stringsAsFactors=FALSE))
 		# cc <- list(integer=c("idUserFoursquare", "timeOffset"),
   #       			caracter=c("date","idLocal", "subcategory", "category", "country", "city", "district", "gender"))
 		cc <- list(integer=c(1, 12), character=c(2, seq(5, 11)), numeric=c(3, 4))
@@ -40,22 +40,27 @@ generateNullModel <- function() {
 				ci <- ci[gender== "male" | gender=="female", ]
 				ci<- oneCheckInForUserAndLocation(ci)
 				ci <- checkInsInlocationsWithMinimumCheckIns(ci, n=5)
-				if(nrow(ci) > 0) {
+				n <- nrow(ci)
+				if(n > 0) {
+					if(n > MAX_CI) {
+						ci <- ci[sample(n, 3e+5, replace=FALSE)]
+					}
 					gen.segregation <- runPermutate(ci, sprintf("results/null-model/%s/gender-permutation", country),
 		                                  "permutate-gender", country, k=k)
 					ci.segregation <- segregation(ci, country, log=F)
 
 					folderName <- sprintf("results/null-model/%s/gender-permutation", country)
 					stats <- testObservationWithNullModelForCategories(ci.segregation,
-																				gen.segregation, folderName, country,
-		                                                    					k, quote(category))
+																		gen.segregation, folderName, country,
+	                                                					k, quote(category))
 					print(stats)
-					write.table(stats, "results/null-modell/category-stats.csv", sep="\t", row.names=FALSE, append=TRUE)
+					write.table(stats, "results/null-model/category-stats.csv", sep="\t", row.names=FALSE, col.names=F, append=TRUE)
 					categoryStats[[i]] <- stats
 				}
 			}
 		}
 	}
+	write.table(categoryStats, "results/null-modell/category-stats.csv", sep="\t", row.names=FALSE)
 }
 
 generateNullModel()
