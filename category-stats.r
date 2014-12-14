@@ -43,8 +43,12 @@ generateNullModel <- function() {
 				n <- nrow(ci)
 				if(n > 0) {
 					if(n > MAX_CI) {
+						message("Too many check-ins")
 						ci <- ci[sample(n, 3e+5, replace=FALSE)]
+						message("resampled check-ins")
 					}
+					stopifnot(nrow(ci) < MAX_CI)
+
 					gen.segregation <- runPermutate(ci, sprintf("results/null-model/%s/gender-permutation", country),
 		                                  "permutate-gender", country, k=k)
 					ci.segregation <- segregation(ci, country, log=F)
@@ -54,13 +58,14 @@ generateNullModel <- function() {
 																		gen.segregation, folderName, country,
 	                                                					k, quote(category))
 					print(stats)
-					write.table(stats, "results/null-model/category-stats.csv", sep="\t", row.names=FALSE, col.names=F, append=TRUE)
 					categoryStats[[i]] <- stats
 				}
 			}
 		}
 	}
-	write.table(categoryStats, "results/null-modell/category-stats.csv", sep="\t", row.names=FALSE)
+	oneTable <- rbindlist(categoryStats)
+	print(oneTable)
+	write.table(oneTable, "results/null-modell/category-stats.csv", sep="\t", row.names=FALSE)
 }
 
 generateNullModel()

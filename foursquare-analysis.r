@@ -744,13 +744,14 @@ testObservationWithNullModelForCategories<-function(observedSegregation, gen.seg
     sortedCategories <- c()
     sortedCategories <- gen.male.mean[, category]
 
-    categoryStats <- data.table(category=sortedCategories,
+    categoryStats <- data.table(region=regionName,
+                                category=sortedCategories,
                                 observedDistance=observedDist,
-                                variance=var(observedDist),
-                                skewness=skewness(observedDist),
                                 isAnomalous=F, alpha=alpha,
                                 lowerPercentile=lapply(percentiles, function(x) {x[[1]]}),
-                                upperPercentile=lapply(percentiles, function(x) {x[[2]]}))
+                                upperPercentile=lapply(percentiles, function(x) {x[[2]]}),
+                                variance=var(observedDist),
+                                skewness=skewness(observedDist))
 
 
     anomalyCount <- 0
