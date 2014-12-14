@@ -691,13 +691,14 @@ testObservationWithNullModelForCategories<-function(observedSegregation, gen.seg
     sortedCategories <- c()
     sortedCategories <- gen.male.mean[, eval(catOrSubCat)]
 
-    categoryStats <- data.table(category=sortedCategories,
+    categoryStats <- data.table(region=regionName,
+                                category=sortedCategories,
                                 observedDistance=observedDist,
-                                variance=var(observedDist),
-                                skewness=skewness(observedDist),
                                 isAnomalous=F, alpha=alpha,
                                 lowerPercentile=lapply(percentiles, function(x) {x[[1]]}),
-                                upperPercentile=lapply(percentiles, function(x) {x[[2]]}))
+                                upperPercentile=lapply(percentiles, function(x) {x[[2]]}),
+                                variance=var(observedDist),
+                                skewness=skewness(observedDist))
 
 
     anomalyCount <- 0
@@ -827,6 +828,7 @@ skewnessDifferenceOfCategory <- function(checkIns){
 
 meanPopularity <- function(ci, genderCount, catOrSubCat) {
   # old stuff: describe difference and popularity in one number
+
   ci <- ci[,list(pop=mean(eval(genderCount))), by=list(idLocal, eval(catOrSubCat))][,list(pop=sum(pop)), by=list(eval(catOrSubCat))]
   setnames(ci, 1, paste(catOrSubCat))
   return(ci)
