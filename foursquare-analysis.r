@@ -717,7 +717,7 @@ calculateStats <- function(checkIns) {
   return(values)
 }
 
-testObservationWithNullModelForCategories<-function(observedSegregation, gen.segregation, folderName, regionName,
+testObservationWithNullModelForCategories <- function(observedSegregation, gen.segregation, folderName, regionName,
                                                     k,
                                                     UNIFORM_LOCATION_PROBABILITY=FALSE,
                                                     UNIFORM_GENDER_PROBABILITY=FALSE,
@@ -762,25 +762,20 @@ testObservationWithNullModelForCategories<-function(observedSegregation, gen.seg
           categoryStats[i]$isAnomalous <- T
           message(sprintf("Anomalous category: %s, distance: %s\n",
                         sortedCategories[i], signif(observedDist[i])))
-          if(PLOT_ALL_DISTS) {
-            filename <- sprintf("%s/anomalous-%s-%s.pdf", folderName, paste(catOrSubCat), sortedCategories[i])
-            pdf(filename)
-            hist(c(categoryDistDistribution[[i]], observedDist[i]), main="Histogram of gender distance", xlab="gender distance",
-                 sub=sprintf("%s: %s, distance: %s, anomalous with alpha=%s, k=%s",
-                          paste(catOrSubCat), sortedCategories[i], signif(observedDist[i]), alpha, k))
-            abline(v=percentiles[[i]][1], col="green")
-            abline(v=percentiles[[i]][2], col="green")
-            abline(v=observedDist[i], col="blue")
-            dev.off()
-          }
-          message(sprintf("%s of %s (%s%%) %s with observed anomalous segregation",
+          message(sprintf("%s of %s (%s%%) categories with observed anomalous segregation",
                 anomalyCount, nCategories,
-                100*round(anomalyCount/nCategories, 3),
-                paste(catOrSubCat)))
+                100*round(anomalyCount/nCategories, 3))
+          plotCategoryDist(folderName, sortedCategories,
+                            categoryDistDistribution, observedDist, percentiles, i)
         }
+      } else {
+            if(PLOT_ALL_DISTS) {
+              plotCategoryDist(folderName, sortedCategories,
+                            categoryDistDistribution, observedDist, percentiles, i)
+            }
       }
   }
-  pdf(sprintf("%s/avg-segregation-generated-%s-%s.pdf", folderName, paste(catOrSubCat), regionName))
+  pdf(sprintf("%s/avg-segregation-generated-categories-%s.pdf", folderName, regionName))
   plot(gen.male.mean$pop, gen.female.mean$pop,
         main=sprintf("Gender separation in generated %s", regionName),
         sub=sprintf("uniform location: %s, uniform gender: %s, k=%s",
@@ -791,6 +786,20 @@ testObservationWithNullModelForCategories<-function(observedSegregation, gen.seg
   text(gen.male.mean$pop, gen.female.mean$pop, labels=sortedCategories, pos=3)
   dev.off()
   return(categoryStats)
+}
+
+plotCategoryDist <- function(folderName, sortedCategories,
+                             categoryDistDistribution, observedDist,
+                             percentiles, categoryIndex) {
+  filename <- sprintf("%s/anomalous-category-%s.pdf", folderName, sortedCategories[categoryIndex])
+  pdf(filename)
+  hist(c(categoryDistDistribution[[categoryIndex]], observedDist[i]), main="Histogram of gender distance", xlab="gender distance",
+       sub=sprintf("%s: %s, distance: %s, anomalous with alpha=%s, k=%s",
+                paste(catOrSubCat), sortedCategories[categoryIndex], signif(observedDist[categoryIndex]), alpha, k))
+  abline(v=percentiles[[categoryIndex]][1], col="green")
+  abline(v=percentiles[[categoryIndex]][2], col="green")
+  abline(v=observedDist[categoryIndex], col="blue")
+  dev.off()
 }
 
 sortByCategory <- function(ci) {
