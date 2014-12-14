@@ -510,7 +510,10 @@ runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=
   generatedFile <- sprintf("%s/generated-%s-%s-pop.csv", folderName, regionName, plotName)
   if(file.exists(generatedFile)) {
     message("Already randomized check-ins for ", regionName)
-    return(fread(generatedFile, header=T, sep="\t", stringsAsFactors=FALSE))
+    cc <- list(integer=c("idUserFoursquare", "timeOffset"),
+        caracter=c("date","idLocal", "subcategory", "category", "country", "city", "district", "gender"),
+        numeric=c("maleCount", "femaleCount"))
+    return(fread(generatedFile, header=T, sep="\t", stringsAsFactors=FALSE, colClasses=cc))
   }
   if(!file.exists(folderName)) {
     dir.create(folderName, recursive=TRUE)
