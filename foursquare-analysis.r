@@ -639,41 +639,96 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
   return(list(meanMalePopularities=meanMalePopularities, meanFemalePopularities=meanFemalePopularities))
 }
 
+bootstrapDataTable <- function() {
+  data.table(
+    catPopMale=rep(NA, k),
+    catPopFemale=rep(NA, k),
+
+    percOfMale=rep(NA, k),
+    percOfFemale=rep(NA, k),
+    percMaleCat=rep(NA, k),
+    percFemaleCat=rep(NA, k),
+    percMaleLoc=rep(NA, k),
+    percFemaleLoc=rep(NA, k),
+
+    eucDistCat=rep(NA, k),
+    eucDistLoc=rep(NA, k),
+    meanEucDistLoc=rep(NA, k),
+    medianEucDistLoc=rep(NA, k),
+    varEucDistLoc=rep(NA, k),
+    sdEucDistLoc=rep(NA, k),
+    skewnessEucDistLoc=rep(NA, k),
+
+    diffLoc=rep(NA, k),
+    diffCat=rep(NA, k),
+    meanDiff=rep(NA, k),
+    medianDiff=rep(NA, k),
+    varDiff=rep(NA, k),
+    sdDiff=rep(NA, k),
+    skewnessDiff=rep(NA, k)
+  )
+}
+
+getBootstrappedStatistics <- function(checkIns, k) {
+  values <- bootstrapDataTable()
+
+  for (i in seq(k)) {
+    generationRange <- seq((i-1)*nrow(gen.segregation)/k +1, (i * nrow(gen.segregation)/k))
+    iter <- gen.segregation[generationRange]
+    # parallelize here
+    values[i] <- calculateStats(iter)
+  }
+  return(values)
+}
+
+calculateStats <- function(checkIns) {
+  values <- list()
+  c(values, categoryPopularity(checkIns, quote(maleCount))$pop)
+  c(values, categoryPopularity(checkIns, quote(femaleCount))$pop)
+
+  perc <- percentagesOfGenderForCategory(checkIns)
+  c(values, perc$PercOfMale)
+  c(values, perc$PercOfFemale)
+
+  perc2 <- percentagesForCategory(checkIns)
+  c(values, perc2$percMaleCat)
+  c(values, perc2$percFemaleCat)
+
+  perc3 <- percentagesForLocation(checkIns)
+  c(values, perc3$percMaleLoc)
+  c(values, perc3$percFemaleLoc)
+
+  c(values, euclideanDistanceForCategory(checkIns) )
+  c(values, euclideanDistanceForLocation(checkIns) )
+  c(values, meanEuclidDist(checkIns) )
+  c(values, medianEuclidDist(checkIns) )
+  c(values, varEuclidDist(checkIns) )
+  c(values, sdEuclidDist(checkIns) )
+  c(values, skewnessEuclidDist(checkIns) )
+
+  c(values, differenceOfLocation(checkIns) )
+  c(values, differenceOfCategory(checkIns) )
+  c(values, meanDifferenceOfCategory(checkIns) )
+  c(values, medianDifferenceOfCategory(checkIns) )
+  c(values, varDifferenceOfCategory(checkIns) )
+  c(values, sdDifferenceOfCategory(checkIns) )
+  c(values, skewnessDifferenceOfCategory(checkIns) )
+  return(values)
+}
+
 testObservationWithNullModelForCategories<-function(observedSegregation, gen.segregation, folderName, regionName,
-                                                    k, catOrSubCat,
+                                                    k,
                                                     UNIFORM_LOCATION_PROBABILITY=FALSE,
                                                     UNIFORM_GENDER_PROBABILITY=FALSE,
                                                     SEARCH_ANOMALOUS_CATEGORIES=TRUE,
                                                     PLOT_ALL_DISTS=TRUE, axeslim=c(0, 0.4), alpha=0.01){
 
-  stopifnot(c(catOrSubCat) %in% c(quote(category), quote(subcategory)))
-
-  maleCategoryPopularities <- c()
-  femaleCategoryPopularities <- c()
-  for (i in seq(k)) {
-    generationRange <- seq((i-1)*nrow(gen.segregation)/k +1, (i * nrow(gen.segregation)/k))
-    iter <- gen.segregation[generationRange]
-    gen.male <- meanPopularity(iter, quote(maleCount), catOrSubCat)
-    # sort lexicographically
-    gen.male <- gen.male[order(rank(eval(catOrSubCat)))]$pop
-    gen.female <- meanPopularity(iter, quote(femaleCount), catOrSubCat)
-    gen.female <- gen.female[order(rank(eval(catOrSubCat)))]$pop
-
-    maleCategoryPopularities <- c(maleCategoryPopularities, gen.male)
-    femaleCategoryPopularities <- c(femaleCategoryPopularities, gen.female)
-  }
-
-  # mean category popularity over all generations for plotting
-  gen.male.mean <- meanPopularity(gen.segregation, quote(maleCount), catOrSubCat)
-  gen.male.mean <- gen.male.mean[order(rank(eval(catOrSubCat)))]
-  gen.female.mean <- meanPopularity(gen.segregation, quote(femaleCount), catOrSubCat)
-  gen.female.mean <- gen.female.mean[order(rank(eval(catOrSubCat)))]
+  bootstrappedValues <- getBootstrappedStatistics(gen.segregation, k)
 
   if (SEARCH_ANOMALOUS_CATEGORIES) {
-    empiricalDist <- euclideanDistance(maleCategoryPopularities, femaleCategoryPopularities)
-    nCategories <- length(observedSegregation[,unique(eval(catOrSubCat))])
+    nCategories <- length(observedSegregation[,unique(category)])
 
-    stopifnot(nCategories == length(empiricalDist)/k)
+    stopifnot(nCategories == length(nrow(bootstrappedValues))/k)
 
     categoryDistDistribution <- list()
     for (i in seq(nCategories)) {
@@ -682,14 +737,12 @@ testObservationWithNullModelForCategories<-function(observedSegregation, gen.seg
     }
     percentiles <- lapply(categoryDistDistribution,quantile, c(alpha/2, 1-alpha/2))
 
-    observedMale <- meanPopularity(observedSegregation, quote(maleCount), catOrSubCat)
-    observedMale <- observedMale[order(rank(eval(catOrSubCat)))]$pop
-    observedFemale <- meanPopularity(observedSegregation, quote(femaleCount), catOrSubCat)
-    observedFemale <- observedFemale[order(rank(eval(catOrSubCat)))]$pop
+    observedMale <- categoryPopularity(observedSegregation, quote(maleCount))
+    observedFemale <- categoryPopularity(observedSegregation, quote(femaleCount))
     observedDist <- euclideanDistance(observedMale, observedFemale)
 
     sortedCategories <- c()
-    sortedCategories <- gen.male.mean[, eval(catOrSubCat)]
+    sortedCategories <- gen.male.mean[, category]
 
     categoryStats <- data.table(category=sortedCategories,
                                 observedDistance=observedDist,
@@ -738,100 +791,103 @@ testObservationWithNullModelForCategories<-function(observedSegregation, gen.seg
   return(categoryStats)
 }
 
-###################### Analysing Null Model ######
-nMaleUsers <- function(checkIns) {
-  checkIns[, list(n=length(unique(idUserFoursquare[ gender=="male" ]))) ]$n
+sortByCategory <- function(ci) {
+  ci[order(rank(category))]
 }
 
-nFemaleUsers <- function(checkIns) {
-  checkIns[, list(n=length(unique(idUserFoursquare[ gender=="female" ]))) ]$n
+###################### Analysing Null Model ######
+
+nGenderUsers <- function(checkIns, genderStr) {
+  stopifnot(genderStr %in% c("male", "female"))
+  checkIns[, list(n=length(unique(idUserFoursquare[ gender==genderStr ]))) ]$n
 }
 
 ############# Percentage #####
-percentagesOfGenderForCategory <- function(checkIns, nMaleUsers, nFemaleUsers) {
-  checkIns[,list(percOfMale=length(idUserFoursquare[gender=='male'])/nMaleUsers,
+percentagesOfGenderForCategory <- function(checkIns) {
+  nMaleUsers <- nGenderUsers(checkIns, "male")
+  nFemaleUsers <- nGenderUsers(checkIns, "female")
+  sortByCategory( checkIns[,list(percOfMale=length(idUserFoursquare[gender=='male'])/nMaleUsers,
                 percOfFemale=length(idUserFoursquare[gender=='female'])/nFemaleUsers),
-            by=category]
+            by=category] )
 }
 
 percentagesForCategory <- function(checkIns) {
-  checkIns[,list(percMaleCat=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
+   sortByCategory( checkIns[,list(percMaleCat=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
                 percFemaleCat=length(idUserFoursquare[gender=='female'])/length(idUserFoursquare)),
-            by=category]
-}
+            by=category] )
+
 
 percentagesForLocation <- function(checkIns) {
-  checkIns[,list(percMaleLoc=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
+   sortByCategory( checkIns[,list(percMaleLoc=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
                 percFemaleLoc=length(idUserFoursquare[gender=='female'])/length(idUserFoursquare)),
-            by=idLocal]
+            by=idLocal] )
 }
 
 ############# Euclidean Distance #####
 euclideanDistanceForCategory <- function(checkIns) {
-  checkIns[,list(eucDistCat=euclideanDistance(percMaleCat, percFemaleCat)), by=category]
+   sortByCategory( checkIns[,list(eucDistCat=euclideanDistance(percMaleCat, percFemaleCat)), by=category] )
 }
 
 euclideanDistanceForLocation <- function(checkIns) {
-  checkIns[ ,list(eucDistLoc=euclideanDistance(percMaleLoc, percFemaleLoc)), by=idLocal]
+   sortByCategory( checkIns[ ,list(eucDistLoc=euclideanDistance(percMaleLoc, percFemaleLoc)), by=idLocal] )
 }
 
 meanEuclidDist <- function(checkIns) {
-  checkIns[ ,list(meanEucDistLoc=mean(eucDistLoc)), by=category]
+   sortByCategory( checkIns[ ,list(meanEucDistLoc=mean(eucDistLoc)), by=category] )
 }
 
 medianEuclidDist <- function(checkIns) {
-  checkIns[ ,list(medianEucDistLoc=median(eucDistLoc)), by=category]
+   sortByCategory( checkIns[ ,list(medianEucDistLoc=median(eucDistLoc)), by=category] )
 }
 
 varEuclidDist <- function(checkIns) {
-  checkIns[ ,list(varEucDistLoc=var(eucDistLoc)), by=category]
+   sortByCategory( checkIns[ ,list(varEucDistLoc=var(eucDistLoc)), by=category] )
 }
 
 sdEuclidDist <- function(checkIns) {
-  checkIns[ ,list(sdEucDistLoc=sd(eucDistLoc)), by=category]
+   sortByCategory( checkIns[ ,list(sdEucDistLoc=sd(eucDistLoc)), by=category] )
 }
 
 skewnessEuclidDist <- function(checkIns) {
-  checkIns[ ,list(skewnessEucDistLoc=skewness(eucDistLoc)), by=category]
+   sortByCategory( checkIns[ ,list(skewnessEucDistLoc=skewness(eucDistLoc)), by=category] )
 }
 
 
 ############# Difference of percentages #####
 differenceOfLocation <- function(checkIns) {
-  checkIns[, list(diffLoc=percMaleLoc - percFemaleLoc), by=idLocal]
+   sortByCategory( checkIns[, list(diffLoc=percMaleLoc - percFemaleLoc), by=idLocal] )
 }
 
 differenceOfCategory <- function(checkIns) {
-  checkIns[, list(diffCat=percMaleLoc - percFemaleLoc), by=category]
+   sortByCategory( checkIns[, list(diffCat=percMaleLoc - percFemaleLoc), by=category] )
 }
 
 meanDifferenceOfCategory <- function(checkIns){
-  checkIns[, list(meanDiff=mean(diffLoc)), by=category]
+   sortByCategory( checkIns[, list(meanDiff=mean(diffLoc)), by=category] )
 }
 
 medianDifferenceOfCategory <- function(checkIns){
-  checkIns[, list(medianDiff=median(diffLoc)), by=category]
+   sortByCategory( checkIns[, list(medianDiff=median(diffLoc)), by=category] )
 }
 
 varDifferenceOfCategory <- function(checkIns){
-  checkIns[, list(varDiff=var(diffLoc)), by=category]
+   sortByCategory( checkIns[, list(varDiff=var(diffLoc)), by=category] )
 }
 
 sdDifferenceOfCategory <- function(checkIns){
-  checkIns[, list(sdDiff=sd(diffLoc)), by=category]
+   sortByCategory( checkIns[, list(sdDiff=sd(diffLoc)), by=category] )
 }
 
 skewnessDifferenceOfCategory <- function(checkIns){
-  checkIns[, list(skewnessDiff=skewness(diffLoc)), by=category]
+   sortByCategory( checkIns[, list(skewnessDiff=skewness(diffLoc)), by=category] )
 }
 
-meanPopularity <- function(ci, genderCount, catOrSubCat) {
+############# Accumulated popularity #####
+categoryPopularity <- function(ci, genderCount) {
   # old stuff: describe difference and popularity in one number
-  ci <- ci[,list(pop=mean(eval(genderCount))), by=list(idLocal, eval(catOrSubCat))][,list(pop=sum(pop)), by=list(eval(catOrSubCat))]
-  setnames(ci, 1, paste(catOrSubCat))
-  return(ci)
+  ci <- ci[,list(pop=mean(eval(genderCount))), by=list(idLocal, category)][,list(pop=sum(pop)), by=category]
+  return(ci[order(rank(category))])
 }
-
 
 readGeneratedDataAndPlot <- function(segregationFile, folderName, regionName,
                                      UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY) {
