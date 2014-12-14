@@ -65,7 +65,8 @@ generateNullModel <- function() {
 	}
 	oneTable <- rbindlist(categoryStats)
 	print(oneTable)
-	write.table(oneTable, "results/null-modell/category-stats.csv", sep="\t", row.names=FALSE)
+	save.image()
+	write.table(oneTable, "results/null-model/category-stats.csv", sep="\t", row.names=FALSE)
 }
 
 generateNullModel()
