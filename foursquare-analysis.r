@@ -639,8 +639,9 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
   return(list(meanMalePopularities=meanMalePopularities, meanFemalePopularities=meanFemalePopularities))
 }
 
-bootstrapDataTable <- function() {
+bootstrapDataTable <- function(regionName) {
   data.table(
+    region=regionName
     catPopMale=rep(NA, k),
     catPopFemale=rep(NA, k),
 
@@ -669,8 +670,8 @@ bootstrapDataTable <- function() {
   )
 }
 
-getBootstrappedStatistics <- function(checkIns, k) {
-  values <- bootstrapDataTable()
+getBootstrappedStatistics <- function(checkIns, k, regionName) {
+  values <- bootstrapDataTable(regionName)
 
   for (i in seq(k)) {
     generationRange <- seq((i-1)*nrow(gen.segregation)/k +1, (i * nrow(gen.segregation)/k))
@@ -682,7 +683,7 @@ getBootstrappedStatistics <- function(checkIns, k) {
 }
 
 calculateStats <- function(checkIns) {
-  values <- list()
+  values <- bootstrapDataTable(regionName)
   c(values, categoryPopularity(checkIns, quote(maleCount))$pop)
   c(values, categoryPopularity(checkIns, quote(femaleCount))$pop)
 
@@ -723,7 +724,7 @@ testObservationWithNullModelForCategories<-function(observedSegregation, gen.seg
                                                     SEARCH_ANOMALOUS_CATEGORIES=TRUE,
                                                     PLOT_ALL_DISTS=TRUE, axeslim=c(0, 0.4), alpha=0.01){
 
-  bootstrappedValues <- getBootstrappedStatistics(gen.segregation, k)
+  bootstrappedValues <- getBootstrappedStatistics(gen.segregation, k, regionName)
 
   if (SEARCH_ANOMALOUS_CATEGORIES) {
     nCategories <- length(observedSegregation[,unique(category)])
@@ -732,10 +733,10 @@ testObservationWithNullModelForCategories<-function(observedSegregation, gen.seg
 
     categoryDistDistribution <- list()
     for (i in seq(nCategories)) {
-      allOfACategory <- empiricalDist[seq(i, length(empiricalDist), nCategories)]
+      allOfACategory <- empiricalDist[seq(i, length(empiricalDist), by=nCategories)]
       categoryDistDistribution[i] <- list(allOfACategory)
     }
-    percentiles <- lapply(categoryDistDistribution,quantile, c(alpha/2, 1-alpha/2))
+    percentiles <- lapply(categoryDistDistribution, FUN=quantile, c(alpha/2, 1-alpha/2))
 
     observedMale <- categoryPopularity(observedSegregation, quote(maleCount))
     observedFemale <- categoryPopularity(observedSegregation, quote(femaleCount))
@@ -816,7 +817,7 @@ percentagesForCategory <- function(checkIns) {
    sortByCategory( checkIns[,list(percMaleCat=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
                 percFemaleCat=length(idUserFoursquare[gender=='female'])/length(idUserFoursquare)),
             by=category] )
-
+}
 
 percentagesForLocation <- function(checkIns) {
    sortByCategory( checkIns[,list(percMaleLoc=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
