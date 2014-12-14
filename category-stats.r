@@ -26,6 +26,10 @@ generateNullModel <- function() {
 		country <- strsplit(country, ".", fixed=T)[[1]][[1]] # remove .dat
 		message(country)
 		ci <- try(fread(f, header=F, sep="\t", stringsAsFactors=FALSE))
+		# cc <- list(integer=c("idUserFoursquare", "timeOffset"),
+  #       			caracter=c("date","idLocal", "subcategory", "category", "country", "city", "district", "gender"))
+		cc <- list(integer=c(1, 12), character=c(2, seq(5, 11)), numeric=c(3, 4))
+		ci <- try(fread(f, header=F, sep="\t", stringsAsFactors=FALSE, colClasses=cc))
 		if(length(ci)>2) {
 			if(nrow(ci) < THRESH) {
 				message("<", THRESH, "check-ins")
