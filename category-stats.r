@@ -8,7 +8,7 @@ countryFiles <- dir("paises")
 categoryStats <- list() # global to save it in the workspace image
 oneTable <- data.frame()
 
-generateNullModel <- function() {
+collectStatisticsForRanking <- function() {
 	k <- 100
 	# stats <- foreach( i=c(19, 24, 25), .combine=function(x,y)rbindlist(list(x,y)) ) %dopar% {
 	for(i in 1:length(countryFiles)) {
@@ -99,4 +99,4 @@ resampleIfTooMuchCheckIns <- function(ci) {
 # Run
 #############
 
-generateNullModel()
+collectStatisticsForRanking()
