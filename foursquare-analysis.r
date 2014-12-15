@@ -682,8 +682,27 @@ getBootstrappedStatistics <- function(checkIns, k, regionName) {
   return(values)
 }
 
-calculateStats <- function(checkIns) {
-  values <- bootstrapDataTable(regionName)
+calculateCategoryStats <- function(checkIns) {
+  checkIns <- percentagesOfGenderForCategory(checkIns)
+  checkIns <- percentagesForCategory(checkIns)
+  checkIns <- euclideanDistanceForCategory(checkIns)
+  browser() # lookup column indices
+  checkIns[, .SD[1], by=category ][, list(
+    country, category, percMaleCat, percFemaleCat,
+    percOfMale, percOfFemale, eucDistCat)]
+}
+
+calculateLocationStats <- function(checkIns) {
+  ci <- euclideanDistanceForLocation(checkIns)
+
+}
+
+calculateStats <- function(checkIns, regionName) {
+
+
+  values <- list()
+
+  c(values, regionName)
   c(values, categoryPopularity(checkIns, quote(maleCount))$pop)
   c(values, categoryPopularity(checkIns, quote(femaleCount))$pop)
 
@@ -717,7 +736,11 @@ calculateStats <- function(checkIns) {
   return(values)
 }
 
-testObservationWithNullModelForCategories <- function(observedSegregation, gen.segregation, folderName, regionName,
+statsOfObservation <- function(observed, generated) {
+  categoryStats(observed)
+}
+
+_testObservationWithNullModelForCategories <- function(observedSegregation, gen.segregation, folderName, regionName,
                                                     k,
                                                     UNIFORM_LOCATION_PROBABILITY=FALSE,
                                                     UNIFORM_GENDER_PROBABILITY=FALSE,
