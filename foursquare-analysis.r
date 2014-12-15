@@ -884,12 +884,12 @@ percentagesForSubcategory <- function(checkIns) {
             by=subcategory] )
 }
 
-percentagesForLocation <- function(checkIns) {
-   sortByCategory( checkIns[,`:=`(
-                percMaleLoc=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
-                percFemaleLoc=length(idUserFoursquare[gender=='female'])/length(idUserFoursquare)),
-            by=idLocal] )
-}
+# percentagesForLocation <- function(checkIns) {
+#    sortByCategory( checkIns[,`:=`(
+#                 percMaleLoc=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
+#                 percFemaleLoc=length(idUserFoursquare[gender=='female'])/length(idUserFoursquare)),
+#             by=idLocal] )
+# }
 
 ############# Euclidean Distance #####
 euclideanDistanceForCategory <- function(checkIns) {
