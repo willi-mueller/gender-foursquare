@@ -518,17 +518,17 @@ runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=
     if( !file.exists(folderName) | forceGenerate ) {
       dir.create(folderName, recursive=TRUE)
     }
-    gen.segregation <- data.table()
     checkIns <- checkIns[gender=="male" || gender=="female", ]
     randomizedCheckIns <- copy(checkIns)
-    for(i in seq(k)) {
-        gen.checkIns <- permutateGender(randomizedCheckIns)
-        gen.checkIns[,iterPermutation:=i]
-        s <- segregation(gen.checkIns, regionName,
-                            sub="permutating gender", log=log)
-
-        gen.segregation <- rbindlist(list(gen.segregation, s), use.names=TRUE)
+    calc <- function(i) {
+      gen.checkIns <- permutateGender(randomizedCheckIns)
+      gen.checkIns[,iterPermutation:=i]
+      segregation(gen.checkIns, regionName,
+                  sub="permutating gender", log=log)
     }
+
+    gen.segregation <- rbindlist( mclapply(seq(k), calc, mc.cores=N_CORES), use.names=TRUE)
+
     message("Generated. Writing…")
     write.table(gen.segregation, generatedFile, sep="\t", row.names=FALSE)
     message("Wrote generated segregation to ", generatedFile)
