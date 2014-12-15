@@ -771,12 +771,13 @@ testObservationWithNullModelForCategories_ <- function(observedSegregation, gen.
                                                     SEARCH_ANOMALOUS_CATEGORIES=TRUE,
                                                     PLOT_ALL_DISTS=TRUE, axeslim=c(0, 0.4), alpha=0.01){
 
-  bootstrappedValues <- getBootstrappedStatistics(gen.segregation, k, regionName)
+  stopifnot(c(catOrSubCat) %in% c(quote(category), quote(subcategory)))
+  stopifnot(nrow(observedSegregation) * k == nrow(gen.segregation))
 
   if (SEARCH_ANOMALOUS_CATEGORIES) {
-    nCategories <- length(observedSegregation[,unique(category)])
-
-    stopifnot(nCategories == length(nrow(bootstrappedValues))/k)
+    empiricalDist <- euclideanDistance(maleCategoryPopularities, femaleCategoryPopularities)
+    nCategories <- length(observedSegregation[,unique(eval(catOrSubCat))])
+    stopifnot(nCategories == length(empiricalDist)/k)
 
     categoryDistDistribution <- list()
     for (i in seq(nCategories)) {
@@ -796,11 +797,12 @@ testObservationWithNullModelForCategories_ <- function(observedSegregation, gen.
                                 category=sortedCategories,
                                 observedDistance=observedDist,
                                 isAnomalous=F, alpha=alpha,
-                                lowerPercentile=lapply(percentiles, function(x) {x[[1]]}),
-                                upperPercentile=lapply(percentiles, function(x) {x[[2]]}),
+                                lowerPercentile=lapply(percentiles, function(x) x[[1]]),
+                                upperPercentile=lapply(percentiles, function(x) x[[2]]),
                                 variance=var(observedDist),
                                 skewness=skewness(observedDist))
-
+    categoryStats[, lowerPercentile:=as.numeric(lowerPercentile)]
+    categoryStats[, upperPercentile:=as.numeric(upperPercentile)]
 
     anomalyCount <- 0
     for(i in seq(nCategories)) {
