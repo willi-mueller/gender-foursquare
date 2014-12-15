@@ -58,7 +58,7 @@ readCheckIns <- function(f) {
 			setnames(ci, 1:12, c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
 		              "subcategory", "category", "country", "city", "district", "gender", "timeOffset"))
 
-			ci <- cleanData(ci)
+			return(cleanData(ci))
 		}
 	} else {
 		return(data.table())
