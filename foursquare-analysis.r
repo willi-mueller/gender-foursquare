@@ -855,7 +855,7 @@ sortByCategory <- function(ci) {
   ci[order(rank(category))]
 }
 
-sortBySubategory <- function(ci) {
+sortBySubcategory <- function(ci) {
   ci[order(rank(subcategory))]
 }
 
