@@ -71,15 +71,16 @@ readCheckIns <- function(f) {
 
 calculateStats <- function(ci, country) {
 	ci <- resampleIfTooMuchCheckIns(ci)
-	gen.segregation <- runPermutate(ci,
-									sprintf("results/null-model/%s/gender-permutation", country),
-                          			"permutate-gender", country, k=k)
-	ci.segregation <- segregation(ci, country, log=F)
+	# gen.segregation <- runPermutate(ci,
+	# 								sprintf("results/null-model/%s/gender-permutation", country),
+ #                          			"permutate-gender", country, k=k)
+	# ci.segregation <- segregation(ci, country, log=F)
 
-	folderName <- sprintf("results/null-model/%s/gender-permutation", country)
-	stats <- testObservationWithNullModelForCategories(ci.segregation,
-														gen.segregation, folderName, country,
-                                    					k, quote(category))
+	# folderName <- sprintf("results/null-model/%s/gender-permutation", country)
+	# stats <- testObservationWithNullModelForCategories(ci.segregation,
+	# 													gen.segregation, folderName, country,
+ #                                    					k, quote(category))
+	stats<- calculateCategoryStats(ci)
 	return(stats)
 }
 
