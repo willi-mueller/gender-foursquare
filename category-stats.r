@@ -1,25 +1,26 @@
-#library(doParallel)
+library(parallel)
 library(data.table)
 source('analysis/foursquare-analysis.r')
 
+N_CORES <- detectCores()
 THRESH <- 100
 MAX_CI <- 4e+5
 countryFiles <- dir("paises")
-categoryStats <- list() # global to save it in the workspace image
-oneTable <- data.frame()
+oneTable <- data.frame() # global to save it in the workspace image
 
 collectStatisticsForRanking <- function() {
 	k <- 100
-	# stats <- foreach( i=c(19, 24, 25), .combine=function(x,y)rbindlist(list(x,y)) ) %dopar% {
-	for(i in 1:length(countryFiles)) {
+	readAndCalc <- function(i) {
 		f <- sprintf("paises/%s", countryFiles[i])
 		country <- strsplit(countryFiles[i], ".", fixed=T)[[1]][[1]] # remove .dat
 		message(country)
 		ci <- readCheckIns(f)
 		if(nrow(ci) > 0) {
-			categoryStats[[i]] <<- calculateStats(ci, country)
+			return(calculateStats(ci, country))
 		}
 	}
+	categoryStats <- mclapply(1:length(countryFiles), readAndCalc, mc.cores=N_CORES)
+
 	# global assignment
 	oneTable <<- rbindlist(categoryStats)
 	save.image()
