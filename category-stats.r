@@ -6,24 +6,25 @@ THRESH <- 100
 MAX_CI <- 4e+5
 countryFiles <- dir("paises")
 categoryStats <- list() # global to save it in the workspace image
+oneTable <- data.frame()
 
 generateNullModel <- function() {
 	k <- 100
 	# stats <- foreach( i=c(19, 24, 25), .combine=function(x,y)rbindlist(list(x,y)) ) %dopar% {
-	for(i in c(19, 24, 25)) {
+	for(i in 1:length(countryFiles)) {
 		f <- sprintf("paises/%s", countryFiles[i])
 		country <- strsplit(countryFiles[i], ".", fixed=T)[[1]][[1]] # remove .dat
 		message(country)
 		ci <- readCheckIns(f)
-		if(nrow(ci > 0)) {
+		if(nrow(ci) > 0) {
 			categoryStats[[i]] <<- calculateStats(ci, country)
 		}
 	}
 	# global assignment
-	categoryStats <<- rbindlist(categoryStats)
+	oneTable <<- rbindlist(categoryStats)
 	save.image()
-	print(categoryStats)
-	write.table(categoryStats, "results/null-model/category-stats.csv", sep="\t", row.names=FALSE)
+	print(oneTable)
+	write.table(oneTable, "results/null-model/category-stats.csv", sep="\t", row.names=FALSE)
 }
 
 #################
@@ -60,9 +61,8 @@ readCheckIns <- function(f) {
 
 			return(cleanData(ci))
 		}
-	} else {
-		return(data.table())
 	}
+	return(data.table())
 }
 
 ##############
