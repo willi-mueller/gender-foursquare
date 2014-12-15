@@ -5,11 +5,11 @@ source('analysis/foursquare-analysis.r')
 N_CORES <- detectCores()
 THRESH <- 100
 MAX_CI <- 4e+5
+k <- 100
 countryFiles <- dir("paises")
 oneTable <- data.frame() # global to save it in the workspace image
 
 collectStatisticsForRanking <- function() {
-	k <- 100
 	readAndCalc <- function(i) {
 		f <- sprintf("paises/%s", countryFiles[i])
 		country <- strsplit(countryFiles[i], ".", fixed=T)[[1]][[1]] # remove .dat
