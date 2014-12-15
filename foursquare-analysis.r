@@ -1,6 +1,5 @@
 # library(sqldf)
 library(Hmisc) # Ecdf
-library(parallel)
 library(data.table)
 library(moments) # skewness
 
@@ -506,7 +505,7 @@ empiricalAttributeDistribution <- function(checkIns, attribute) {
 ####################
 
 ######## Permutation #############
-runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=FALSE) {
+runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=FALSE, forceGenerate=FALSE) {
   generatedFile <- sprintf("%s/generated-%s-%s-pop.csv", folderName, regionName, plotName)
   if(file.exists(generatedFile)) {
     message("Already randomized check-ins for ", regionName)
@@ -514,26 +513,27 @@ runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=
         caracter=c("date","idLocal", "subcategory", "category", "country", "city", "district", "gender"),
         numeric=c("maleCount", "femaleCount"))
     return(fread(generatedFile, header=T, sep="\t", stringsAsFactors=FALSE, colClasses=cc))
-  }
-  if(!file.exists(folderName)) {
-    dir.create(folderName, recursive=TRUE)
-  }
-  gen.segregation <- data.table()
-  checkIns <- checkIns[gender=="male" || gender=="female", ]
-  randomizedCheckIns <- copy(checkIns)
-  for(i in seq(k)) {
-      gen.checkIns <- permutateGender(randomizedCheckIns)
-      gen.checkIns[,iterPermutation:=i]
-      s <- segregation(gen.checkIns, regionName,
-                          sub="permutating gender", log=log)
+  } else {
+    if( !file.exists(folderName) | forceGenerate ) {
+      dir.create(folderName, recursive=TRUE)
+    }
+    gen.segregation <- data.table()
+    checkIns <- checkIns[gender=="male" || gender=="female", ]
+    randomizedCheckIns <- copy(checkIns)
+    for(i in seq(k)) {
+        gen.checkIns <- permutateGender(randomizedCheckIns)
+        gen.checkIns[,iterPermutation:=i]
+        s <- segregation(gen.checkIns, regionName,
+                            sub="permutating gender", log=log)
 
-      gen.segregation <- rbindlist(list(gen.segregation, s), use.names=TRUE)
-  }
-  message("Generated. Writing…")
-  write.table(gen.segregation, generatedFile, sep="\t", row.names=FALSE)
-  message("Wrote generated segregation to ", generatedFile)
+        gen.segregation <- rbindlist(list(gen.segregation, s), use.names=TRUE)
+    }
+    message("Generated. Writing…")
+    write.table(gen.segregation, generatedFile, sep="\t", row.names=FALSE)
+    message("Wrote generated segregation to ", generatedFile)
 
-  return(gen.segregation)
+    return(gen.segregation)
+  }
 }
 
 permutateGender <- function(checkIns) {
@@ -639,46 +639,53 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
   return(list(meanMalePopularities=meanMalePopularities, meanFemalePopularities=meanFemalePopularities))
 }
 
-bootstrapDataTable <- function(regionName) {
+bootstrapDataTable <- function(regionName, catPopMale, catPopFemale, percOfMale, percOfFemale, percMaleCat, percFemaleCat,
+                              eucDistCat, eucDistLoc, meanEucDistLoc, medianEucDistLoc, varEucDistLoc, sdEucDistLoc, skewnessEucDistLoc,
+                              diffLoc, diffCat, meanDiff, medianDiff, varDiff sdDiff, skewnessDiff) {
   data.table(
-    region=regionName
-    catPopMale=rep(NA, k),
-    catPopFemale=rep(NA, k),
+    region=regionName,
+    catPopMale=catPopMale,
+    catPopFemale=catPopFemale,
 
-    percOfMale=rep(NA, k),
-    percOfFemale=rep(NA, k),
-    percMaleCat=rep(NA, k),
-    percFemaleCat=rep(NA, k),
-    percMaleLoc=rep(NA, k),
-    percFemaleLoc=rep(NA, k),
+    percOfMale=percOfMale,
+    percOfFemale=percOfFemale,
+    percMaleCat=percMaleCat,
+    percFemaleCat=percFemaleCat,
+    # percMaleLoc=,
+    # percFemaleLoc=,
 
-    eucDistCat=rep(NA, k),
-    eucDistLoc=rep(NA, k),
-    meanEucDistLoc=rep(NA, k),
-    medianEucDistLoc=rep(NA, k),
-    varEucDistLoc=rep(NA, k),
-    sdEucDistLoc=rep(NA, k),
-    skewnessEucDistLoc=rep(NA, k),
+    eucDistCat=eucDistCat,
+    eucDistLoc=eucDistLoc,
+    meanEucDistLoc=,
+    medianEucDistLoc=,
+    varEucDistLoc=,
+    sdEucDistLoc=,
+    skewnessEucDistLoc=,
 
-    diffLoc=rep(NA, k),
-    diffCat=rep(NA, k),
-    meanDiff=rep(NA, k),
-    medianDiff=rep(NA, k),
-    varDiff=rep(NA, k),
-    sdDiff=rep(NA, k),
-    skewnessDiff=rep(NA, k)
+    diffLoc=,
+    diffCat=,
+    meanDiff=,
+    medianDiff=,
+    varDiff=,
+    sdDiff=,
+    skewnessDiff=
   )
 }
 
 getBootstrappedStatistics <- function(checkIns, k, regionName) {
   values <- bootstrapDataTable(regionName)
+  categoryStats <- data.table()
+  # locationStats <- data.table()
 
   for (i in seq(k)) {
     generationRange <- seq((i-1)*nrow(gen.segregation)/k +1, (i * nrow(gen.segregation)/k))
     iter <- gen.segregation[generationRange]
     # parallelize here
-    values[i] <- calculateStats(iter)
+    # locationStats <- calculateLocationStats(iter)
+    categoryStats[i] <- calculateCategoryStats(iter)
   }
+  # lookup confidence intervals
+  # values <- calculateStatsAboutIterations(categoryStats)
   return(values)
 }
 
@@ -686,7 +693,7 @@ calculateCategoryStats <- function(checkIns) {
   checkIns <- percentagesOfGenderForCategory(checkIns)
   checkIns <- percentagesForCategory(checkIns)
   checkIns <- euclideanDistanceForCategory(checkIns)
-  browser() # lookup column indices
+  # browser() # lookup column indices
   checkIns[, .SD[1], by=category ][, list(
     country, category, percMaleCat, percFemaleCat,
     percOfMale, percOfFemale, eucDistCat)]
