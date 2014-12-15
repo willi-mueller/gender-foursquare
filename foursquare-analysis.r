@@ -855,6 +855,11 @@ sortByCategory <- function(ci) {
   ci[order(rank(category))]
 }
 
+sortBySubategory <- function(ci) {
+  ci[order(rank(subcategory))]
+}
+
+
 ###################### Analysing Null Model ######
 
 nGenderUsers <- function(checkIns, genderStr) {
@@ -880,7 +885,7 @@ percentagesForCategory <- function(checkIns) {
 }
 
 percentagesForSubcategory <- function(checkIns) {
-   sortByCategory( checkIns[, `:=`(
+   sortBySubcategory( checkIns[, `:=`(
                 percMaleSubc=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
                 percFemaleSubc=length(idUserFoursquare[gender=='female'])/length(idUserFoursquare)),
             by=subcategory] )
