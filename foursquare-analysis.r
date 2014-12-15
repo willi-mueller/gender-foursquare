@@ -673,7 +673,7 @@ runGenerate <- function(checkIns, segregation, UNIFORM_LOCATION_PROBABILITY, UNI
 #   )
 # }
 
-getBootstrappedStatistics <- function(observed, generated, k, regionName, alpha=0.01) {
+getBootstrappedStatistics <- function(observed, generated, k, alpha=0.01) {
   observedStats <- calculateCategoryStats(observed)
   calc <- function(i) {
     generationRange <- seq((i-1)*nrow(generated)/k +1, (i * nrow(generated)/k))
