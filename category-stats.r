@@ -9,20 +9,21 @@ categoryStats <- list() # global to save it in the workspace image
 
 generateNullModel <- function() {
 	k <- 100
-	#stats <- foreach( i=icount(k), .combine=function(x,y)rbindlist(list(x,y)) ) %dopar% {
+	# stats <- foreach( i=c(19, 24, 25), .combine=function(x,y)rbindlist(list(x,y)) ) %dopar% {
 	for(i in c(19, 24, 25)) {
 		f <- sprintf("paises/%s", countryFiles[i])
 		country <- strsplit(countryFiles[i], ".", fixed=T)[[1]][[1]] # remove .dat
 		message(country)
 		ci <- readCheckIns(f)
 		if(nrow(ci > 0)) {
-			categoryStats[[i]] <- calculateStats(ci, country)
+			categoryStats[[i]] <<- calculateStats(ci, country)
 		}
 	}
-	oneTable <- rbindlist(categoryStats)
+	# global assignment
+	categoryStats <<- rbindlist(categoryStats)
 	save.image()
-	print(oneTable)
-	write.table(oneTable, "results/null-model/category-stats.csv", sep="\t", row.names=FALSE)
+	print(categoryStats)
+	write.table(categoryStats, "results/null-model/category-stats.csv", sep="\t", row.names=FALSE)
 }
 
 #################
