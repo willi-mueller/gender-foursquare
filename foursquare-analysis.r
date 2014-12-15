@@ -507,7 +507,7 @@ empiricalAttributeDistribution <- function(checkIns, attribute) {
 ######## Permutation #############
 runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=FALSE, forceGenerate=FALSE) {
   generatedFile <- sprintf("%s/generated-%s-%s-pop.csv", folderName, regionName, plotName)
-  if(file.exists(generatedFile)) {
+  if(file.exists(generatedFile) & !forceGenerate) {
     message("Already randomized check-ins for ", regionName)
     cc <- list(integer=c("idUserFoursquare", "timeOffset"),
         caracter=c("date","idLocal", "subcategory", "category", "country", "city", "district", "gender"),
