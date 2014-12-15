@@ -672,36 +672,52 @@ runGenerate <- function(checkIns, segregation, UNIFORM_LOCATION_PROBABILITY, UNI
 #   )
 # }
 
-# getBootstrappedStatistics <- function(checkIns, k, regionName) {
-#   values <- bootstrapDataTable(regionName)
-#   categoryStats <- data.table()
-#   # locationStats <- data.table()
-
-#   for (i in seq(k)) {
-#     generationRange <- seq((i-1)*nrow(gen.segregation)/k +1, (i * nrow(gen.segregation)/k))
-#     iter <- gen.segregation[generationRange]
-#     # parallelize here
-#     # locationStats <- calculateLocationStats(iter)
-#     categoryStats[i] <- calculateCategoryStats(iter)
-#   }
-#   # lookup confidence intervals
-#   # values <- calculateStatsAboutIterations(categoryStats)
-#   return(values)
-# }
+getBootstrappedStatistics <- function(observed, generated, k, regionName, alpha=0.01) {
+  observedStats <- calculateCategoryStats(observed)
+  calc <- function(i) {
+    generationRange <- seq((i-1)*nrow(generated)/k +1, (i * nrow(generated)/k))
+    iter <- generated[generationRange]
+    # locationStats <- calculateLocationStats(iter)
+    stat <- calculateCategoryStats(iter)
+    stat$bootstrapIter <- i
+    return(stat)
+  }
+  genStats <- rbindlist( lapply(seq(k), calc) )
+  observedStats <- flagAnomalousSubcategories(observedStats, genStats, k, alpha)
+  return(observedStats)
+}
 
 calculateCategoryStats <- function(checkIns) {
   checkIns <- percentagesOfGenderForCategory(checkIns)
   checkIns <- percentagesForCategory(checkIns)
+  checkIns <- percentagesForSubcategory(checkIns)
   checkIns <- euclideanDistanceForCategory(checkIns)
-  # browser() # lookup column indices
-  checkIns[, .SD[1], by=category ][, list(
-    country, category, percMaleCat, percFemaleCat,
-    percOfMale, percOfFemale, eucDistCat)]
+  checkIns <- euclideanDistanceForSubcategory(checkIns)
+  checkIns[, .SD[1], by=subcategory ][, list(
+    country, category, subcategory, percMaleCat, percFemaleCat,
+    percMaleSubc, percFemaleSubc,
+    percOfMale, percOfFemale, eucDistCat, eucDistSubc)]
+}
+
+flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha) {
+  nSubcategories <- nrow(genStats)/k
+
+  calc <- function(i) {
+    statsForSubc <- genStats[seq(i, nSubcategories*k, nSubcategories)]
+    percentiles <- quantile(statsForSubc$eucDistSubc, c(alpha/2, 1-alpha/2))
+    observed <- observedStats[ subcategory==statsForSubc$subcategory[1], ]$eucDistSubc
+    return( observed < percentiles[[1]] | observed > percentiles[[2]] )
+  }
+  isAnomalous <- unlist( lapply(seq(nSubcategories), calc) )
+  statsPerSubc <- genStats[, .SD[1], by=subcategory]
+  statsPerSubc$isAnomalous <- isAnomalous
+  percOfAnomalousSubc <- nrow(statsPerSubc[isAnomalous==TRUE])/length(unique(statsPerSubc$subcategory))
+  statsPerSubc$percAnomalousSubc <- percOfAnomalousSubc
+  return(statsPerSubc)
 }
 
 calculateLocationStats <- function(checkIns) {
   ci <- euclideanDistanceForLocation(checkIns)
-
 }
 
 # calculateStats <- function(checkIns, regionName) {
@@ -860,6 +876,13 @@ percentagesForCategory <- function(checkIns) {
             by=category] )
 }
 
+percentagesForSubcategory <- function(checkIns) {
+   sortByCategory( checkIns[, `:=`(
+                percMaleSubc=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
+                percFemaleSubc=length(idUserFoursquare[gender=='female'])/length(idUserFoursquare)),
+            by=subcategory] )
+}
+
 percentagesForLocation <- function(checkIns) {
    sortByCategory( checkIns[,`:=`(
                 percMaleLoc=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
@@ -870,6 +893,10 @@ percentagesForLocation <- function(checkIns) {
 ############# Euclidean Distance #####
 euclideanDistanceForCategory <- function(checkIns) {
    sortByCategory( checkIns[,eucDistCat:=euclideanDistance(percMaleCat, percFemaleCat), by=category] )
+}
+
+euclideanDistanceForSubcategory <- function(checkIns) {
+   sortByCategory( checkIns[,eucDistSubc:=euclideanDistance(percMaleSubc, percFemaleSubc), by=subcategory] )
 }
 
 euclideanDistanceForLocation <- function(checkIns) {
