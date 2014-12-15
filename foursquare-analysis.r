@@ -840,34 +840,37 @@ nGenderUsers <- function(checkIns, genderStr) {
 percentagesOfGenderForCategory <- function(checkIns) {
   nMaleUsers <- nGenderUsers(checkIns, "male")
   nFemaleUsers <- nGenderUsers(checkIns, "female")
-  sortByCategory( checkIns[,list(percOfMale=length(idUserFoursquare[gender=='male'])/nMaleUsers,
+   sortByCategory( checkIns[, `:=`(
+                percOfMale=length(idUserFoursquare[gender=='male'])/nMaleUsers,
                 percOfFemale=length(idUserFoursquare[gender=='female'])/nFemaleUsers),
             by=category] )
 }
 
 percentagesForCategory <- function(checkIns) {
-   sortByCategory( checkIns[,list(percMaleCat=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
+   sortByCategory( checkIns[, `:=`(
+                percMaleCat=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
                 percFemaleCat=length(idUserFoursquare[gender=='female'])/length(idUserFoursquare)),
             by=category] )
 }
 
 percentagesForLocation <- function(checkIns) {
-   sortByCategory( checkIns[,list(percMaleLoc=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
+   sortByCategory( checkIns[,`:=`(
+                percMaleLoc=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
                 percFemaleLoc=length(idUserFoursquare[gender=='female'])/length(idUserFoursquare)),
             by=idLocal] )
 }
 
 ############# Euclidean Distance #####
 euclideanDistanceForCategory <- function(checkIns) {
-   sortByCategory( checkIns[,list(eucDistCat=euclideanDistance(percMaleCat, percFemaleCat)), by=category] )
+   sortByCategory( checkIns[,eucDistCat:=euclideanDistance(percMaleCat, percFemaleCat), by=category] )
 }
 
 euclideanDistanceForLocation <- function(checkIns) {
-   sortByCategory( checkIns[ ,list(eucDistLoc=euclideanDistance(percMaleLoc, percFemaleLoc)), by=idLocal] )
+   sortByCategory( checkIns[ ,eucDistLoc:=euclideanDistance(percMaleLoc, percFemaleLoc)), by=idLocal] )
 }
 
 meanEuclidDist <- function(checkIns) {
-   sortByCategory( checkIns[ ,list(meanEucDistLoc=mean(eucDistLoc)), by=category] )
+   sortByCategory( checkIns[ ,meanEucDistLoc:=mean(eucDistLoc)), by=category] )
 }
 
 medianEuclidDist <- function(checkIns) {
