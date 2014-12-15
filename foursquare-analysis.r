@@ -2,6 +2,7 @@
 library(Hmisc) # Ecdf
 library(data.table)
 library(moments) # skewness
+library(parallel) #mclapply
 
 subcategoryPreferencesByGender <- function(checkIns) {
   joined <- checkIns
@@ -682,7 +683,7 @@ getBootstrappedStatistics <- function(observed, generated, k, regionName, alpha=
     stat$bootstrapIter <- i
     return(stat)
   }
-  genStats <- rbindlist( lapply(seq(k), calc) )
+  genStats <- rbindlist( mclapply(seq(k), calc, mc.cores=N_CORES) )
   observedStats <- flagAnomalousSubcategories(observedStats, genStats, k, alpha)
   return(observedStats)
 }
@@ -708,7 +709,7 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha) {
     observed <- observedStats[ subcategory==statsForSubc$subcategory[1], ]$eucDistSubc
     return( observed < percentiles[[1]] | observed > percentiles[[2]] )
   }
-  isAnomalous <- unlist( lapply(seq(nSubcategories), calc) )
+  isAnomalous <- unlist( mclapply(seq(nSubcategories), calc, mc.cores=N_CORES) )
   statsPerSubc <- genStats[, .SD[1], by=subcategory]
   statsPerSubc$isAnomalous <- isAnomalous
   percOfAnomalousSubc <- nrow(statsPerSubc[isAnomalous==TRUE])/length(unique(statsPerSubc$subcategory))
@@ -979,6 +980,7 @@ checkInsInlocationsWithMinimumCheckIns <- function(checkIns, n=5) {
 ##########
 # Constants
 ##########
+N_CORES <- detectCores()
 SEGREGATION_AXES <- c(0, 0.20)
 
 substitutionRules <- list(
