@@ -689,13 +689,13 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha) {
   statsPerSubc <- genStats[, .SD[1], by=subcategory]
   isAnomalous <- mclapply(seq(nSubcategories), calc, mc.cores=1)
 
-  isAnomalous.eucDistSubc <- lapply(isAnomalous, function(x)x$eucDistSubc)
+  isAnomalous.eucDistSubc <- unlist(lapply(isAnomalous, function(x)x$eucDistSubc))
   statsPerSubc$eucDistSubcIsAnomalous <- isAnomalous.eucDistSubc
   nAnomalous <- length(isAnomalous.eucDistSubc[isAnomalous.eucDistSubc==TRUE])
   percOfAnomalousSubc <- nAnomalous/nSubcategories
   statsPerSubc$percAnomalousEucDistSubc <- percOfAnomalousSubc
 
-  isAnomalous.eucDistSubcPop <- lapply(isAnomalous, function(x)x$eucDistSubcPop)
+  isAnomalous.eucDistSubcPop <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcPop))
   statsPerSubc$eucDistSubcPopIsAnomalous <- isAnomalous.eucDistSubcPop
   nAnomalous <- length(isAnomalous.eucDistSubcPop[isAnomalous.eucDistSubcPop==TRUE])
   percOfAnomalousSubc <- nAnomalous/nSubcategories
