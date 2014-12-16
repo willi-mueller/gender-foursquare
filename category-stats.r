@@ -84,7 +84,7 @@ resampleIfTooMuchCheckIns <- function(ci) {
 	n <- nrow(ci)
 	if(n > MAX_CI) {
 		message("Too many check-ins")
-		ci <- ci[sample(n, 3e+5, replace=FALSE)]
+		ci <- ci[sample(n, 3e+4, replace=FALSE)]
 		message("resampled check-ins")
 		stopifnot(nrow(ci) < MAX_CI)
 	}
