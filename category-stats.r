@@ -11,7 +11,7 @@ categoryStats <- list()
 oneTable <- data.frame() # global to save it in the workspace image
 
 collectStatisticsForRanking <- function() {
-	for(i in 1:length(countryFiles))) {
+	for(i in 1:length(countryFiles)) {
 	#readAndCalc <- function(i) {
 		f <- sprintf("paises/%s", countryFiles[i])
 		country <- strsplit(countryFiles[i], ".", fixed=T)[[1]][[1]] # remove .dat
