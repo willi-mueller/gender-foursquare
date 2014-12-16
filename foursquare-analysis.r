@@ -687,7 +687,7 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha) {
     )
   }
   statsPerSubc <- genStats[, .SD[1], by=subcategory]
-  isAnomalous <- mclapply(seq(nSubcategories), calc, mc.cores=1)
+  isAnomalous <- mclapply(seq(nSubcategories), calc, mc.cores=N_CORES)
 
   isAnomalous.eucDistSubc <- unlist(lapply(isAnomalous, function(x)x$eucDistSubc))
   statsPerSubc$eucDistSubcIsAnomalous <- isAnomalous.eucDistSubc
