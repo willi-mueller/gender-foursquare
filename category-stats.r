@@ -80,8 +80,7 @@ calculateStats <- function(ci, country) {
 	generated <- runPermutate(ci, folderName, "permutate-gender", country, k=k)
 	# ci.segregation <- segregation(ci, country, log=F)
 
-	stats <- getBootstrappedStatistics(ci, generated, k, alpha=0.01)
-	return(stats)
+	getBootstrappedStatistics(ci, generated, k, alpha=0.01)
 }
 
 resampleIfTooMuchCheckIns <- function(ci) {
