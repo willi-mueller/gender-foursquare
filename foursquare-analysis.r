@@ -695,10 +695,13 @@ calculateCategoryStats <- function(checkIns) {
   checkIns <- percentagesForSubcategory(checkIns)
   checkIns <- euclideanDistanceForCategory(checkIns)
   checkIns <- euclideanDistanceForSubcategory(checkIns)
+  checkIns <- popularityOfGenderForSubcategory(checkIns)
+  checkIns <- euclideanDistanceForSubcategoryPopularity(checkIns)
   checkIns[, .SD[1], by=subcategory ][, list(
     country, category, subcategory, percMaleCat, percFemaleCat,
     percMaleSubc, percFemaleSubc,
-    percOfMale, percOfFemale, eucDistCat, eucDistSubc)]
+    percOfMale, percOfFemale, eucDistCat, eucDistSubc,
+    malePopSubC, femalePopSubC, eucDistSubcPop)]
 }
 
 flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha) {
@@ -706,15 +709,30 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha) {
 
   calc <- function(i) {
     statsForSubc <- genStats[seq(i, nSubcategories*k, nSubcategories)]
-    percentiles <- quantile(statsForSubc$eucDistSubc, c(alpha/2, 1-alpha/2))
-    observed <- observedStats[ subcategory==statsForSubc$subcategory[1], ]$eucDistSubc
-    return( observed < percentiles[[1]] | observed > percentiles[[2]] )
+    percentiles.eucDistSubc <- quantile(statsForSubc$eucDistSubc, c(alpha/2, 1-alpha/2))
+    observed.eucDistSubc <- observedStats[ subcategory==statsForSubc$subcategory[1], ]$eucDistSubc
+
+    percentiles.eucDistSubcPop <- quantile(statsForSubc$eucDistSubcPop, c(alpha/2, 1-alpha/2))
+    observed.eucDistSubcPop <- observedStats[ subcategory==statsForSubc$subcategory[1], ]$eucDistSubcPop
+    list(
+      eucDistSubc = ( observed.eucDistSubc < percentiles.eucDistSubc[[1]] | observed.eucDistSubc > percentiles.eucDistSubc[[2]] ),
+      eucDistSubcPop = ( observed.eucDistSubcPop < percentiles.eucDistSubcPop[[1]] | observed.eucDistSubcPop > percentiles.eucDistSubcPop[[2]] )
+    )
   }
-  isAnomalous <- unlist( mclapply(seq(nSubcategories), calc, mc.cores=N_CORES) )
   statsPerSubc <- genStats[, .SD[1], by=subcategory]
-  statsPerSubc$isAnomalous <- isAnomalous
-  percOfAnomalousSubc <- nrow(statsPerSubc[isAnomalous==TRUE])/length(unique(statsPerSubc$subcategory))
-  statsPerSubc$percAnomalousSubc <- percOfAnomalousSubc
+  isAnomalous <- mclapply(seq(nSubcategories), calc, mc.cores=1)
+
+  isAnomalous.eucDistSubc <- lapply(isAnomalous, function(x)x$eucDistSubc)
+  statsPerSubc$eucDistSubcIsAnomalous <- isAnomalous.eucDistSubc
+  nAnomalous <- length(isAnomalous.eucDistSubc[isAnomalous.eucDistSubc==TRUE])
+  percOfAnomalousSubc <- nAnomalous/nSubcategories
+  statsPerSubc$percAnomalousEucDistSubc <- percOfAnomalousSubc
+
+  isAnomalous.eucDistSubcPop <- lapply(isAnomalous, function(x)x$eucDistSubcPop)
+  statsPerSubc$eucDistSubcPopIsAnomalous <- isAnomalous.eucDistSubcPop
+  nAnomalous <- length(isAnomalous.eucDistSubcPop[isAnomalous.eucDistSubcPop==TRUE])
+  percOfAnomalousSubc <- nAnomalous/nSubcategories
+  statsPerSubc$percAnomalousEucDistSubcPop <- percOfAnomalousSubc
   return(statsPerSubc)
 }
 
@@ -878,6 +896,15 @@ percentagesOfGenderForCategory <- function(checkIns) {
             by=category] )
 }
 
+popularityOfGenderForSubcategory <- function(checkIns) {
+  nMaleUsers <- nGenderUsers(checkIns, "male")
+  nFemaleUsers <- nGenderUsers(checkIns, "female")
+   sortBySubcategory( checkIns[, `:=`(
+                malePopSubC=length(idUserFoursquare[gender=='male'])/nMaleUsers,
+                femalePopSubC=length(idUserFoursquare[gender=='female'])/nFemaleUsers),
+            by=subcategory] )
+}
+
 percentagesForCategory <- function(checkIns) {
    sortByCategory( checkIns[, `:=`(
                 percMaleCat=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
@@ -898,7 +925,11 @@ euclideanDistanceForCategory <- function(checkIns) {
 }
 
 euclideanDistanceForSubcategory <- function(checkIns) {
-   sortByCategory( checkIns[,eucDistSubc:=euclideanDistance(percMaleSubc, percFemaleSubc), by=subcategory] )
+   sortBySubcategory( checkIns[,eucDistSubc:=euclideanDistance(percMaleSubc, percFemaleSubc), by=subcategory] )
+}
+
+euclideanDistanceForSubcategoryPopularity <- function(checkIns) {
+   sortBySubcategory( checkIns[,eucDistSubcPop:=euclideanDistance(malePopSubC, femalePopSubC), by=subcategory] )
 }
 
 euclideanDistanceForLocation <- function(checkIns) {
