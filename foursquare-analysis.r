@@ -822,8 +822,8 @@ percentagesOfGenderForCategory <- function(checkIns) {
                 percOfMale=length(idUserFoursquare[gender=='male'])/nMaleUsers,
                 percOfFemale=length(idUserFoursquare[gender=='female'])/nFemaleUsers),
             by=category] )
-  checkIns<- checkIns[is.na(percOfFemale)][,percOfFemale:=0]
-  checkIns<- checkIns[is.na(percOfMale)][,percOfMale:=0]
+  # deal with case 0/0 == NaN
+  checkIns <- replace(checkIns, is.na(checkIns), 0)
 }
 
 popularityOfGenderForSubcategory <- function(checkIns) {
