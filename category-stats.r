@@ -6,7 +6,7 @@ N_CORES <- detectCores()
 THRESH <- 100
 MAX_CI <- 4e+5
 k <- 100
-countryFiles <- dir("paises")
+countryFiles <- rev(dir("paises"))
 categoryStats <- list()
 oneTable <- data.frame() # global to save it in the workspace image
 
