@@ -7,6 +7,7 @@ THRESH <- 100
 MAX_CI <- 4e+5
 k <- 100
 countryFiles <- dir("paises")
+categoryStats <- list()
 oneTable <- data.frame() # global to save it in the workspace image
 
 collectStatisticsForRanking <- function() {
@@ -19,9 +20,9 @@ collectStatisticsForRanking <- function() {
 			return(calculateStats(ci, country))
 		}
 	}
-	categoryStats <- mclapply(1:length(countryFiles), readAndCalc, mc.cores=N_CORES)
-
 	# global assignment
+	categoryStats <<- mclapply(1:length(countryFiles), readAndCalc, mc.cores=N_CORES)
+	save.image()
 	oneTable <<- rbindlist(categoryStats)
 	save.image()
 	print(oneTable)
