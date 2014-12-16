@@ -308,9 +308,9 @@ distances <- function(masculine, feminine) {
 
 euclideanDistance <- function(male, female) {
   dist <- sqrt((0.5*(male+female) - female)^2 + (0.5*(male + female)-male)^2)
-
+  stopIfNot(length(male), length(female))
   # determine side of the diagonale
-  for(i in seq(length(male))) {
+  for(i in seq(maxLength)) {
     if(female[i]>male[i]) {
       dist[i] <- - dist[i]
     }
