@@ -14,7 +14,7 @@ collectStatisticsForRanking <- function() {
 	for(i in 1:length(countryFiles)) {
 	#readAndCalc <- function(i) {
 		f <- sprintf("paises/%s", countryFiles[i])
-		country <- strsplit(countryFiles[i], ".", fixed=T)[[1]][[1]] # remove .dat
+		country <- strsplit(countryFiles[i], ".dat", fixed=T)[[1]]
 		message(country)
 		ci <- readCheckIns(f)
 		if(nrow(ci) > 0) {
