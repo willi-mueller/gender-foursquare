@@ -18,7 +18,7 @@ collectStatisticsForRanking <- function() {
 		message(country)
 		ci <- readCheckIns(f)
 		if(nrow(ci) > 0) {
-			oneTable <<- rbindlist(list(oneTable, calculateStats(ci, country)))
+			oneTable <<- rbind(oneTable, calculateStats(ci, country))
 		}
 	}
 	# global assignment
