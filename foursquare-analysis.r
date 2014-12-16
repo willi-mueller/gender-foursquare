@@ -833,13 +833,15 @@ popularityOfGenderForSubcategory <- function(checkIns) {
                 malePopSubC=length(idUserFoursquare[gender=='male'])/nMaleUsers,
                 femalePopSubC=length(idUserFoursquare[gender=='female'])/nFemaleUsers),
             by=subcategory] )
+  replace(checkIns, is.na(checkIns), 0)
 }
 
 percentagesForCategory <- function(checkIns) {
-   sortByCategory( checkIns[, `:=`(
+  sortByCategory( checkIns[, `:=`(
                 percMaleCat=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
                 percFemaleCat=length(idUserFoursquare[gender=='female'])/length(idUserFoursquare)),
             by=category] )
+  replace(checkIns, is.na(checkIns), 0)
 }
 
 percentagesForSubcategory <- function(checkIns) {
@@ -847,6 +849,7 @@ percentagesForSubcategory <- function(checkIns) {
                 percMaleSubc=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
                 percFemaleSubc=length(idUserFoursquare[gender=='female'])/length(idUserFoursquare)),
             by=subcategory] )
+  replace(checkIns, is.na(checkIns), 0)
 }
 
 ############# Euclidean Distance #####
