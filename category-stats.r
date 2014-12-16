@@ -11,20 +11,21 @@ categoryStats <- list()
 oneTable <- data.frame() # global to save it in the workspace image
 
 collectStatisticsForRanking <- function() {
-	readAndCalc <- function(i) {
+	for(i in 1:length(countryFiles))) {
+	#readAndCalc <- function(i) {
 		f <- sprintf("paises/%s", countryFiles[i])
 		country <- strsplit(countryFiles[i], ".", fixed=T)[[1]][[1]] # remove .dat
 		message(country)
 		ci <- readCheckIns(f)
 		if(nrow(ci) > 0) {
-			return(calculateStats(ci, country))
+			oneTable <<- rbindlist(list(oneTable, calculateStats(ci, country)))
 		}
 	}
 	# global assignment
-	categoryStats <<- mclapply(1:length(countryFiles), readAndCalc, mc.cores=N_CORES)
+	#categoryStats <<- mclapply(1:length(countryFiles), readAndCalc, mc.cores=N_CORES)
 	save.image()
-	oneTable <<- rbindlist(categoryStats)
-	save.image()
+	#oneTable <<- rbindlist(categoryStats)
+	#save.image()
 	print(oneTable)
 	write.table(oneTable, "results/null-model/category-stats.csv", sep="\t", row.names=FALSE)
 }
