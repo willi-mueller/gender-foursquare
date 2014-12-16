@@ -521,6 +521,7 @@ runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=
     checkIns <- checkIns[gender=="male" || gender=="female", ]
     randomizedCheckIns <- copy(checkIns)
     calc <- function(i) {
+      message("Generating check-ins for ", regionName)
       gen.checkIns <- permutateGender(randomizedCheckIns)
       gen.checkIns[,iterPermutation:=i]
       segregation(gen.checkIns, regionName,
@@ -529,9 +530,9 @@ runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=
 
     gen.segregation <- rbindlist( mclapply(seq(k), calc, mc.cores=N_CORES), use.names=TRUE)
 
-    message("Generated. Writing…")
+    message("Generated ", regionName, ". Writing…")
     write.table(gen.segregation, generatedFile, sep="\t", row.names=FALSE)
-    message("Wrote generated segregation to ", generatedFile)
+    message("Wrote generated segregation of ", regionName, " to ", generatedFile)
 
     return(gen.segregation)
   }
