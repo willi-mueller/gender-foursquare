@@ -641,39 +641,6 @@ runGenerate <- function(checkIns, segregation, UNIFORM_LOCATION_PROBABILITY, UNI
 #   return(list(meanMalePopularities=meanMalePopularities, meanFemalePopularities=meanFemalePopularities))
 # }
 
-# bootstrapDataTable <- function(regionName, catPopMale, catPopFemale, percOfMale, percOfFemale, percMaleCat, percFemaleCat,
-#                               eucDistCat, eucDistLoc, meanEucDistLoc, medianEucDistLoc, varEucDistLoc, sdEucDistLoc, skewnessEucDistLoc,
-#                               diffLoc, diffCat, meanDiff, medianDiff, varDiff sdDiff, skewnessDiff) {
-#   data.table(
-#     region=regionName,
-#     catPopMale=catPopMale,
-#     catPopFemale=catPopFemale,
-
-#     percOfMale=percOfMale,
-#     percOfFemale=percOfFemale,
-#     percMaleCat=percMaleCat,
-#     percFemaleCat=percFemaleCat,
-#     # percMaleLoc=,
-#     # percFemaleLoc=,
-
-#     eucDistCat=eucDistCat,
-#     eucDistLoc=eucDistLoc,
-#     meanEucDistLoc=,
-#     medianEucDistLoc=,
-#     varEucDistLoc=,
-#     sdEucDistLoc=,
-#     skewnessEucDistLoc=,
-
-#     diffLoc=,
-#     diffCat=,
-#     meanDiff=,
-#     medianDiff=,
-#     varDiff=,
-#     sdDiff=,
-#     skewnessDiff=
-#   )
-# }
-
 getBootstrappedStatistics <- function(observed, generated, k, alpha=0.01) {
   observedStats <- calculateCategoryStats(observed)
   calc <- function(i) {
@@ -739,45 +706,6 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha) {
 calculateLocationStats <- function(checkIns) {
   ci <- euclideanDistanceForLocation(checkIns)
 }
-
-# calculateStats <- function(checkIns, regionName) {
-
-
-#   values <- list()
-
-#   c(values, regionName)
-#   c(values, categoryPopularity(checkIns, quote(maleCount))$pop)
-#   c(values, categoryPopularity(checkIns, quote(femaleCount))$pop)
-
-#   perc <- percentagesOfGenderForCategory(checkIns)
-#   c(values, perc$PercOfMale)
-#   c(values, perc$PercOfFemale)
-
-#   perc2 <- percentagesForCategory(checkIns)
-#   c(values, perc2$percMaleCat)
-#   c(values, perc2$percFemaleCat)
-
-#   perc3 <- percentagesForLocation(checkIns)
-#   c(values, perc3$percMaleLoc)
-#   c(values, perc3$percFemaleLoc)
-
-#   c(values, euclideanDistanceForCategory(checkIns) )
-#   c(values, euclideanDistanceForLocation(checkIns) )
-#   c(values, meanEuclidDist(checkIns) )
-#   c(values, medianEuclidDist(checkIns) )
-#   c(values, varEuclidDist(checkIns) )
-#   c(values, sdEuclidDist(checkIns) )
-#   c(values, skewnessEuclidDist(checkIns) )
-
-#   c(values, differenceOfLocation(checkIns) )
-#   c(values, differenceOfCategory(checkIns) )
-#   c(values, meanDifferenceOfCategory(checkIns) )
-#   c(values, medianDifferenceOfCategory(checkIns) )
-#   c(values, varDifferenceOfCategory(checkIns) )
-#   c(values, sdDifferenceOfCategory(checkIns) )
-#   c(values, skewnessDifferenceOfCategory(checkIns) )
-#   return(values)
-# }
 
 statsOfObservation <- function(observed, generated) {
   categoryStats(observed)
