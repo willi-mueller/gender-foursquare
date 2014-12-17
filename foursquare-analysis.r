@@ -697,23 +697,36 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha) {
     observed.eucDistSubcPop <- observedStats[ subcategory==statsForSubc$subcategory[1], ]$eucDistSubcPop
     list(
       eucDistSubc = ( observed.eucDistSubc < percentiles.eucDistSubc[[1]] | observed.eucDistSubc > percentiles.eucDistSubc[[2]] ),
-      eucDistSubcPop = ( observed.eucDistSubcPop < percentiles.eucDistSubcPop[[1]] | observed.eucDistSubcPop > percentiles.eucDistSubcPop[[2]] )
+      eucDistSubcLowerQuantile = percentiles.eucDistSubc[[1]],
+      eucDistSubcUpperQuantile = percentiles.eucDistSubc[[2]]
+
+      eucDistSubcPop = ( observed.eucDistSubcPop < percentiles.eucDistSubcPop[[1]] | observed.eucDistSubcPop > percentiles.eucDistSubcPop[[2]] ),
+      eucDistSubcPopLowerQuantile = percentiles.eucDistSubcPop[[1]],
+      eucDistSubcPopUpperQuantile = percentiles.eucDistSubcPop[[2]]
     )
   }
   statsPerSubc <- genStats[, .SD[1], by=subcategory]
   isAnomalous <- mclapply(seq(nSubcategories), calc, mc.cores=N_CORES)
 
   isAnomalous.eucDistSubc <- unlist(lapply(isAnomalous, function(x)x$eucDistSubc))
+
   statsPerSubc$eucDistSubcIsAnomalous <- isAnomalous.eucDistSubc
+  statsPerSubc$eucDistSubcLowerQuantile <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcLowerQuantile))
+  statsPerSubc$eucDistSubcUpperQuantile <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcUpperQuantile))
+
   nAnomalous <- length(isAnomalous.eucDistSubc[isAnomalous.eucDistSubc==TRUE])
   percOfAnomalousSubc <- nAnomalous/nSubcategories
   statsPerSubc$percAnomalousEucDistSubc <- percOfAnomalousSubc
-
+  ####
   isAnomalous.eucDistSubcPop <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcPop))
+
+  statsPerSubc$eucDistSubcPopLowerQuantile <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopLowerQuantile))
+  statsPerSubc$eucDistSubcPopUpperQuantile <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopUpperQuantile))
   statsPerSubc$eucDistSubcPopIsAnomalous <- isAnomalous.eucDistSubcPop
-  nAnomalous <- length(isAnomalous.eucDistSubcPop[isAnomalous.eucDistSubcPop==TRUE])
-  percOfAnomalousSubc <- nAnomalous/nSubcategories
-  statsPerSubc$percAnomalousEucDistSubcPop <- percOfAnomalousSubc
+
+  nAnomalous2 <- length(isAnomalous.eucDistSubcPop[isAnomalous.eucDistSubcPop==TRUE])
+  percOfAnomalousSubcPop <- nAnomalous2/nSubcategories
+  statsPerSubc$percAnomalousEucDistSubcPop <- percOfAnomalousSubcPop
   return(statsPerSubc)
 }
 
