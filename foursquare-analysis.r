@@ -698,7 +698,7 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha) {
     list(
       eucDistSubc = ( observed.eucDistSubc < percentiles.eucDistSubc[[1]] | observed.eucDistSubc > percentiles.eucDistSubc[[2]] ),
       eucDistSubcLowerQuantile = percentiles.eucDistSubc[[1]],
-      eucDistSubcUpperQuantile = percentiles.eucDistSubc[[2]]
+      eucDistSubcUpperQuantile = percentiles.eucDistSubc[[2]],
 
       eucDistSubcPop = ( observed.eucDistSubcPop < percentiles.eucDistSubcPop[[1]] | observed.eucDistSubcPop > percentiles.eucDistSubcPop[[2]] ),
       eucDistSubcPopLowerQuantile = percentiles.eucDistSubcPop[[1]],
