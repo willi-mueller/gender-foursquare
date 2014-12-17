@@ -738,13 +738,13 @@ statsOfObservation <- function(observed, generated) {
   categoryStats(observed)
 }
 
-testObservationWithNullModelForCategories_ <- function(observedSegregation, gen.segregation, folderName, regionName,
+OUTDATED_testObservationWithNullModelForCategories <- function(observedSegregation, gen.segregation, folderName, regionName,
                                                     k,
                                                     UNIFORM_LOCATION_PROBABILITY=FALSE,
                                                     UNIFORM_GENDER_PROBABILITY=FALSE,
                                                     SEARCH_ANOMALOUS_CATEGORIES=TRUE,
                                                     PLOT_ALL_DISTS=TRUE, axeslim=c(0, 0.4), alpha=0.01){
-
+  ########### OUTDATED? #############
   stopifnot(c(catOrSubCat) %in% c(quote(category), quote(subcategory)))
   stopifnot(nrow(observedSegregation) * k == nrow(gen.segregation))
 
