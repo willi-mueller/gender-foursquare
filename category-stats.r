@@ -16,7 +16,7 @@ collectStatisticsForRanking <- function() {
 		f <- sprintf("paises/%s", countryFiles[i])
 		country <- strsplit(countryFiles[i], ".dat", fixed=T)[[1]]
 		message(country)
-		ci <- readCheckIns(f)
+		ci <- readCheckIns(f, 10000)
 		if(nrow(ci) > 0) {
 			oneTable <<- rbindlist(list(oneTable, calculateStats(ci, country)))
 		} else {
@@ -33,38 +33,24 @@ collectStatisticsForRanking <- function() {
 }
 
 #################
-# Clean Data
+# Read Data
 ################
 
-cleanData <- function(ci) {
-	ci <- ci[gender== "male" | gender=="female", ]
-	ci<- oneCheckInForUserAndLocation(ci)
-	ci <- checkInsInlocationsWithMinimumCheckIns(ci, n=5)
-}
-
-checkInsInlocationsWithMinimumCheckIns <- function(checkIns, n=5) {
-  locations <- checkIns[, list(hasMore=length(unique(idUserFoursquare))>=n), by=idLocal][hasMore==TRUE]$idLocal
-  return(checkIns[idLocal %in% locations, ])
-}
-
-oneCheckInForUserAndLocation <- function(checkIns) {
-  setkey(checkIns, idLocal, idUserFoursquare)
-  checkIns <- unique(checkIns)
-  setkey(checkIns, NULL)
-  return(checkIns)
-}
-
-readCheckIns <- function(f) {
+readCheckIns <- function(f, thresh=THRESH) {
 	cc <- list(integer=c(1, 12), character=c(2, seq(5, 11)), numeric=c(3, 4))
 	ci <- try(fread(f, header=F, sep="\t", stringsAsFactors=FALSE, colClasses=cc))
 	if(length(ci)>2) {
-		if(nrow(ci) < THRESH) {
-			message("<", THRESH, "check-ins")
+		if(nrow(ci) < thresh) {
+			message("< ", thresh, " check-ins")
 		} else {
 			setnames(ci, 1:12, c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
 		              "subcategory", "category", "country", "city", "district", "gender", "timeOffset"))
 
-			return(cleanData(ci))
+			filtered <- cleanData(ci)
+			stopifnot(length(unique(filtered$gender)) == 2 ) # only male and female
+			if(nrow(filtered) > thresh) {
+				return(filtered)
+			}
 		}
 	}
 	return(data.table())

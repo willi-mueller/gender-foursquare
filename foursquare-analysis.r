@@ -72,14 +72,28 @@ getCheckInsInCountry <- function(countryCheckIns, substitutionRules, countryUser
   if(!missing(substitutionRules)) {
     ci <- combineEquivalentSubCategories(ci, substitutionRules)
   }
-  return(oneCheckInForUserAndLocation(ci))
+  ci <- ci[gender== "male" | gender=="female", ]
+  # return(cleanData(ci))
+  oneCheckInForUserAndLocation(ci)
+}
+
+cleanData <- function(ci) {
+  ci <- ci[gender== "male" | gender=="female", ]
+  ci<- oneCheckInForUserAndLocation(ci)
+  ci <- checkInsInlocationsWithMinimumCheckIns(ci, n=5)
 }
 
 oneCheckInForUserAndLocation <- function(checkIns) {
+  stopifnot(haskey(checkIns)==FALSE)
   setkey(checkIns, idLocal, idUserFoursquare)
   checkIns <- unique(checkIns)
   setkey(checkIns, NULL)
   return(checkIns)
+}
+
+checkInsInlocationsWithMinimumCheckIns <- function(checkIns, n=5) {
+  locations <- checkIns[, list(hasMore=length(unique(idUserFoursquare))>=n), by=idLocal][hasMore==TRUE]$idLocal
+  return(checkIns[idLocal %in% locations, ])
 }
 
 getCheckInsInRegion <- function(regionFilters, countryCheckIns, countryUsers, userLocalFilter, substitutionRules, checkIns) {
