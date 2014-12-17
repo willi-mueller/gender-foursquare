@@ -9,18 +9,20 @@ k <- 100
 countryFiles <- rev(dir("paises"))
 categoryStats <- list()
 oneTable <- data.frame() # global to save it in the workspace image
+allCheckIns <- data.frame()
 
 collectStatisticsForRanking <- function() {
 	for(i in 1:length(countryFiles)) {
 	#readAndCalc <- function(i) {
 		f <- sprintf("paises/%s", countryFiles[i])
 		country <- strsplit(countryFiles[i], ".dat", fixed=T)[[1]]
-		message(country)
-		ci <- readCheckIns(f, 10000)
-		if(nrow(ci) > 0) {
-			oneTable <<- rbindlist(list(oneTable, calculateStats(ci, country)))
-		} else {
-			oneTable <<- rbindlist(list(oneTable, data.table()))
+		if(country %in% c("Brazil", "United States", "Indonesia", "France", "Japan", "Saudi Arabia", "Russia")) {
+			message(country)
+			ci <- readCheckIns(f, 1000)
+			if(nrow(ci) > 0) {
+				oneTable <<- rbindlist(list(oneTable, calculateStats(ci, country)))
+				allCheckIns <<- rbindlist(list(allCheckIns, ci))
+			}
 		}
 	}
 	# global assignment
@@ -29,7 +31,7 @@ collectStatisticsForRanking <- function() {
 	#oneTable <<- rbindlist(categoryStats) # filter not NA/NULL elements
 	#save.image()
 	print(oneTable)
-	write.table(oneTable, "results/null-model/category-stats.csv", sep="\t", row.names=FALSE)
+	write.table(oneTable, "results/null-model/category-stats-selected-countries.csv", sep="\t", row.names=FALSE)
 }
 
 #################
@@ -63,7 +65,7 @@ readCheckIns <- function(f, thresh=THRESH) {
 calculateStats <- function(ci, country) {
 	ci <- resampleIfTooMuchCheckIns(ci)
 	folderName <- sprintf("results/null-model/%s/gender-permutation", country)
-	generated <- runPermutate(ci, folderName, "permutate-gender", country, k=k)
+	generated <- runPermutate(ci, folderName, "permutate-gender", country, k=k, forceGenerate=T)
 	# ci.segregation <- segregation(ci, country, log=F)
 
 	getBootstrappedStatistics(ci, generated, k, alpha=0.01)
