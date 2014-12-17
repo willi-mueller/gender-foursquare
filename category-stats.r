@@ -32,6 +32,7 @@ collectStatisticsForRanking <- function() {
 	#save.image()
 	print(oneTable)
 	write.table(oneTable, "results/null-model/category-stats-selected-countries.csv", sep="\t", row.names=FALSE)
+	write.table(allCheckIns, "results/cleaned-check-ins-1000.csv", sep="\t", row.names=FALSE)
 }
 
 #################
