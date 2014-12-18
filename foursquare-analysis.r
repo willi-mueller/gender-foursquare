@@ -72,9 +72,9 @@ getCheckInsInCountry <- function(countryCheckIns, substitutionRules, countryUser
   if(!missing(substitutionRules)) {
     ci <- combineEquivalentSubCategories(ci, substitutionRules)
   }
-  ci <- ci[gender== "male" | gender=="female", ]
-  # return(cleanData(ci))
-  oneCheckInForUserAndLocation(ci)
+  #ci <- ci[gender== "male" | gender=="female", ]
+  return(cleanData(ci))
+  #oneCheckInForUserAndLocation(ci)
 }
 
 cleanData <- function(ci) {
