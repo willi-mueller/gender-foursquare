@@ -8,7 +8,8 @@ MAX_CI <- 4e+5
 k <- 100
 countryFiles <- rev(dir("paises"))
 categoryStats <- list()
-oneTable <- data.frame() # global to save it in the workspace image
+categoryStats <- data.frame() # global to save it in the workspace image
+locationStats <- data.frame() # global to save it in the workspace image
 allCheckIns <- data.frame()
 
 collectStatisticsForRanking <- function() {
@@ -20,18 +21,23 @@ collectStatisticsForRanking <- function() {
 			message(country)
 			ci <- readCheckIns(f, 1000)
 			if(nrow(ci) > 0) {
-				oneTable <<- rbindlist(list(oneTable, calculateStats(ci, country)))
 				allCheckIns <<- rbindlist(list(allCheckIns, ci))
+
+				stats <- calculateStats(ci, country)
+				print(stats)
+				categoryStats <<- rbindlist( list(categoryStats, stats$categoryStats))
+				locationStats <<- rbindlist( list(locationStats, stats$locationStats))
 			}
 		}
 	}
 	# global assignment
 	#categoryStats <<- mclapply(1:length(countryFiles), readAndCalc, mc.cores=N_CORES)
 	save.image()
-	#oneTable <<- rbindlist(categoryStats) # filter not NA/NULL elements
+	#categoryStats <<- rbindlist(categoryStats) # filter not NA/NULL elements
 	#save.image()
-	print(oneTable)
-	write.table(oneTable, "results/null-model/category-stats-selected-countries-unified-subc.csv", sep="\t", row.names=FALSE)
+	print(categoryStats)
+	write.table(locationStats, "results/null-model/location-stats-selected-countries-unified-subc.csv", sep="\t", row.names=FALSE)
+	write.table(categoryStats, "results/null-model/category-stats-selected-countries-unified-subc.csv", sep="\t", row.names=FALSE)
 	write.table(allCheckIns, "results/cleaned-check-ins-1000.csv", sep="\t", row.names=FALSE)
 }
 
@@ -67,9 +73,12 @@ calculateStats <- function(ci, country) {
 	ci <- resampleIfTooMuchCheckIns(ci)
 	folderName <- sprintf("results/null-model/%s/gender-permutation", country)
 	generated <- runPermutate(ci, folderName, "permutate-gender", country, k=k, forceGenerate=T)
-	# ci.segregation <- segregation(ci, country, log=F)
+	# segregation() is crucial, the others need male and female popularity,
+	ci <- segregation(ci, country, log=F)
 
-	getBootstrappedStatistics(ci, generated, k, alpha=0.01)
+	categoryStats <- getBootstrappedStatistics(ci, generated, k, alpha=0.01)
+	locationStats <- testObservationWithNullModel(ci, generated, folderName, country, k, PLOT_ANOM_DIST=T)
+	return(list(categoryStats=categoryStats, locationStats=locationStats))
 }
 
 resampleIfTooMuchCheckIns <- function(ci) {
