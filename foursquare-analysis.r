@@ -650,7 +650,7 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
                       isAnomalous=isAnomalous))
 
   }
-  allLocationStats <- rbindlist( lapply(seq(nUniqueLocations), locationStats) )
+  allLocationStats <- rbindlist( mclapply(seq(nUniqueLocations), locationStats, mc.cores=N_CORES) )
 
   summary_ <- allLocationStats[, list(nAnomalous=sum(isAnomalous),
                                      nLocations=length(idLocal),
