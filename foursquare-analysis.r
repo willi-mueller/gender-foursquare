@@ -699,10 +699,14 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha) {
       eucDistSubc = ( observed.eucDistSubc < percentiles.eucDistSubc[[1]] | observed.eucDistSubc > percentiles.eucDistSubc[[2]] ),
       eucDistSubcLowerQuantile = percentiles.eucDistSubc[[1]],
       eucDistSubcUpperQuantile = percentiles.eucDistSubc[[2]],
+      eucDistSubcGenMean = mean(statsForSubc$eucDistSubc),
+      eucDistSubcGenMedian = median(statsForSubc$eucDistSubc),
 
       eucDistSubcPop = ( observed.eucDistSubcPop < percentiles.eucDistSubcPop[[1]] | observed.eucDistSubcPop > percentiles.eucDistSubcPop[[2]] ),
       eucDistSubcPopLowerQuantile = percentiles.eucDistSubcPop[[1]],
-      eucDistSubcPopUpperQuantile = percentiles.eucDistSubcPop[[2]]
+      eucDistSubcPopUpperQuantile = percentiles.eucDistSubcPop[[2]],
+      eucDistSubcPopGenMean = mean(statsForSubc$eucDistSubcPop),
+      eucDistSubcPopGenMedian = median(statsForSubc$eucDistSubcPop)
     )
   }
   statsPerSubc <- genStats[, .SD[1], by=subcategory]
@@ -710,9 +714,11 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha) {
 
   isAnomalous.eucDistSubc <- unlist(lapply(isAnomalous, function(x)x$eucDistSubc))
 
-  statsPerSubc$eucDistSubcIsAnomalous <- isAnomalous.eucDistSubc
   statsPerSubc$eucDistSubcLowerQuantile <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcLowerQuantile))
   statsPerSubc$eucDistSubcUpperQuantile <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcUpperQuantile))
+  statsPerSubc$eucDistSubcPopGenMean <-  unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopGenMean))
+  statsPerSubc$eucDistSubcPopGenMedian <-  unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopGenMedian))
+  statsPerSubc$eucDistSubcIsAnomalous <- isAnomalous.eucDistSubc
 
   nAnomalous <- length(isAnomalous.eucDistSubc[isAnomalous.eucDistSubc==TRUE])
   percOfAnomalousSubc <- nAnomalous/nSubcategories
@@ -722,6 +728,8 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha) {
 
   statsPerSubc$eucDistSubcPopLowerQuantile <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopLowerQuantile))
   statsPerSubc$eucDistSubcPopUpperQuantile <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopUpperQuantile))
+  statsPerSubc$eucDistSubcPopGenMean <-  unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopGenMean))
+  statsPerSubc$eucDistSubcPopGenMedian <-  unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopGenMedian))
   statsPerSubc$eucDistSubcPopIsAnomalous <- isAnomalous.eucDistSubcPop
 
   nAnomalous2 <- length(isAnomalous.eucDistSubcPop[isAnomalous.eucDistSubcPop==TRUE])
