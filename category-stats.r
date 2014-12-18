@@ -66,7 +66,7 @@ readCheckIns <- function(f, thresh=THRESH) {
 calculateStats <- function(ci, country) {
 	ci <- resampleIfTooMuchCheckIns(ci)
 	folderName <- sprintf("results/null-model/%s/gender-permutation", country)
-	generated <- runPermutate(ci, folderName, "permutate-gender", country, k=k, forceGenerate=FALSE)
+	generated <- runPermutate(ci, folderName, "permutate-gender", country, k=k, forceGenerate=T)
 	# ci.segregation <- segregation(ci, country, log=F)
 
 	getBootstrappedStatistics(ci, generated, k, alpha=0.01)
