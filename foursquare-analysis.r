@@ -544,6 +544,7 @@ runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=
     message("Generating check-ins for ", regionName)
     gen.segregation <- rbindlist( mclapply(seq(k), calc, mc.cores=N_CORES), use.names=TRUE)
 
+    stopifnot(length(unique(gen.segregation$iterPermutation))==k)
     message("Generated ", regionName, ". Writing…")
     write.table(gen.segregation, generatedFile, sep="\t", row.names=FALSE)
     message("Wrote generated segregation of ", regionName, " to ", generatedFile)
@@ -555,7 +556,11 @@ runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=
 permutateGender <- function(checkIns) {
   # Expects only a single check-in per user per local
   # TODO: shuffle gender of USERS not check-ins
-  checkIns[, gender:=sample(checkIns[, gender])]
+
+# this copy() is important!! If removed,
+# iterPermutation will have N_CORE distinct values
+  copy(checkIns)[, gender:=sample(checkIns[, gender])]
+
 }
 
 
