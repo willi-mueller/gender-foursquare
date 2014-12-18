@@ -836,9 +836,7 @@ plotCategoryDist <- function(folderName, sortedCategories,
                              percentiles, categoryIndex) {
   filename <- sprintf("%s/anomalous-category-%s.pdf", folderName, sortedCategories[categoryIndex])
   pdf(filename)
-  hist(c(categoryDistDistribution[[categoryIndex]], observedDist[i]), main="Histogram of gender distance", xlab="gender distance",
-       sub=sprintf("%s: %s, distance: %s, anomalous with alpha=%s, k=%s",
-                paste(catOrSubCat), sortedCategories[categoryIndex], signif(observedDist[categoryIndex]), alpha, k))
+  hist(c(categoryDistDistribution[[categoryIndex]], observedDist[i]), xlab="gender distance")
   abline(v=percentiles[[categoryIndex]][1], col="green")
   abline(v=percentiles[[categoryIndex]][2], col="green")
   abline(v=observedDist[categoryIndex], col="blue")
