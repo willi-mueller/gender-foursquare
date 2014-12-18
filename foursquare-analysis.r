@@ -600,65 +600,72 @@ runGenerate <- function(checkIns, segregation, UNIFORM_LOCATION_PROBABILITY, UNI
   return(c(checkInFile, maleSegregationFile, femaleSegregationFile))
 }
 
-# testObservationWithNullModel <- function(observedSegregation, gen.segregation, folderName, regionName,
-#                                          k,
-#                                          UNIFORM_LOCATION_PROBABILITY=FALSE,
-#                                          UNIFORM_GENDER_PROBABILITY=FALSE,
-#                                          SEARCH_ANOMALOUS_LOCATIONS=TRUE,
-#                                          PLOT_ALL_DISTS=F, axeslim=SEGREGATION_AXES, alpha=0.01) {
-#   meanMalePopularities <- c()
-#   meanFemalePopularities <- c()
-#   uniqueLocations <- unique(gen.segregation$idLocal)
-#   nUniqueLocations <- length(uniqueLocations)
-#   anomalyCount <- 0
-#   for(i in seq(nUniqueLocations)) {
-#     location <- uniqueLocations[i]
-#     iterLocation <- gen.segregation[idLocal==location, ]
-#     malePopularity <- iterLocation[, .SD[1], by=iterPermutation]$maleCount
-#     femalePopularity <- iterLocation[, .SD[1], by=iterPermutation]$femaleCount
-#     meanMalePopularities <- c(meanMalePopularities, mean(malePopularity))
-#     meanFemalePopularities <- c(meanFemalePopularities, mean(femalePopularity))
+testObservationWithNullModel <- function(observedSegregation, gen.segregation, folderName, regionName,
+                                         k,
+                                         UNIFORM_LOCATION_PROBABILITY=FALSE,
+                                         UNIFORM_GENDER_PROBABILITY=FALSE,
+                                         SEARCH_ANOMALOUS_LOCATIONS=TRUE,
+                                         PLOT_ALL_DISTS=F, axeslim=SEGREGATION_AXES, alpha=0.01) {
+  meanMalePopularities <- c()
+  meanFemalePopularities <- c()
+  uniqueLocations <- unique(observedSegregation$idLocal)
+  nUniqueLocations <- length(uniqueLocations)
+  anomalyCount <- 0
+  for(i in seq(nUniqueLocations)) {
+    location <- uniqueLocations[i]
+    message("Analysing ", location)
+    iterLocation <- gen.segregation[idLocal==location, ]
+    malePopularity <- iterLocation[, .SD[1], by=iterPermutation]$maleCount
+    femalePopularity <- iterLocation[, .SD[1], by=iterPermutation]$femaleCount
+    meanMalePopularities <- c(meanMalePopularities, mean(malePopularity))
+    meanFemalePopularities <- c(meanFemalePopularities, mean(femalePopularity))
 
-#     if (SEARCH_ANOMALOUS_LOCATIONS) {
-#       empiricalDistance <- euclideanDistance(malePopularity, femalePopularity)
-#       percentile <- quantile(empiricalDistance, c(alpha/2, 1-alpha/2))
-#       observedMale <- observedSegregation[idLocal==location, ]$maleCount[[1]] # same value for each check-in
-#       observedFemale <- observedSegregation[idLocal==location, ]$femaleCount[[1]]
-#       observedDistance <- euclideanDistance(observedMale, observedFemale)
-#       if(observedDistance < percentile[1] | observedDistance > percentile[2]) {
-#         anomalyCount <- anomalyCount +1
-#         if(PLOT_ALL_DISTS) {
-#           filename <- sprintf("%s/anomalous-%s.pdf", folderName, location)
+    if (SEARCH_ANOMALOUS_LOCATIONS) {
+      empiricalDistance <- euclideanDistance(malePopularity, femalePopularity)
+      percentile <- quantile(empiricalDistance, c(alpha/2, 1-alpha/2))
+      observedMale <- observedSegregation[idLocal==location, ]$maleCount[[1]] # same value for each check-in
+      observedFemale <- observedSegregation[idLocal==location, ]$femaleCount[[1]]
+      observedDistance <- euclideanDistance(observedMale, observedFemale)
+      if(observedDistance < percentile[1] | observedDistance > percentile[2]) {
+        anomalyCount <- anomalyCount +1
+        if(PLOT_ALL_DISTS) {
+          filename <- sprintf("%s/anomalous-%s.csv", folderName, location)
+          write.table(data.table(idLocal=uniqueLocations[i],
+                                 empiricalDistance=empiricalDistance,
+                                 observedDistance=observedDistance), filename)
+          filename <- sprintf("%s/anomalous-%s.pdf", folderName, location)
 
-#           pdf(filename)
-#           hist(c(empiricalDistance, observedDistance), main="Histogram of gender distance", xlab="gender distance",
-#                sub=sprintf("Location: %s, subcategory: %s, distance: %s, anomalous with alpha=%s, k=%s",
-#                         location, iterLocation$subcategory, signif(observedDistance), alpha, k))
-#           abline(v=percentile[1], col="green")
-#           abline(v=percentile[2], col="green")
-#           abline(v=observedDistance, col="blue")
-#           dev.off()
-#         }
-#         message(sprintf("%s anomalous; after %s: %s of %s (%s%%) locations with observed anomalous segregation)",
-#               location, i, anomalyCount, nUniqueLocations,
-#               100*round(anomalyCount/nUniqueLocations,3)))
-#       }
-#     }
-#   }
-#   message(sprintf("%s of %s (%s%%) locations with observed anomalous segregation",
-#                   anomalyCount, nUniqueLocations,
-#                   100*round(anomalyCount/nUniqueLocations,3)))
-#   pdf(sprintf("%s/avg-segregation-generated-%s.pdf", folderName, regionName))
-#   plot(meanMalePopularities, meanFemalePopularities,
-#         main=sprintf("Gender separation in generated %s", regionName),
-#         sub=sprintf("uniform location: %s, uniform gender: %s, k=%s",
-#             UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY, k),
-#         xlim=axeslim, ylim=axeslim,
-#         xlab="Male Popularity", ylab="Female Popularity")
-#   abline(0, 1, col="red")
-#   dev.off()
-#   return(list(meanMalePopularities=meanMalePopularities, meanFemalePopularities=meanFemalePopularities))
-# }
+          pdf(filename)
+          hist(c(empiricalDistance, observedDistance), xlab="Segregation between genders")
+          abline(v=percentile[1], col="green")
+          abline(v=percentile[2], col="green")
+          abline(v=observedDistance, col="blue")
+          dev.off()
+        }
+        message(sprintf("%s anomalous; after %s: %s of %s (%s%%) locations with observed anomalous segregation)",
+              location, i, anomalyCount, nUniqueLocations,
+              100*round(anomalyCount/nUniqueLocations,3)))
+      }
+    }
+  }
+  message(sprintf("%s of %s (%s%%) locations with observed anomalous segregation",
+                  anomalyCount, nUniqueLocations,
+                  100*round(anomalyCount/nUniqueLocations,3)))
+  f <- sprintf("%s/avg-segregation-generated-%s.csv", folderName, regionName)
+  write.table(data.table(idLocal=uniqueLocations,
+                         meanMalePopularity=meanMalePopularities,
+                         meanFemalePopularity=meanFemalePopularities), f)
+  pdf(sprintf("%s/avg-segregation-generated-%s.pdf", folderName, regionName))
+  plot(meanMalePopularities, meanFemalePopularities,
+        main=sprintf("Gender separation in generated %s", regionName),
+        sub=sprintf("uniform location: %s, uniform gender: %s, k=%s",
+            UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY, k),
+        xlim=axeslim, ylim=axeslim,
+        xlab="Male Popularity", ylab="Female Popularity")
+  abline(0, 1, col="red")
+  dev.off()
+  return(list(meanMalePopularities=meanMalePopularities, meanFemalePopularities=meanFemalePopularities))
+}
 
 getBootstrappedStatistics <- function(observed, generated, k, alpha=0.01) {
   observedStats <- calculateCategoryStats(observed)
