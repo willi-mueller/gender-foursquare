@@ -539,11 +539,11 @@ runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=
       gen.checkIns[,iterPermutation:=i]
       segregation(gen.checkIns, regionName,
                   sub="permutating gender", log=log)
+      return(gen.checkIns)
     }
 
     message("Generating check-ins for ", regionName)
     gen.segregation <- rbindlist( mclapply(seq(k), calc, mc.cores=N_CORES), use.names=TRUE)
-
     stopifnot(length(unique(gen.segregation$iterPermutation))==k)
     message("Generated ", regionName, ". Writing…")
     write.table(gen.segregation, generatedFile, sep="\t", row.names=FALSE)
