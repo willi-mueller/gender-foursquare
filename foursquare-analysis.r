@@ -603,7 +603,7 @@ runGenerate <- function(checkIns, segregation, UNIFORM_LOCATION_PROBABILITY, UNI
 testObservationWithNullModel <- function(observedSegregation, gen.segregation, folderName, regionName,
                                          k,
                                          SEARCH_ANOMALOUS_LOCATIONS=TRUE,
-                                         PLOT_ALL_DISTS=F, axeslim=SEGREGATION_AXES, alpha=0.01) {
+                                         PLOT_ANOM_DIST=F, axeslim=SEGREGATION_AXES, alpha=0.01) {
   meanMalePopularities <- c()
   meanFemalePopularities <- c()
   uniqueLocations <- unique(observedSegregation$idLocal)
@@ -626,7 +626,7 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
       observedDistance <- euclideanDistance(observedMale, observedFemale)
       isAnomalous <- ( observedDistance < percentile[1] | observedDistance > percentile[2] )
       if(isAnomalous) {
-        if(PLOT_ALL_DISTS) {
+        if(PLOT_ANOM_DIST) {
           filename <- sprintf("%s/anomalous-%s.csv", folderName, location)
           write.table(data.table(idLocal=uniqueLocations[i],
                                  empiricalDistance=empiricalDistance,
@@ -990,7 +990,7 @@ readGeneratedDataAndPlot <- function(segregationFile, folderName, regionName,
   gen.segregation$femaleCIR <- read.csv(femalePopularityFile)
   testObservationWithNullModel(gen.segregation, folderName, regionName,
                                UNIFORM_GENDER_PROBABILITY, UNIFORM_LOCATION_PROBABILITY,
-                               SEARCH_ANOMALOUS_LOCATIONS=F, PLOT_ALL_DISTS=F)
+                               SEARCH_ANOMALOUS_LOCATIONS=F, PLOT_ANOM_DISTS=F)
 }
 
 checkInsInlocationsWithMinimumCheckIns <- function(checkIns, n=5) {
