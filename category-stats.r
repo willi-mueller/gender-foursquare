@@ -55,7 +55,7 @@ readCheckIns <- function(f, thresh=THRESH) {
 			setnames(ci, 1:12, c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
 		              "subcategory", "category", "country", "city", "district", "gender", "timeOffset"))
 
-			filtered <- cleanData(ci)
+			filtered <- cleanData(ci, substitutionRules)
 			stopifnot(length(unique(filtered$gender)) == 2 ) # only male and female
 			if(nrow(filtered) > thresh) {
 				return(combineEquivalentSubCategories(filtered, substitutionRules))
