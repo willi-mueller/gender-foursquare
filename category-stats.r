@@ -96,4 +96,9 @@ resampleIfTooMuchCheckIns <- function(ci) {
 # Run
 #############
 
-collectStatisticsForRanking()
+#	collectStatisticsForRanking()
+
+
+#if(interactive()) {
+#	collectStatisticsForRanking()
+#}
