@@ -775,14 +775,6 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha) {
   return(statsPerSubc)
 }
 
-calculateLocationStats <- function(checkIns) {
-  ci <- euclideanDistanceForLocation(checkIns)
-}
-
-statsOfObservation <- function(observed, generated) {
-  categoryStats(observed)
-}
-
 OUTDATED_testObservationWithNullModelForCategories <- function(observedSegregation, gen.segregation, folderName, regionName,
                                                     k,
                                                     UNIFORM_LOCATION_PROBABILITY=FALSE,
