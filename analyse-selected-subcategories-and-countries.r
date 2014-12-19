@@ -14,6 +14,17 @@ source("analysis/category-stats.r")
 
 # allci <- fread("results/cleaned-check-ins-1000.csv")
 
+pickCIinTopLocations <- function(ci, topN) {
+	topCI <- data.table()
+	subc <- unique(ci$subcategory)
+	for(s in subc) {
+		x <- ci[subcategory==s]
+		locations <- x[, list(n=.N), by=idLocal][order(-n)][1:topN]$idLocal
+		topCI <- rbindlist( list(topCI, x[idLocal %in% locations]) )
+	}
+	return(topCI)
+}
+
 countryFileNames <- c("Brazil", "United-States", "Indonesia", "Turkey", "Japan", "Saudi-Arabia", "Russia")
 allci <- rbindlist( mclapply(countryFileNames, function(x) {
 	readCheckIns(sprintf("paises/%s.dat", x))
@@ -73,18 +84,6 @@ stats <- rbindlist( lapply( countries, function(countryStr){
 } ) )
 
 write.table(stats, sprintf("%s/selected-stats.csv",mainFolder))
-
-
-pickCIinTopLocations <- function(ci, topN) {
-	topCI <- data.table()
-	subc <- unique(ci$subcategory)
-	for(s in subc) {
-		x <- ci[subcategory==s]
-		locations <- x[, list(n=.N), by=idLocal][order(-n)][1:topN]$idLocal
-		topCI <- rbindlist( list(topCI, x[idLocal %in% locations]) )
-	}
-	return(topCI)
-}
 
 ######## TODO
 # Pub == Bar?
