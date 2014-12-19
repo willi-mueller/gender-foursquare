@@ -80,7 +80,7 @@ getCheckInsInCountry <- function(countryCheckIns, substitutionRules, countryUser
 cleanData <- function(ci) {
   ci <- ci[gender== "male" | gender=="female", ]
   ci<- oneCheckInForUserAndLocation(ci)
-  ci <- checkInsInlocationsWithMinimumCheckIns(ci, n=5)
+  return(checkInsInlocationsWithMinimumCheckIns(ci, n=5))
 }
 
 oneCheckInForUserAndLocation <- function(checkIns) {
