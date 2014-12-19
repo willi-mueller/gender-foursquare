@@ -67,7 +67,7 @@ run <- function(allci, TOP_N, k, AXES, MAIN_FOLDER) {
 	message("In top locations ", nrow(topCI), " check-ins") # = 14316
 	print(genderDist)
 
-	stats <- rbindlist( lapply( countries, function(countryStr){
+	stats <- rbindlist( mclapply( countries, function(countryStr){
 		folder <- sprintf("%s/%s", MAIN_FOLDER, countryStr)
 		dir.create(folder)
 		countryCI <- topCI[country==countryStr]
@@ -79,7 +79,7 @@ run <- function(allci, TOP_N, k, AXES, MAIN_FOLDER) {
 		permutationStats <- testObservationWithNullModel(seg, gen, folder , countryStr, k=k,
 														 PLOT_ANOM_DIST=T, axeslim=AXES)
 		return( permutationStats )
-	}) )
+	}, mc.cores=N_CORES) )
 
 	write.table(stats, sprintf("%s/selected-locations-stats-top-%s.csv",MAIN_FOLDER, TOP_N), sep="\t")
 	nAnomalousPerCountry <- stats[, list(nAnomalous=length(isAnomalous[isAnomalous==T])), by=country][order(nAnomalous)]
