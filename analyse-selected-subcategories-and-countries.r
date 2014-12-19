@@ -53,7 +53,7 @@ run <- function(allci, TOP_N, k, AXES, MAIN_FOLDER) {
 	message("Chose subcategories: ", chosenSubc)
 
 	chosenSubcCI <- selectedCI[subcategory %in% chosenSubc]
-	message("Analysing ", nrow(chosenSubcCI), " check-ins") #== 187851
+	message("Analysing ", nrow(chosenSubcCI), " check-ins")
 
 
 	topCI <- lapply(countries, function(countryStr) {
@@ -64,7 +64,7 @@ run <- function(allci, TOP_N, k, AXES, MAIN_FOLDER) {
 
 	nGenderCheckIns <- topCI[,list(nCheckIns=.N), by=list(country, gender)]
 	write.table(nGenderCheckIns, sprintf("%s/gender-check-ins-for-selected-subcategories-and-countries-top-%s.csv", MAIN_FOLDER, TOP_N))
-	message("In top locations ", nrow(topCI), " check-ins") # = 14316
+	message("In top locations ", nrow(topCI), " check-ins")
 	print(nGenderCheckIns)
 
 	stats <- rbindlist( lapply( countries, function(countryStr){
@@ -82,9 +82,12 @@ run <- function(allci, TOP_N, k, AXES, MAIN_FOLDER) {
 	}) )
 
 	write.table(stats, sprintf("%s/selected-locations-stats-top-%s.csv",MAIN_FOLDER, TOP_N), sep="\t")
-	nAnomalousPerCountry <- stats[, list(nAnomalous=length(isAnomalous[isAnomalous==T])), by=country][order(nAnomalous)]
-	write.table(nAnomalousPerCountry, sprintf("%s/n-anomalous-per-country-select-top-%s-locations.csv",MAIN_FOLDER, TOP_N), sep="\t")
-	print(nAnomalousPerCountry)
+
+	anomalyRanking <- stats[, list( nAnomalous= length(isAnomalous[isAnomalous==T]),
+									percAnomalous= length(isAnomalous[isAnomalous==T]) / length(unique(idLocal)) ),
+	 						by=list(country)][order(percAnomalous)]
+	write.table(anomalyRanking, sprintf("%s/ranking-select-top-%s-locations.csv", MAIN_FOLDER, TOP_N), sep="\t")
+	print(anomalyRanking)
 }
 
 countryFileNames <- c("Brazil", "United-States", "Indonesia", "Turkey", "Japan", "Singapore", "Saudi-Arabia", "Russia")
