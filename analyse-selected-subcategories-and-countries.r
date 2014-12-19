@@ -1,3 +1,4 @@
+source('analysis/foursquare-analysis.r')
 source("analysis/category-stats.r")
 # subcstats <- catstats[, list(subc=unique(subcategory)), by=country]
 # allSubc <- list()
