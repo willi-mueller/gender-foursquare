@@ -97,7 +97,7 @@ allci <- rbindlist( mclapply(countryFileNames, function(x) {
 	}, mc.cores=N_CORES))
 
 for(n in c(10, 7, 5)) {
-	for(k in c(2000) {
+	for(k in c(2000)) {
 		run(allci, n, k, AXES, sprintf("%s/n%s-k%s", MAIN_FOLDER, n, k))
 	}
 }
