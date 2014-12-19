@@ -33,7 +33,7 @@ k <- 1000
 
 run <- function(allci, TOP_N, k, AXES, MAIN_FOLDER) {
 
-	countries <- c("Brazil", "United States", "Indonesia", "Turkey", "Japan", "Saudi Arabia", "Russia")
+	countries <- c("Brazil", "United States", "Indonesia", "Turkey", "Singapore", "Japan", "Saudi Arabia", "Russia")
 
 	stopifnot( all(allci[, list(n=.N), by=idLocal]$n >= 5) )
 
@@ -87,7 +87,7 @@ run <- function(allci, TOP_N, k, AXES, MAIN_FOLDER) {
 	print(nAnomalousPerCountry)
 }
 
-countryFileNames <- c("Brazil", "United-States", "Indonesia", "Turkey", "Japan", "Saudi-Arabia", "Russia")
+countryFileNames <- c("Brazil", "United-States", "Indonesia", "Turkey", "Japan", "Singapore", "Saudi-Arabia", "Russia")
 
 allci <- rbindlist( mclapply(countryFileNames, function(x) {
 	readAndFilterCheckIns(sprintf("paises/%s.dat", x))
