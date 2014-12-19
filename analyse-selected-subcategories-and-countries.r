@@ -63,7 +63,7 @@ run <- function(TOP_N, k, AXES, MAIN_FOLDER) {
 	topCI <- lapply(countries, function(countryStr) {
 									countryCI <- chosenSubcCI[country==countryStr]
 									pickCIinTopLocations(countryCI,  TOP_N)
-								}) )
+								})
 	topCI <- rbindlist(topCI)
 
 	genderDist <- topCI[,list(nCheckIns=.N), by=list(country, gender)]
