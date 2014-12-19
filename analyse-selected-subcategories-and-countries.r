@@ -28,8 +28,8 @@ pickCIinTopLocations <- function(ci, topN) {
 
 AXES = c(0, 0.5)
 MAIN_FOLDER <- "results/null-model/selected-subcategories-and-countries"
-TOP_N <- 5
-k <- 2000
+TOP_N <- c(5, 10)
+k <- c(1000, 2000)
 
 run <- function(allci, TOP_N, k, AXES, MAIN_FOLDER) {
 
@@ -93,8 +93,10 @@ allci <- rbindlist( mclapply(countryFileNames, function(x) {
 	readAndFilterCheckIns(sprintf("paises/%s.dat", x))
 	}, mc.cores=N_CORES))
 
-for(n in c(3, 5, 10)) {
-	run(allci, n, k, AXES, MAIN_FOLDER)
+for(n in c(5, 10)) {
+	for(k in 1000, 2000) {
+		run(allci, n, k, AXES, sprintf("%s/n%s-k%s", MAIN_FOLDER, n, k))
+	}
 }
 ######## TODO
 # Pub == Bar?
