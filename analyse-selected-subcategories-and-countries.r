@@ -62,10 +62,10 @@ run <- function(allci, TOP_N, k, AXES, MAIN_FOLDER) {
 								})
 	topCI <- rbindlist(topCI)
 
-	genderDist <- topCI[,list(nCheckIns=.N), by=list(country, gender)]
-	write.table(genderDist, sprintf("%s/gender-check-ins-for-selected-subcategories-and-countries-top-%s.csv", MAIN_FOLDER, TOP_N))
+	nGenderCheckIns <- topCI[,list(nCheckIns=.N), by=list(country, gender)]
+	write.table(nGenderCheckIns, sprintf("%s/gender-check-ins-for-selected-subcategories-and-countries-top-%s.csv", MAIN_FOLDER, TOP_N))
 	message("In top locations ", nrow(topCI), " check-ins") # = 14316
-	print(genderDist)
+	print(nGenderCheckIns)
 
 	stats <- rbindlist( lapply( countries, function(countryStr){
 		folder <- sprintf("%s/%s", MAIN_FOLDER, countryStr)
