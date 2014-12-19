@@ -50,7 +50,7 @@ chosenSubcCI <- selectedCI[subcategory %in% chosenSubc]
 nrow(chosenSubcCI) #== 187851
 
 TOP_N <- 5
-k <- 100
+k <- 1000
 
 topCI <- rbindlist( lapply(countries, function(countryStr) {
 												countryCI <- chosenSubcCI[country==countryStr]
@@ -81,7 +81,7 @@ stats <- rbindlist( lapply( countries, function(countryStr){
 				 k=k, forceGenerate=T)
 
 	return( testObservationWithNullModel(seg, gen, folder , countryStr, k=k, PLOT_ANOM_DIST=T ) )
-} ) )
+}) )
 
 write.table(stats, sprintf("%s/selected-stats.csv",mainFolder))
 
