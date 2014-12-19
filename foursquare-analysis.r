@@ -58,6 +58,29 @@ getTopNCategories <- function(group1, group2, N, method="most popular"){
   group1Top <- group1[topN,]
   return(list(group1=group1Top, group2=group2Top))
 }
+#################
+# Read Data
+################
+
+readCheckIns <- function(f, thresh=THRESH) {
+  cc <- list(integer=c(1, 12), character=c(2, seq(5, 11)), numeric=c(3, 4))
+  ci <- try(fread(f, header=F, sep="\t", stringsAsFactors=FALSE, colClasses=cc))
+  if(length(ci)>2) {
+    if(nrow(ci) < thresh) {
+      message("< ", thresh, " check-ins")
+    } else {
+      setnames(ci, 1:12, c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
+                  "subcategory", "category", "country", "city", "district", "gender", "timeOffset"))
+
+      filtered <- cleanData(ci, substitutionRules)
+      stopifnot(length(unique(filtered$gender)) == 2 ) # only male and female
+      if(nrow(filtered) > thresh) {
+        return(combineEquivalentSubCategories(filtered, substitutionRules))
+      }
+    }
+  }
+  return(data.table())
+}
 
 getCheckInsInCountry <- function(countryCheckIns, substitutionRules, countryUsers, userLocalFilter) {
   ci <- readCheckIns(countryCheckIns)
