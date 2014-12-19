@@ -27,7 +27,7 @@ pickCIinTopLocations <- function(ci, topN) {
 }
 
 AXES = c(0, 0.5)
-MAIN_FOLDER <- "results/null-model/selected-subcategories-and-countries"
+MAIN_FOLDER <- "results/null-model/selected-subcategories-and-countries/difference"
 TOP_N <- c(5, 10)
 k <- c(1000, 2000)
 
