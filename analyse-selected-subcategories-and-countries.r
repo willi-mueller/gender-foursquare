@@ -1,5 +1,5 @@
 source('analysis/foursquare-analysis.r')
-source("analysis/category-stats.r")
+
 # subcstats <- catstats[, list(subc=unique(subcategory)), by=country]
 # allSubc <- list()
 # for(i in seq(length(unique(subcstats$country)))) {
@@ -14,6 +14,7 @@ source("analysis/category-stats.r")
 
 # allci <- fread("results/cleaned-check-ins-1000.csv")
 
+
 pickCIinTopLocations <- function(ci, topN) {
 	topCI <- data.table()
 	subc <- unique(ci$subcategory)
@@ -24,6 +25,10 @@ pickCIinTopLocations <- function(ci, topN) {
 	}
 	return(topCI)
 }
+
+MAIN_FOLDER <- "results/null-model/selected-subcategories-and-countries"
+TOP_N <- 5
+k <- 1000
 
 countryFileNames <- c("Brazil", "United-States", "Indonesia", "Turkey", "Japan", "Saudi-Arabia", "Russia")
 allci <- rbindlist( mclapply(countryFileNames, function(x) {
@@ -38,10 +43,10 @@ subc <- Reduce(intersect, selectedCI[, .(list(unique(subcategory))), country]$V1
 selectedCI <- selectedCI[subcategory %in% subc]
 
 nCheckInsStats <- selectedCI[, list(n=length(idUserFoursquare)), by=list(country, idLocal, subcategory)][order(country, subcategory)]
-write.table(nCheckInsStats, "results/n-checkIns-for-selected-subc-locations.csv", row.names=F, sep="\t")
+write.table(nCheckInsStats, sprintf("%s/n-checkIns-for-selected-subc-locations.csv", MAIN_FOLDER), row.names=F, sep="\t")
 
 nLocationsStats <- selectedCI[, list(nLocations=length(unique(idLocal))),by=list(subcategory, country)][order(subcategory, country)]
-write.table(nLocationsStats, "results/n-locations-for-selected-subc.csv", row.names=F, sep="\t")
+write.table(nLocationsStats, sprintf("%s/n-locations-for-selected-subc.csv", MAIN_FOLDER), row.names=F, sep="\t")
 
 chosenSubcStats <- nLocationsStats[, .SD[all(nLocations>20)],by=subcategory]
 chosenSubc <- unique(chosenSubcStats$subcategory)
@@ -49,8 +54,7 @@ chosenSubc <- unique(chosenSubcStats$subcategory)
 chosenSubcCI <- selectedCI[subcategory %in% chosenSubc]
 nrow(chosenSubcCI) #== 187851
 
-TOP_N <- 5
-k <- 1000
+
 
 topCI <- rbindlist( lapply(countries, function(countryStr) {
 												countryCI <- chosenSubcCI[country==countryStr]
@@ -58,20 +62,12 @@ topCI <- rbindlist( lapply(countries, function(countryStr) {
 											}) )
 nrow(topCI) # = 14316
 
-topCI[, .N,by=country]
-#          country    N
-# 1:        Brazil 1450
-# 2: United States  251
-# 3:     Indonesia  834
-# 4:        Turkey 9801
-# 5:         Japan  448
-# 6:  Saudi Arabia  863
-# 7:        Russia  669
+genderDist <- topCI[,list(nCheckIns=.N), by=list(country, gender)]
+write.table(genderDist, sprintf("%s/gender-check-ins-for-selected-subcategories-and-countries.csv", MAIN_FOLDER)
 
-mainFolder <- "results/null-model/selected-subcategories-and-countries"
 
 stats <- rbindlist( lapply( countries, function(countryStr){
-	folder <- sprintf("%s/%s", mainFolder, countryStr)
+	folder <- sprintf("%s/%s", MAIN_FOLDER, countryStr)
 	dir.create(folder)
 	countryCI <- topCI[country==countryStr]
 	seg <- segregation(countryCI, countryStr, log=T)
@@ -83,7 +79,7 @@ stats <- rbindlist( lapply( countries, function(countryStr){
 	return( testObservationWithNullModel(seg, gen, folder , countryStr, k=k, PLOT_ANOM_DIST=T ) )
 }) )
 
-write.table(stats, sprintf("%s/selected-stats.csv",mainFolder))
+write.table(stats, sprintf("%s/selected-stats.csv",MAIN_FOLDER), sep="\t")
 
 ######## TODO
 # Pub == Bar?
