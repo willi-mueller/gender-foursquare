@@ -36,8 +36,8 @@ collectStatisticsForRanking <- function() {
 	#categoryStats <<- rbindlist(categoryStats) # filter not NA/NULL elements
 	#save.image()
 	print(categoryStats)
-	write.table(locationStats, "results/null-model/location-stats-selected-countries-unified-subc.csv", sep="\t", row.names=FALSE)
-	write.table(categoryStats, "results/null-model/category-stats-selected-countries-unified-subc.csv", sep="\t", row.names=FALSE)
+	write.table(locationStats, "results/null-model/location-stats-all-countries-unified-subc.csv", sep="\t", row.names=FALSE)
+	write.table(categoryStats, "results/null-model/category-stats-all-countries-unified-subc.csv", sep="\t", row.names=FALSE)
 	write.table(allCheckIns, "results/cleaned-check-ins-1000.csv", sep="\t", row.names=FALSE)
 }
 
