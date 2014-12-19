@@ -31,7 +31,7 @@ MAIN_FOLDER <- "results/null-model/selected-subcategories-and-countries"
 TOP_N <- 5
 k <- 1000
 
-run <- function(TOP_N, k) {
+run <- function(TOP_N, k, AXES, MAIN_FOLDER) {
 	countryFileNames <- c("Brazil", "United-States", "Indonesia", "Turkey", "Japan", "Saudi-Arabia", "Russia")
 
 	allci <- rbindlist( mclapply(countryFileNames, function(x) {
@@ -92,7 +92,7 @@ run <- function(TOP_N, k) {
 }
 
 for(n in c(3, 5, 10))
-	run(n, k)
+	run(n, k, AXES, MAIN_FOLDER)
 
 ######## TODO
 # Pub == Bar?
