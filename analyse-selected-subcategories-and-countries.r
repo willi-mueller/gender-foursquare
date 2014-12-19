@@ -77,7 +77,7 @@ run <- function(TOP_N, k) {
 		countryCI <- topCI[country==countryStr]
 		seg <- segregation(countryCI, countryStr, log=T, axeslim=AXES)
 		gen <- 	runPermutate(countryCI, folder,
-							 sprintf("%s-selected-permutated", countryStr),
+							 sprintf("%s-selected-permutated-top", countryStr),
 							 countryStr,
 							 k=k, forceGenerate=T)
 		permutationStats <- testObservationWithNullModel(seg, gen, folder , countryStr, k=k,
@@ -85,7 +85,7 @@ run <- function(TOP_N, k) {
 		return( permutationStats )
 	}) )
 
-	write.table(stats, sprintf("%s/selected-stats.csv",MAIN_FOLDER), sep="\t")
+	write.table(stats, sprintf("%s/selected-locations-stats-top-%s.csv",MAIN_FOLDER, TOP_N), sep="\t")
 	nAnomalousPerCountry <- stats[, list(nAnomalous=length(isAnomalous[isAnomalous==T])), by=country][order(nAnomalous)]
 	write.table(nAnomalousPerCountry, sprintf("%s/n-anomalous-per-country-select-top-%s-locations.csv",MAIN_FOLDER, TOP_N), sep="\t")
 	print(nAnomalousPerCountry)
