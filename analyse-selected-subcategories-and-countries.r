@@ -98,7 +98,9 @@ allci <- rbindlist( mclapply(countryFileNames, function(x) {
 
 for(n in c(10, 7, 5)) {
 	for(k in c(2000)) {
-		run(allci, n, k, AXES, sprintf("%s/n%s-k%s", MAIN_FOLDER, n, k))
+		folder <- sprintf("%s/n%s-k%s", MAIN_FOLDER, n, k)
+		dir.create(folder, recursive=T)
+		run(allci, n, k, AXES, folder)
 	}
 }
 ######## TODO
