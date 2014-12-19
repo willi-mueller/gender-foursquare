@@ -55,7 +55,6 @@ chosenSubcCI <- selectedCI[subcategory %in% chosenSubc]
 nrow(chosenSubcCI) #== 187851
 
 
-
 topCI <- rbindlist( lapply(countries, function(countryStr) {
 												countryCI <- chosenSubcCI[country==countryStr]
 												pickCIinTopLocations(countryCI,  TOP_N)
@@ -80,6 +79,8 @@ stats <- rbindlist( lapply( countries, function(countryStr){
 }) )
 
 write.table(stats, sprintf("%s/selected-stats.csv",MAIN_FOLDER), sep="\t")
+nAnomalousPerCountry <- stats[, list(nAnomalous=length(isAnomalous[isAnomalous==T])), by=country][order(nAnomalous)]
+write.table(nAnomalousPerCountry, sprintf("%s/n-anomalous-per-country.csv",MAIN_FOLDER), sep="\t")
 
 ######## TODO
 # Pub == Bar?
