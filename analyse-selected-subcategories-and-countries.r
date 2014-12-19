@@ -47,9 +47,9 @@ run <- function(allci, TOP_N, k, AXES, MAIN_FOLDER) {
 	nLocationsStats <- selectedCI[, list(nLocations=length(unique(idLocal))),by=list(subcategory, country)][order(subcategory, country)]
 	write.table(nLocationsStats, sprintf("%s/n-locations-for-selected-subc-top%s.csv", MAIN_FOLDER, TOP_N), row.names=F, sep="\t")
 
-	chosenSubcStats <- nLocationsStats[, .SD[all(nLocations>20)],by=subcategory]
-	chosenSubc <- unique(chosenSubcStats$subcategory)
-
+	# chosenSubcStats <- nLocationsStats[, .SD[all(nLocations>20)],by=subcategory]
+	# chosenSubc <- unique(chosenSubcStats$subcategory)
+	chosenSubc <- c("Mall", "University", "Café")
 	message("Chose subcategories: ", chosenSubc)
 
 	chosenSubcCI <- selectedCI[subcategory %in% chosenSubc]
@@ -101,12 +101,3 @@ for(n in c(5, 10)) {
 ######## TODO
 # Pub == Bar?
 # Cafeteria == Café?
-
-
-
-
-
-
-
-
-
