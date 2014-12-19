@@ -31,12 +31,8 @@ MAIN_FOLDER <- "results/null-model/selected-subcategories-and-countries"
 TOP_N <- 5
 k <- 1000
 
-run <- function(TOP_N, k, AXES, MAIN_FOLDER) {
-	countryFileNames <- c("Brazil", "United-States", "Indonesia", "Turkey", "Japan", "Saudi-Arabia", "Russia")
+run <- function(allci, TOP_N, k, AXES, MAIN_FOLDER) {
 
-	allci <- rbindlist( mclapply(countryFileNames, function(x) {
-		readCheckIns(sprintf("paises/%s.dat", x))
-		}, mc.cores=N_CORES))
 	countries <- c("Brazil", "United States", "Indonesia", "Turkey", "Japan", "Saudi Arabia", "Russia")
 
 	stopifnot( all(allci[, list(n=.N), by=idLocal]$n >= 5) )
@@ -91,9 +87,15 @@ run <- function(TOP_N, k, AXES, MAIN_FOLDER) {
 	print(nAnomalousPerCountry)
 }
 
-for(n in c(3, 5, 10))
-	run(n, k, AXES, MAIN_FOLDER)
+countryFileNames <- c("Brazil", "United-States", "Indonesia", "Turkey", "Japan", "Saudi-Arabia", "Russia")
 
+allci <- rbindlist( mclapply(countryFileNames, function(x) {
+	readCheckIns(sprintf("paises/%s.dat", x))
+	}, mc.cores=N_CORES))
+
+for(n in c(3, 5, 10)) {
+	run(checkIns, n, k, AXES, MAIN_FOLDER)
+}
 ######## TODO
 # Pub == Bar?
 # Cafeteria == Café?
