@@ -29,7 +29,7 @@ pickCIinTopLocations <- function(ci, topN) {
 AXES = c(0, 0.5)
 MAIN_FOLDER <- "results/null-model/selected-subcategories-and-countries"
 TOP_N <- 5
-k <- 1000
+k <- 2000
 
 run <- function(allci, TOP_N, k, AXES, MAIN_FOLDER) {
 
