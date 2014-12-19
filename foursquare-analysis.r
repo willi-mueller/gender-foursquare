@@ -638,8 +638,8 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
     meanFemalePopularities <- c(meanFemalePopularities, mean(femalePopularity))
 
     if (SEARCH_ANOMALOUS_LOCATIONS) {
-      empiricalDistance <- euclideanDistance(malePopularity, femalePopularity)
-      percentile <- quantile(empiricalDistance, c(alpha/2, 1-alpha/2))
+      empiricalEuclidDistance <- euclideanDistance(malePopularity, femalePopularity)
+      percentile <- quantile(empiricalEuclidDistance, c(alpha/2, 1-alpha/2))
       observedMale <- observedSegregation[idLocal==location, ]$maleCount[[1]] # same value for each check-in
       observedFemale <- observedSegregation[idLocal==location, ]$femaleCount[[1]]
       observedDistance <- euclideanDistance(observedMale, observedFemale)
@@ -648,12 +648,12 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
         if(PLOT_ANOM_DIST) {
           filename <- sprintf("%s/anomalous-%s.csv", folderName, location)
           write.table(data.table(idLocal=uniqueLocations[i],
-                                 empiricalDistance=empiricalDistance,
+                                 empiricalEuclidDistance=empiricalEuclidDistance,
                                  observedDistance=observedDistance), filename)
           filename <- sprintf("%s/anomalous-%s.pdf", folderName, location)
 
           pdf(filename)
-          hist(c(empiricalDistance, observedDistance), xlab="Segregation between genders")
+          hist(c(empiricalEuclidDistance, observedDistance), xlab=NULL, main=NULL)
           abline(v=percentile[1], col="green")
           abline(v=percentile[2], col="green")
           abline(v=observedDistance, col="blue")
@@ -674,7 +674,7 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
   summary_ <- allLocationStats[, list(nAnomalous=sum(isAnomalous),
                                      nLocations=length(idLocal),
                                      percAnomalous=length(isAnomalous[isAnomalous==T])/length(isAnomalous))]
-  message(sprintf("%s of %s (%s%%) locations with observed anomalous segregation",
+  message(sprintf("Distance to diagonal: %s of %s (%s%%) locations with observed anomalous segregation",
                   summary_$nAnomalous, summary_$nLocations,
                   round(100*summary_$percAnomalous, 3)))
   f <- sprintf("%s/location-stats-generated-%s.csv", folderName, regionName)
