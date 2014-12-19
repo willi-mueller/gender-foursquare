@@ -19,7 +19,8 @@ collectStatisticsForRanking <- function() {
 		country <- strsplit(countryFiles[i], ".dat", fixed=T)[[1]]
 		if(country %in% c("Brazil", "United-States", "Indonesia", "France", "Japan", "Saudi-Arabia", "Russia")) {
 			message(country)
-			ci <- readCheckIns(f, 1000)
+
+			ci <- readAndFilterCheckIns(f, 1000)
 			if(nrow(ci) > 0) {
 				allCheckIns <<- rbindlist(list(allCheckIns, ci))
 

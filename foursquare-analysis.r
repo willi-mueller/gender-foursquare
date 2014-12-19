@@ -62,7 +62,7 @@ getTopNCategories <- function(group1, group2, N, method="most popular"){
 # Read Data
 ################
 
-readCheckIns <- function(f, thresh=THRESH) {
+readAndFilterCheckIns <- function(f, thresh=THRESH) {
   cc <- list(integer=c(1, 12), character=c(2, seq(5, 11)), numeric=c(3, 4))
   ci <- try(fread(f, header=F, sep="\t", stringsAsFactors=FALSE, colClasses=cc))
   if(length(ci)>2) {
