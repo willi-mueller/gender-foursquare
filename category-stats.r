@@ -17,10 +17,15 @@ collectStatisticsForRanking <- function() {
 	#readAndCalc <- function(i) {
 		f <- sprintf("paises/%s", countryFiles[i])
 		country <- strsplit(countryFiles[i], ".dat", fixed=T)[[1]]
-		if(country %in% c("Brazil", "United-States", "Indonesia", "France", "Japan", "Saudi-Arabia", "Russia")) {
+		if(country %in% c("Germany", "France", "Spain", "United-Kingdom",
+				 "United-States", "Brasil", "Mexico",
+				 "United-Arab-Emirates", "Saudi-Arabia", "Turkey", "Kuwait",
+				 "South-Korea", "Malaysia", "Japan", "Thailand")) {
+			# c("Brazil", "United States", "Indonesia", "France", "Japan", "Saudi Arabia", "Russia")
 			message(country)
 
 			ci <- readAndFilterCheckIns(f, 1000)
+			ci <- filterSelectedCategories(ci)
 			if(nrow(ci) > 0) {
 				allCheckIns <<- rbindlist(list(allCheckIns, ci))
 
