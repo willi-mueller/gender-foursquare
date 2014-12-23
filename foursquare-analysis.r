@@ -718,7 +718,7 @@ calculateCategoryStats <- function(checkIns) {
   checkIns[, .SD[1], by=subcategory ][, list(
     country, category, subcategory, percMaleCat, percFemaleCat,
     percMaleSubc, percFemaleSubc,
-    percOfMale, percOfFemale, eucDistCat, eucDistSubc,
+    malePopCat, femalePopCat, eucDistCat, eucDistSubc,
     malePopSubC, femalePopSubC, eucDistSubcPop)]
 }
 
@@ -873,22 +873,22 @@ sortBySubcategory <- function(ci) {
 
 nGenderUsers <- function(checkIns, genderStr) {
   stopifnot(genderStr %in% c("male", "female"))
-  checkIns[, list(n=length(unique(idUserFoursquare[ gender==genderStr ]))) ]$n
+  as.numeric(checkIns[, list(n=length(unique(idUserFoursquare[ gender==genderStr ]))) ]$n)
 }
 
 nGenderCheckIns <- function(checkIns, genderStr) {
   stopifnot(genderStr %in% c("male", "female"))
-  checkIns[, list(n=nrow( checkIns[ gender==genderStr ] )) ]$n
+  as.numeric(checkIns[, list(n=nrow( checkIns[ gender==genderStr ] )) ]$n)
 }
 
 
 ############# Percentage #####
 percentagesOfGenderForCategory <- function(checkIns) {
-  nMaleCheckIns <- nGenderUsers(checkIns, "male")
-  nFemaleCheckIns <- nGenderUsers(checkIns, "female")
+  nMaleCheckIns <- nGenderCheckIns(checkIns, "male")
+  nFemaleCheckIns <- nGenderCheckIns(checkIns, "female")
   sortByCategory( checkIns[, `:=`(
-                percOfMale=length(gender[gender=='male'])/nMaleCheckIns,
-                percOfFemale=length(gender[gender=='female'])/nFemaleCheckIns),
+                malePopCat=as.numeric(length(gender[gender=='male'])/nMaleCheckIns),
+                femalePopCat=as.numeric(length(gender[gender=='female'])/nFemaleCheckIns)),
             by=category] )
   # deal with case 0/0 == NaN
   replace(checkIns, is.na(checkIns), 0)
@@ -898,24 +898,24 @@ popularityOfGenderForSubcategory <- function(checkIns) {
   nMaleCheckIns <- nGenderCheckIns(checkIns, "male")
   nFemaleCheckIns <- nGenderCheckIns(checkIns, "female")
    sortBySubcategory( checkIns[, `:=`(
-                malePopSubC=length(gender[gender=='male'])/nMaleCheckIns,
-                femalePopSubC=length(gender[gender=='female'])/nFemaleCheckIns),
+                malePopSubC=as.numeric(length(gender[gender=='male'])/nMaleCheckIns),
+                femalePopSubC=as.numeric(length(gender[gender=='female'])/nFemaleCheckIns)),
             by=subcategory] )
   replace(checkIns, is.na(checkIns), 0)
 }
 
 percentagesForCategory <- function(checkIns) {
   sortByCategory( checkIns[, `:=`(
-                percMaleCat=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
-                percFemaleCat=length(idUserFoursquare[gender=='female'])/length(idUserFoursquare)),
+                percMaleCat=as.numeric(length(idUserFoursquare[gender=='male'])/length(idUserFoursquare)),
+                percFemaleCat=as.numeric(length(idUserFoursquare[gender=='female'])/length(idUserFoursquare))),
             by=category] )
   replace(checkIns, is.na(checkIns), 0)
 }
 
 percentagesForSubcategory <- function(checkIns) {
    sortBySubcategory( checkIns[, `:=`(
-                percMaleSubc=length(idUserFoursquare[gender=='male'])/length(idUserFoursquare),
-                percFemaleSubc=length(idUserFoursquare[gender=='female'])/length(idUserFoursquare)),
+                percMaleSubc=as.numeric(length(idUserFoursquare[gender=='male'])/length(idUserFoursquare)),
+                percFemaleSubc=as.numeric(length(idUserFoursquare[gender=='female'])/length(idUserFoursquare))),
             by=subcategory] )
   replace(checkIns, is.na(checkIns), 0)
 }
