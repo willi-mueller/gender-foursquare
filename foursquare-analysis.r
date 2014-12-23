@@ -692,7 +692,7 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
   return(allLocationStats)
 }
 
-getBootstrappedStatistics <- function(plotFolder, observed, generated, k, alpha=0.01) {
+getBootstrappedStatistics <- function(plotFolder, observed, generated, k, region, alpha=0.01) {
   observedStats <- calculateCategoryStats(observed)
   calc <- function(i) {
     generationRange <- seq((i-1)*nrow(generated)/k +1, (i * nrow(generated)/k))
@@ -704,6 +704,10 @@ getBootstrappedStatistics <- function(plotFolder, observed, generated, k, alpha=
   }
   genStats <- rbindlist( lapply(seq(k), calc) )
   bootstrapStats <- flagAnomalousSubcategories(observedStats, genStats, k, alpha, plotFolder)
+  plotGeneratedMeans(plotFolder, region,
+                    bootstrapStats$meanMaleSubcPop, bootstrapStats$meanFemaleSubcPop,
+                    bootstrapStats$subcategory, axeslim=c(0, 1))
+  # plotGeneratedMeans(plotFolder, bootstrapStats$meanMaleSubcPop, bootstrapStats$meanFemaleSubcPop, bootstrapStats$category))
   return(list(observedStats=observedStats, bootstrapStats=bootstrapStats))
 }
 
@@ -739,6 +743,8 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha, plotFo
       eucDistSubcGenMean = mean(statsForSubc$eucDistSubc),
       eucDistSubcGenMedian = median(statsForSubc$eucDistSubc),
 
+      meanMaleSubcPop = mean(genStats$malePopSubC),
+      meanFemaleSubcPop  = mean(genStats$femalePopSubC),
       eucDistSubcPop = ( observed.eucDistSubcPop < percentiles.eucDistSubcPop[[1]] | observed.eucDistSubcPop > percentiles.eucDistSubcPop[[2]] ),
       eucDistSubcPopLowerQuantile = percentiles.eucDistSubcPop[[1]],
       eucDistSubcPopUpperQuantile = percentiles.eucDistSubcPop[[2]],
@@ -773,6 +779,8 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha, plotFo
   statsPerSubc$eucDistSubcPopGenMean <-  unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopGenMean))
   statsPerSubc$eucDistSubcPopGenMedian <-  unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopGenMedian))
   statsPerSubc$eucDistSubcPopIsAnomalous <- isAnomalous.eucDistSubcPop
+  statsPerSubc$meanMaleSubcPop <- unlist(lapply(isAnomalous, function(x) x$meanMaleSubcPop ))
+  statsPerSubc$meanFemaleSubcPop <- unlist(lapply(isAnomalous, function(x) x$meanFemaleSubcPop))
 
   nAnomalous2 <- length(isAnomalous.eucDistSubcPop[isAnomalous.eucDistSubcPop==TRUE])
   percOfAnomalousSubcPop <- nAnomalous2/nSubcategories
@@ -874,6 +882,17 @@ plotCategoryDist <- function(folderName, categoryName, isAnomalous,
                           isAnomalous=isAnomalous),
               file=sprintf("%s.csv", filename),
               row.names=FALSE, sep="\t")
+}
+
+plotGeneratedMeans <- function(folderName, regionName, meanMale, meanFemale, categories, axeslim=SEGREGATION_AXES) {
+  pdf(sprintf("%s/mean-segregation-generated-categories-%s.pdf", folderName, regionName))
+  plot(meanMale, meanFemale,
+        main=NULL, #sprintf("Gender separation in generated %s", regionName),
+        xlim=axeslim, ylim=axeslim,
+        xlab="Percentage of check-ins by male users", ylab="Percentage of check-ins by female users")
+  abline(0, 1, col="red")
+  text(meanMale, meanFemale, labels=categories, pos=3)
+  dev.off()
 }
 
 sortByCategory <- function(ci) {

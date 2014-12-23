@@ -46,15 +46,15 @@ collectStatisticsForRanking <- function() {
 # Calculation
 #############
 
-calculateStats <- function(ci, country) {
+calculateStats <- function(ci, region) {
 	ci <- resampleIfTooMuchCheckIns(ci)
-	folderName <- sprintf("results/null-model/%s/gender-permutation", country)
-	generated <- runPermutate(ci, folderName, "permutate-gender", country, k=k, forceGenerate=T)
+	folderName <- sprintf("results/null-model/%s/gender-permutation", region)
+	generated <- runPermutate(ci, folderName, "permutate-gender", region, k=k, forceGenerate=F)
 	# segregation() is crucial, the others need male and female popularity,
-	ci <- segregation(ci, country, log=F)
+	ci <- segregation(ci, region, log=F)
 
 	locationStats <- testObservationWithNullModel(ci, generated, folderName, country, k, PLOT_ANOM_DIST=T)
-	categoryStats <- getBootstrappedStatistics(folderName, ci, generated, k, alpha=0.01)
+	categoryStats <- getBootstrappedStatistics(folderName, ci, generated, k, region, alpha=0.01)
 	return(list(categoryStats=categoryStats$bootstrapStats, locationStats=locationStats))
 }
 
