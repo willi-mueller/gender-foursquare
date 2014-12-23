@@ -4,8 +4,8 @@ source('analysis/foursquare-analysis.r')
 
 baseFolder <- "results/null-model-2"
 N_CORES <- detectCores()
-THRESH <- 100
-MAX_CI <- 4e+5
+THRESH <- 1000
+MAX_CI <- 1000
 k <- 100
 countryFiles <- rev(dir("paises"))
 categoryStats <- list()
@@ -25,8 +25,10 @@ collectStatisticsForRanking <- function() {
 			# c("Brazil", "United States", "Indonesia", "France", "Japan", "Saudi Arabia", "Russia")
 			message(country)
 
-			ci <- readAndFilterCheckIns(f, 1000)
+			ci <- readAndFilterCheckIns(f, THRESH)
 			ci <- filterSelectedCategories(ci)
+			ci <- resampleIfTooMuchCheckIns(ci)
+			message(nrow(ci), " check-ins going to be analyzed")
 			if(nrow(ci) > 0) {
 				allCheckIns <<- rbindlist(list(allCheckIns, ci))
 
@@ -52,7 +54,6 @@ collectStatisticsForRanking <- function() {
 #############
 
 calculateStats <- function(ci, region) {
-	ci <- resampleIfTooMuchCheckIns(ci)
 	folderName <- sprintf("%s/%s/gender-permutation", baseFolder, region)
 	generated <- runPermutate(ci, folderName, "permutate-gender", region, k=k, forceGenerate=F)
 	# segregation() is crucial, the others need male and female popularity,
@@ -67,9 +68,9 @@ resampleIfTooMuchCheckIns <- function(ci) {
 	n <- nrow(ci)
 	if(n > MAX_CI) {
 		message("Too many check-ins")
-		ci <- ci[sample(n, 3e+4, replace=FALSE)]
+		ci <- ci[sample(n, MAX_CI, replace=FALSE)]
 		message("resampled check-ins")
-		stopifnot(nrow(ci) < MAX_CI)
+		stopifnot(nrow(ci) <= MAX_CI)
 	}
 	return(ci)
 }
