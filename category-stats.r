@@ -2,6 +2,7 @@ library(parallel)
 library(data.table)
 source('analysis/foursquare-analysis.r')
 
+baseFolder <- "results/null-model-2"
 N_CORES <- detectCores()
 THRESH <- 100
 MAX_CI <- 4e+5
@@ -42,9 +43,12 @@ collectStatisticsForRanking <- function() {
 	#categoryStats <<- rbindlist(categoryStats) # filter not NA/NULL elements
 	#save.image()
 	print(categoryStats)
-	write.table(locationStats, "results/null-model/location-stats-all-countries-unified-subc.csv", sep="\t", row.names=FALSE)
-	write.table(categoryStats, "results/null-model/category-stats-all-countries-unified-subc.csv", sep="\t", row.names=FALSE)
-	write.table(allCheckIns, "results/cleaned-check-ins-1000.csv", sep="\t", row.names=FALSE)
+	write.table(locationStats, sprintf("%s/location-stats-15-countries-5-categories.csv", baseFolder),
+				sep="\t", row.names=FALSE)
+	write.table(categoryStats, sprintf("%s/category-stats-15-countries-5-categories.csv", baseFolder),
+				sep="\t", row.names=FALSE)
+	write.table(allCheckIns, sprintf("%s/cleaned-check-ins-1000-15-countries-5-categories.csv", baseFolder),
+				sep="\t", row.names=FALSE)
 }
 
 ##############
@@ -53,7 +57,7 @@ collectStatisticsForRanking <- function() {
 
 calculateStats <- function(ci, region) {
 	ci <- resampleIfTooMuchCheckIns(ci)
-	folderName <- sprintf("results/null-model/%s/gender-permutation", region)
+	folderName <- sprintf("%s/%s/gender-permutation", baseFolder, region)
 	generated <- runPermutate(ci, folderName, "permutate-gender", region, k=k, forceGenerate=F)
 	# segregation() is crucial, the others need male and female popularity,
 	ci <- segregation(ci, region, log=F)
