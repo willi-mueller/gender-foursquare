@@ -743,8 +743,8 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha, plotFo
       eucDistSubcGenMean = mean(statsForSubc$eucDistSubc),
       eucDistSubcGenMedian = median(statsForSubc$eucDistSubc),
 
-      meanMaleSubcPop = mean(genStats$malePopSubC),
-      meanFemaleSubcPop  = mean(genStats$femalePopSubC),
+      meanMaleSubcPop = mean(statsForSubc$malePopSubC),
+      meanFemaleSubcPop  = mean(statsForSubc$femalePopSubC),
       eucDistSubcPop = ( observed.eucDistSubcPop < percentiles.eucDistSubcPop[[1]] | observed.eucDistSubcPop > percentiles.eucDistSubcPop[[2]] ),
       eucDistSubcPopLowerQuantile = percentiles.eucDistSubcPop[[1]],
       eucDistSubcPopUpperQuantile = percentiles.eucDistSubcPop[[2]],
