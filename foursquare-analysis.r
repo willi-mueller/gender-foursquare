@@ -876,6 +876,7 @@ plotCategoryDist <- function(folderName, categoryName, isAnomalous,
   } else {
     filename <- sprintf("%s/category-%s", folderName, categoryName)
   }
+  filename <- gsub(" / ", "--", filename) # for Monument / Landmark
   pdf(sprintf("%s.pdf", filename))
   hist(c(categoryDistDistribution, observedDist), xlab="gender distance")
   abline(v=lowerPercentile, col="green")
@@ -891,6 +892,9 @@ plotCategoryDist <- function(folderName, categoryName, isAnomalous,
 }
 
 plotGeneratedMeans <- function(folderName, regionName, meanMale, meanFemale, categories, axeslim=SEGREGATION_AXES) {
+  write.table(data.table(region=regionName, meanMalePop=meanMale,
+                        meanFemalePop=meanFemale, subcategory=categories),
+             row.names=F, sep="\t", file=sprintf("%s/mean-segregation-generated-categories-%s.csv", folderName, regionName))
   pdf(sprintf("%s/mean-segregation-generated-categories-%s.pdf", folderName, regionName))
   plot(meanMale, meanFemale,
         main=NULL, #sprintf("Gender separation in generated %s", regionName),
