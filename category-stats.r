@@ -37,11 +37,7 @@ collectStatisticsForRanking <- function() {
 			}
 		}
 	}
-	# global assignment
-	#categoryStats <<- mclapply(1:length(countryFiles), readAndCalc, mc.cores=N_CORES)
 	save.image()
-	#categoryStats <<- rbindlist(categoryStats) # filter not NA/NULL elements
-	#save.image()
 	print(categoryStats)
 	write.table(locationStats, sprintf("%s/location-stats-15-countries-5-categories.csv", baseFolder),
 				sep="\t", row.names=FALSE)
