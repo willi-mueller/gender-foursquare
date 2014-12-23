@@ -692,7 +692,7 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
   return(allLocationStats)
 }
 
-getBootstrappedStatistics <- function(observed, generated, k, alpha=0.01) {
+getBootstrappedStatistics <- function(plotFolder, observed, generated, k, alpha=0.01) {
   observedStats <- calculateCategoryStats(observed)
   calc <- function(i) {
     generationRange <- seq((i-1)*nrow(generated)/k +1, (i * nrow(generated)/k))
@@ -702,9 +702,9 @@ getBootstrappedStatistics <- function(observed, generated, k, alpha=0.01) {
     stat$bootstrapIter <- i
     return(stat)
   }
-  genStats <- rbindlist( mclapply(seq(k), calc, mc.cores=N_CORES) )
-  observedStats <- flagAnomalousSubcategories(observedStats, genStats, k, alpha)
-  return(observedStats)
+  genStats <- rbindlist( lapply(seq(k), calc) )
+  bootstrapStats <- flagAnomalousSubcategories(observedStats, genStats, k, alpha, plotFolder)
+  return(list(observedStats=observedStats, bootstrapStats=bootstrapStats))
 }
 
 calculateCategoryStats <- function(checkIns) {
@@ -722,7 +722,7 @@ calculateCategoryStats <- function(checkIns) {
     malePopSubC, femalePopSubC, eucDistSubcPop)]
 }
 
-flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha) {
+flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha, plotFolder) {
   nSubcategories <- nrow(genStats)/k
 
   calc <- function(i) {
@@ -732,7 +732,7 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha) {
 
     percentiles.eucDistSubcPop <- quantile(statsForSubc$eucDistSubcPop, c(alpha/2, 1-alpha/2))
     observed.eucDistSubcPop <- observedStats[ subcategory==statsForSubc$subcategory[1], ]$eucDistSubcPop
-    list(
+    stats <- list(
       eucDistSubc = ( observed.eucDistSubc < percentiles.eucDistSubc[[1]] | observed.eucDistSubc > percentiles.eucDistSubc[[2]] ),
       eucDistSubcLowerQuantile = percentiles.eucDistSubc[[1]],
       eucDistSubcUpperQuantile = percentiles.eucDistSubc[[2]],
@@ -745,6 +745,11 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha) {
       eucDistSubcPopGenMean = mean(statsForSubc$eucDistSubcPop),
       eucDistSubcPopGenMedian = median(statsForSubc$eucDistSubcPop)
     )
+    plotCategoryDist(plotFolder, statsForSubc$subcategory[[1]], isAnomalous=stats$eucDistSubc,
+                              statsForSubc$eucDistSubcPop, observed.eucDistSubcPop,
+                              stats$eucDistSubcPopLowerQuantile,
+                              stats$eucDistSubcPopUpperQuantile)
+    return(stats)
   }
   statsPerSubc <- genStats[, .SD[1], by=subcategory]
   isAnomalous <- mclapply(seq(nSubcategories), calc, mc.cores=N_CORES)
@@ -848,16 +853,27 @@ OUTDATED_testObservationWithNullModelForCategories <- function(observedSegregati
   return(categoryStats)
 }
 
-plotCategoryDist <- function(folderName, sortedCategories,
+plotCategoryDist <- function(folderName, categoryName, isAnomalous,
                              categoryDistDistribution, observedDist,
-                             percentiles, categoryIndex) {
-  filename <- sprintf("%s/anomalous-category-%s.pdf", folderName, sortedCategories[categoryIndex])
-  pdf(filename)
-  hist(c(categoryDistDistribution[[categoryIndex]], observedDist[i]), xlab="gender distance")
-  abline(v=percentiles[[categoryIndex]][1], col="green")
-  abline(v=percentiles[[categoryIndex]][2], col="green")
-  abline(v=observedDist[categoryIndex], col="blue")
+                             lowerPercentile, upperPercentile) {
+  filename <- ""
+  if(isAnomalous) {
+    filename <- sprintf("%s/anomalous-category-%s", folderName, categoryName)
+  } else {
+    filename <- sprintf("%s/category-%s", folderName, categoryName)
+  }
+  pdf(sprintf("%s.pdf", filename))
+  hist(c(categoryDistDistribution, observedDist), xlab="gender distance")
+  abline(v=lowerPercentile, col="green")
+  abline(v=upperPercentile, col="green")
+  abline(v=observedDist, col="blue")
   dev.off()
+  write.table(data.table(category=categoryName,
+                          observed=observedDist, generated=categoryDistDistribution,
+                          lowerPercentile=lowerPercentile, upperPercentile=upperPercentile,
+                          isAnomalous=isAnomalous),
+              file=sprintf("%s.csv", filename),
+              row.names=FALSE, sep="\t")
 }
 
 sortByCategory <- function(ci) {

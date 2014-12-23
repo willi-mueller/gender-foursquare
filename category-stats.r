@@ -53,9 +53,9 @@ calculateStats <- function(ci, country) {
 	# segregation() is crucial, the others need male and female popularity,
 	ci <- segregation(ci, country, log=F)
 
-	categoryStats <- getBootstrappedStatistics(ci, generated, k, alpha=0.01)
 	locationStats <- testObservationWithNullModel(ci, generated, folderName, country, k, PLOT_ANOM_DIST=T)
-	return(list(categoryStats=categoryStats, locationStats=locationStats))
+	categoryStats <- getBootstrappedStatistics(folderName, ci, generated, k, alpha=0.01)
+	return(list(categoryStats=categoryStats$bootstrapStats, locationStats=locationStats))
 }
 
 resampleIfTooMuchCheckIns <- function(ci) {
