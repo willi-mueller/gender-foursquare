@@ -2,13 +2,13 @@ library(parallel)
 library(data.table)
 source('analysis/foursquare-analysis.r')
 
-baseFolder <- "results/null-model-2"
+baseFolder <- "results/null-model-3"
 N_CORES <- detectCores()
 THRESH <- 1000
-MAX_CI <- 1000
+MAX_CI <- 3e+5
 k <- 100
 countryFiles <- rev(dir("paises"))
-categoryStats <- list()
+countryFiles <- dir("paises")
 categoryStats <- data.frame() # global to save it in the workspace image
 locationStats <- data.frame() # global to save it in the workspace image
 allCheckIns <- data.frame()
@@ -33,7 +33,6 @@ collectStatisticsForRanking <- function() {
 				allCheckIns <<- rbindlist(list(allCheckIns, ci))
 
 				stats <- calculateStats(ci, country)
-				print(stats)
 				categoryStats <<- rbindlist( list(categoryStats, stats$categoryStats))
 				locationStats <<- rbindlist( list(locationStats, stats$locationStats))
 			}
@@ -59,7 +58,7 @@ calculateStats <- function(ci, region) {
 	# segregation() is crucial, the others need male and female popularity,
 	ci <- segregation(ci, region, log=F)
 
-	locationStats <- testObservationWithNullModel(ci, generated, folderName, country, k, PLOT_ANOM_DIST=T)
+	locationStats <- testObservationWithNullModel(ci, generated, folderName, region, k, PLOT_ANOM_DIST=T)
 	categoryStats <- getBootstrappedStatistics(folderName, ci, generated, k, region, alpha=0.01)
 	return(list(categoryStats=categoryStats$bootstrapStats, locationStats=locationStats))
 }
