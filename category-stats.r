@@ -18,8 +18,8 @@ collectStatisticsForRanking <- function() {
 		f <- sprintf("paises/%s", countryFiles[i])
 		country <- strsplit(countryFiles[i], ".dat", fixed=T)[[1]]
 		if(country %in% c("Germany", "France", "Spain", "United-Kingdom",
-				 "United-States", "Brasil", "Mexico",
-				 "United-Arab-Emirates", "Saudi-Arabia", "Kuwait",
+				 "United-States", "Brazil", "Mexico",
+				 "United-Arab-Emirates", "Saudi-Arabia", "Kuwait", # run Turkey manually in R shell
 				 "South-Korea", "Malaysia", "Japan", "Thailand")) {
 			# c("Brazil", "United States", "Indonesia", "France", "Japan", "Saudi Arabia", "Russia")
 			message(country)
