@@ -21,13 +21,13 @@ collectStatisticsForRanking <- function() {
 				 "United-States", "Brazil", "Mexico",
 				 "United-Arab-Emirates", "Saudi-Arabia", "Kuwait", # run Turkey manually in R shell
 				 "South-Korea", "Malaysia", "Japan", "Thailand")) {
-			# c("Brazil", "United States", "Indonesia", "France", "Japan", "Saudi Arabia", "Russia")
+			# c("Brazil", "United States", "Indonesia", "France", "Singapore", "Saudi Arabia", "Russia")
 			message(country)
 
 			ci <- readAndFilterCheckIns(f, THRESH)
 			ci <- filterSelectedCategories(ci)
 			ci <- resampleIfTooMuchCheckIns(ci)
-			message(nrow(ci), " check-ins going to be analyzed")
+			message(nrow(ci), " check-ins are going to be analyzed")
 			if(nrow(ci) > 0) {
 				allCheckIns <<- rbindlist(list(allCheckIns, ci))
 
