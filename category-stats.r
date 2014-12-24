@@ -7,7 +7,6 @@ N_CORES <- detectCores()
 THRESH <- 1000
 MAX_CI <- 3e+5
 k <- 100
-countryFiles <- rev(dir("paises"))
 countryFiles <- dir("paises")
 categoryStats <- data.frame() # global to save it in the workspace image
 locationStats <- data.frame() # global to save it in the workspace image
@@ -20,7 +19,7 @@ collectStatisticsForRanking <- function() {
 		country <- strsplit(countryFiles[i], ".dat", fixed=T)[[1]]
 		if(country %in% c("Germany", "France", "Spain", "United-Kingdom",
 				 "United-States", "Brasil", "Mexico",
-				 "United-Arab-Emirates", "Saudi-Arabia", "Turkey", "Kuwait",
+				 "United-Arab-Emirates", "Saudi-Arabia", "Kuwait",
 				 "South-Korea", "Malaysia", "Japan", "Thailand")) {
 			# c("Brazil", "United States", "Indonesia", "France", "Japan", "Saudi Arabia", "Russia")
 			message(country)
@@ -54,7 +53,7 @@ collectStatisticsForRanking <- function() {
 
 calculateStats <- function(ci, region) {
 	folderName <- sprintf("%s/%s/gender-permutation", baseFolder, region)
-	generated <- runPermutate(ci, folderName, "permutate-gender", region, k=k, forceGenerate=F)
+	generated <- runPermutate(ci, folderName, "permutate-gender", region, k=k, forceGenerate=T)
 	# segregation() is crucial, the others need male and female popularity,
 	ci <- segregation(ci, region, log=F)
 
