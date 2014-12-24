@@ -146,6 +146,32 @@ combineEquivalentSubCategories <- function(checkIns, substitutionRules) {
   return(checkIns)
 }
 
+segregationSubcategory <- function(checkIns, axeslim=c(0,1)) {
+  malePop <- checkIns[, list(maleSum=sum(maleCount)), by=subcategory]
+  femalePop <- checkIns[, list(femaleSum=sum(femaleCount)), by=subcategory]
+  normFactor <- max(malePop$maleSum, femalePop$femaleSum)
+
+  joined <- cbind(malePop, femalePop)
+  joined$maleSum <- joined$maleSum/normFactor
+  joined$femaleSum <- joined$femaleSum/normFactor
+
+  plot(joined$maleSum, joined$femaleSum,
+      main=NULL, xlab="Sum of male popularity of locations in subcategory", ylab="Sum of female popularity of locations in subcategory",
+      xlim=axeslim, ylim=axeslim)
+  abline(0, 1, col="red")
+
+  top <- joined[, diff:=abs(maleSum)+abs(femaleSum)][order(-rank(diff))][1:5]
+  top <- rbindlist(list( top, joined[order(-femaleSum)][1:5]) )
+  top <- rbindlist(list (top, joined[order(-maleSum)][1:5]) )
+  top <- unique(top)
+  x <- c(); y<-c()
+  for(subc in top$subcategory) {
+    x <- c(x, joined[subcategory==subc]$maleSum)
+    y <- c(y, joined[subcategory==subc]$femaleSum)
+  }
+  text(x,y, label=top$subcategory, pos=2)
+}
+
 segregation <- function(checkIns, location="<location>", sub=NULL, axeslim=SEGREGATION_AXES, log=TRUE) {
   # given that we have 1 checkin for user and location
 
