@@ -47,6 +47,28 @@ collectStatisticsForRanking <- function() {
 				sep="\t", row.names=FALSE)
 }
 
+subcategorySegregationPlots <- function() {
+	for(country in c("Germany", "France", "Spain", "United-Kingdom",
+				 	"United-States", "Brazil", "Mexico",
+			 		"United-Arab-Emirates", "Saudi-Arabia", "Kuwait", "Turkey",
+			 		"South-Korea", "Malaysia", "Japan", "Thailand")) {
+		message(country)
+		f <- sprintf("paises/%s.dat", country)
+		ci <- readAndFilterCheckIns(f, THRESH)
+		ci <- filterSelectedCategories(ci)
+		ci <- resampleIfTooMuchCheckIns(ci)
+		message(nrow(ci), " check-ins are going to be analyzed")
+
+		segregation(ci)
+		pdf(sprintf("%s/%s/gender-permutation/segregation-subcategories.pdf", baseFolder, country))
+		segregationData <- segregationSubcategories(ci)
+		dev.off()
+		write.table(locationStats, sprintf("%s/%s/gender-permutation/segregation-subcategories.csv",
+											baseFolder, country), sep="\t", row.names=FALSE)
+
+	}
+}
+
 ##############
 # Calculation
 #############
