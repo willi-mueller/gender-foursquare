@@ -146,7 +146,7 @@ combineEquivalentSubCategories <- function(checkIns, substitutionRules) {
   return(checkIns)
 }
 
-segregationSubcategory <- function(checkIns, axeslim=c(0,1)) {
+segregationSubcategories <- function(checkIns, axeslim=c(0,1)) {
   malePop <- checkIns[, list(maleSum=sum(maleCount)), by=subcategory]
   femalePop <- checkIns[, list(femaleSum=sum(femaleCount)), by=subcategory]
   normFactor <- max(malePop$maleSum, femalePop$femaleSum)
@@ -170,6 +170,7 @@ segregationSubcategory <- function(checkIns, axeslim=c(0,1)) {
     y <- c(y, joined[subcategory==subc]$femaleSum)
   }
   text(x,y, label=top$subcategory, pos=2)
+  return(joined)
 }
 
 segregation <- function(checkIns, location="<location>", sub=NULL, axeslim=SEGREGATION_AXES, log=TRUE) {
