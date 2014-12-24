@@ -152,8 +152,8 @@ segregation <- function(checkIns, location="<location>", sub=NULL, axeslim=SEGRE
   nMaleUsers <- length(unique(checkIns[, idUserFoursquare[gender=="male"]]))
   nFemaleUsers <- length(unique(checkIns[, idUserFoursquare[gender=="female"]]))
 
-  checkIns[, maleCount:=sum(gender=='male')/nMaleUsers, by=idLocal]
-  checkIns[, femaleCount:=sum(gender=='female')/nFemaleUsers, by=idLocal]
+  checkIns[, maleCount:=sum(gender=='male')/nGenderCheckIns(checkIns, "male"), by=idLocal]
+  checkIns[, femaleCount:=sum(gender=='female')/nGenderCheckIns(checkIns, "female"), by=idLocal]
 
   checkIns <- replace(checkIns, is.na(checkIns), 0)
 
@@ -702,8 +702,8 @@ getBootstrappedStatistics <- function(plotFolder, observed, generated, k, region
   observedStats <- calculateCategoryStats(observed)
   calc <- function(i) {
     generationRange <- seq((i-1)*nrow(generated)/k +1, (i * nrow(generated)/k))
+
     iter <- generated[generationRange]
-    # locationStats <- calculateLocationStats(iter)
     stat <- calculateCategoryStats(iter)
     stat$bootstrapIter <- i
     return(stat)
