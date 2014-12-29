@@ -735,7 +735,7 @@ getBootstrappedStatistics <- function(plotFolder, observed, generated, k, region
     stat$bootstrapIter <- i
     return(stat)
   }
-  genStats <- rbindlist( lapply(seq(k), calc) )
+  genStats <- rbindlist( mclapply(seq(k), calc, mc.cores=N_CORES) )
   bootstrapStats <- flagAnomalousSubcategories(observedStats, genStats, k, alpha, plotFolder)
   plotGeneratedMeans(plotFolder, region,
                     bootstrapStats$meanMaleSubcPop, bootstrapStats$meanFemaleSubcPop,
