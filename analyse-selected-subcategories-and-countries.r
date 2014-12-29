@@ -1,3 +1,9 @@
+######################################################################
+# This script selects the top-n locations of selected subcategories
+# and calculate a country ranking based on the number of found
+# anomalous locations
+######################################################################
+
 source('analysis/foursquare-analysis.r')
 
 # subcstats <- catstats[, list(subc=unique(subcategory)), by=country]
