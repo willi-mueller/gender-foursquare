@@ -899,14 +899,13 @@ writeObservedValues <- function(genStats, observedStats) {
   statsPerSubc <- genStats[, .SD[1], by=subcategory]
   # verify order
   stopifnot(observedStats$subcategory == genStats[, .SD[1], by=subcategory]$subcategory)
-
   statsPerSubc$eucDistSubcPop <- observedStats$eucDistSubcPop
   statsPerSubc$malePopSubC <- observedStats$malePopSubC
   statsPerSubc$femalePopSubC <- observedStats$femalePopSubC
   statsPerSubc$percMaleCat <- observedStats$percMaleCat
   statsPerSubc$percFemaleCat <- observedStats$percFemaleCat
   statsPerSubc$percMaleSubc <- observedStats$percMaleSubc
-  statsPerSubc$percdFemaleSubc <- observedStats$percdFemaleSubc
+  statsPerSubc$percFemaleSubc <- observedStats$percFemaleSubc
   statsPerSubc$malePopCat  <- observedStats$malePopCat
   statsPerSubc$femalePopCat <- observedStats$femalePopCat
   statsPerSubc$eucDistCat <- observedStats$eucDistCat
