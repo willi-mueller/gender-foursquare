@@ -816,6 +816,10 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha, plotFo
   nAnomalous2 <- length(isAnomalous.eucDistSubcPop[isAnomalous.eucDistSubcPop==TRUE])
   percOfAnomalousSubcPop <- nAnomalous2/nSubcategories
   statsPerSubc$percAnomalousEucDistSubcPop <- percOfAnomalousSubcPop
+
+  statsPerSubc$alpha <- alpha
+  statsPerSubc$bootstrapIter <- NULL
+
   return(statsPerSubc)
 }
 
