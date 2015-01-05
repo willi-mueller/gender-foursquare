@@ -801,7 +801,8 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha, plotFo
   nAnomalous <- length(isAnomalous.eucDistSubc[isAnomalous.eucDistSubc==TRUE])
   percOfAnomalousSubc <- nAnomalous/nSubcategories
   statsPerSubc$percAnomalousEucDistSubc <- percOfAnomalousSubc
-  ####
+
+  ############
   isAnomalous.eucDistSubcPop <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcPop))
 
   statsPerSubc$eucDistSubcPopLowerQuantile <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopLowerQuantile))
@@ -889,6 +890,24 @@ OUTDATED_testObservationWithNullModelForCategories <- function(observedSegregati
   text(gen.male.mean$pop, gen.female.mean$pop, labels=sortedCategories, pos=3)
   dev.off()
   return(categoryStats)
+writeObservedValues <- function(genStats, observedStats) {
+  # get data format from first bootstrap iteration of each subcategory
+  statsPerSubc <- genStats[, .SD[1], by=subcategory]
+  # verify order
+  stopifnot(observedStats$subcategory == genStats[, .SD[1], by=subcategory]$subcategory)
+
+  statsPerSubc$eucDistSubcPop <- observedStats$eucDistSubcPop
+  statsPerSubc$malePopSubC <- observedStats$malePopSubC
+  statsPerSubc$femalePopSubC <- observedStats$femalePopSubC
+  statsPerSubc$percMaleCat <- observedStats$percMaleCat
+  statsPerSubc$percFemaleCat <- observedStats$percFemaleCat
+  statsPerSubc$percMaleSubc <- observedStats$percMaleSubc
+  statsPerSubc$percdFemaleSubc <- observedStats$percdFemaleSubc
+  statsPerSubc$malePopCat  <- observedStats$malePopCat
+  statsPerSubc$femalePopCat <- observedStats$femalePopCat
+  statsPerSubc$eucDistCat <- observedStats$eucDistCat
+  statsPerSubc$eucDistSubc <- observedStats$eucDistSubc
+  return(statsPerSubc)
 }
 
 plotCategoryDist <- function(folderName, categoryName, isAnomalous,
