@@ -728,10 +728,7 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
 getBootstrappedStatistics <- function(plotFolder, observed, generated, k, region, alpha=0.01) {
   observedStats <- calculateCategoryStats(observed)
   calc <- function(i) {
-    generationRange <- seq((i-1)*nrow(generated)/k +1, (i * nrow(generated)/k))
-
-    iter <- generated[generationRange]
-    stat <- calculateCategoryStats(iter)
+    stat <- calculateCategoryStats(generated[iterPermutation==i])
     stat$bootstrapIter <- i
     return(stat)
   }
