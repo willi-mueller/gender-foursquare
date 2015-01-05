@@ -787,7 +787,7 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha, plotFo
                               stats$eucDistSubcPopUpperQuantile)
     return(stats)
   }
-  statsPerSubc <- genStats[, .SD[1], by=subcategory]
+  statsPerSubc <- writeObservedValues(genStats, observedStats)
   isAnomalous <- mclapply(seq(nSubcategories), calc, mc.cores=N_CORES)
 
   isAnomalous.eucDistSubc <- unlist(lapply(isAnomalous, function(x)x$eucDistSubc))
