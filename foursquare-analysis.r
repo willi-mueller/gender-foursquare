@@ -794,8 +794,8 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha, plotFo
 
   statsPerSubc$eucDistSubcLowerQuantile <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcLowerQuantile))
   statsPerSubc$eucDistSubcUpperQuantile <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcUpperQuantile))
-  statsPerSubc$eucDistSubcGenMean <-  unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopGenMean))
-  statsPerSubc$eucDistSubcGenMedian <-  unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopGenMedian))
+  statsPerSubc$eucDistSubcGenMean <-  unlist(lapply(isAnomalous, function(x)x$eucDistSubcGenMean))
+  statsPerSubc$eucDistSubcGenMedian <-  unlist(lapply(isAnomalous, function(x)x$eucDistSubcGenMedian))
   statsPerSubc$eucDistSubcIsAnomalous <- isAnomalous.eucDistSubc
 
   nAnomalous <- length(isAnomalous.eucDistSubc[isAnomalous.eucDistSubc==TRUE])
