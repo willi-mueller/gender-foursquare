@@ -99,7 +99,9 @@ cleanData <- function(ci, substitutionRules) {
   ci <- ci[gender== "male" | gender=="female", ]
   ci<- oneCheckInForUserAndLocation(ci)
   ci <- combineEquivalentSubCategories(ci, substitutionRules)
-  return(checkInsInlocationsWithMinimumCheckIns(ci, n=5))
+  ci <- checkInsInlocationsWithMinimumCheckIns(ci, n=5)
+  ci <- filterSelectedCategories(ci)
+  return(ci)
 }
 
 oneCheckInForUserAndLocation <- function(checkIns) {
