@@ -818,7 +818,6 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha, plotFo
   statsPerSubc$percAnomalousEucDistSubcPop <- percOfAnomalousSubcPop
 
   statsPerSubc$alpha <- alpha
-  statsPerSubc$bootstrapIter <- NULL
 
   return(statsPerSubc)
 }
@@ -896,7 +895,7 @@ OUTDATED_testObservationWithNullModelForCategories <- function(observedSegregati
   return(categoryStats)
 writeObservedValues <- function(genStats, observedStats) {
   # get data format from first bootstrap iteration of each subcategory
-  statsPerSubc <- genStats[, .SD[1], by=subcategory]
+  statsPerSubc <- genStats[, .SD[1], by=subcategory][, list(country, subcategory, category)]
   # verify order
   stopifnot(observedStats$subcategory == genStats[, .SD[1], by=subcategory]$subcategory)
   statsPerSubc$eucDistSubcPop <- observedStats$eucDistSubcPop
