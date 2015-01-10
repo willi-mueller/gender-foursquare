@@ -679,11 +679,11 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
       isAnomalous <- ( observedDifference < percentile[1] | observedDifference > percentile[2] )
       if(isAnomalous) {
         if(PLOT_ANOM_DIST) {
-          filename <- sprintf("%s/anomalous-%s.csv", folderName, location)
+          filename <- sprintf("%s/location-%s-anomalous.csv", folderName, location)
           write.table(data.table(idLocal=uniqueLocations[i],
                                  empiricalDifference=empiricalDifference,
                                  observedDifference=observedDifference), filename)
-          filename <- sprintf("%s/anomalous-%s.pdf", folderName, location)
+          filename <- sprintf("%s/location-%s-anomalous.pdf", folderName, location)
 
           pdf(filename)
           hist(c(empiricalDifference, observedDifference), xlab=NULL, main=NULL)
@@ -733,7 +733,7 @@ getBootstrappedStatistics <- function(plotFolder, observed, generated, k, region
     return(stat)
   }
   genStats <- rbindlist( mclapply(seq(k), calc, mc.cores=N_CORES) )
-  bootstrapStats <- flagAnomalousSubcategories(observedStats, genStats, k, alpha, plotFolder)
+  bootstrapStats <- flagAnomalousSubcategories(observedStats, genStats, k, alpha, plotFolder, region)
   plotGeneratedMeans(plotFolder, region,
                     bootstrapStats$meanMaleSubcPop, bootstrapStats$meanFemaleSubcPop,
                     bootstrapStats$subcategory, axeslim=c(0, 1))
@@ -756,7 +756,7 @@ calculateCategoryStats <- function(checkIns) {
     malePopSubC, femalePopSubC, eucDistSubcPop)]
 }
 
-flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha, plotFolder) {
+flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha, plotFolder, region) {
   nSubcategories <- nrow(genStats)/k
 
   calc <- function(i) {
@@ -781,7 +781,7 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha, plotFo
       eucDistSubcPopGenMean = mean(statsForSubc$eucDistSubcPop),
       eucDistSubcPopGenMedian = median(statsForSubc$eucDistSubcPop)
     )
-    plotCategoryDist(plotFolder, statsForSubc$subcategory[[1]], isAnomalous=stats$eucDistSubc,
+    plotCategoryDist(plotFolder, region, statsForSubc$subcategory[[1]], isAnomalous=stats$eucDistSubc,
                               statsForSubc$eucDistSubcPop, observed.eucDistSubcPop,
                               stats$eucDistSubcPopLowerQuantile,
                               stats$eucDistSubcPopUpperQuantile)
@@ -918,9 +918,9 @@ plotCategoryDist <- function(folderName, categoryName, isAnomalous,
                              lowerPercentile, upperPercentile) {
   filename <- ""
   if(isAnomalous) {
-    filename <- sprintf("%s/anomalous-category-%s", folderName, categoryName)
+    filename <- sprintf("%s/%s-category-%s-anomalous", folderName, region, categoryName)
   } else {
-    filename <- sprintf("%s/category-%s", folderName, categoryName)
+    filename <- sprintf("%s/%s-category-%s", folderName, region, categoryName)
   }
   filename <- gsub(" / ", "--", filename) # for Monument / Landmark
   pdf(sprintf("%s.pdf", filename))
