@@ -912,7 +912,7 @@ writeObservedValues <- function(genStats, observedStats) {
   return(statsPerSubc)
 }
 
-plotCategoryDist <- function(folderName, categoryName, isAnomalous,
+plotCategoryDist <- function(folderName, region, categoryName, isAnomalous,
                              categoryDistDistribution, observedDist,
                              lowerPercentile, upperPercentile) {
   filename <- ""
