@@ -118,7 +118,7 @@ checkInsInlocationsWithMinimumCheckIns <- function(checkIns, n=5) {
 filterSelectedCategories <- function(ci, allowed=c("Arts", "Food", "Education", "Nightlife", "Work")) {
   inAllowedCategories <- ci[category %in% allowed]
   sufficientlyPopularSubc <- inAllowedCategories[, subcategory[length(unique(idLocal))>=2], by=subcategory]$subcategory
-  return( ci[subcategory %in% sufficientlyPopularSubc] )
+  return( inAllowedCategories[subcategory %in% sufficientlyPopularSubc] )
 }
 
 getCheckInsInRegion <- function(regionFilters, countryCheckIns, countryUsers, userLocalFilter, substitutionRules, checkIns) {
