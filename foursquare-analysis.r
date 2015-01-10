@@ -715,7 +715,7 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
   f2 <- sprintf("%s/location-stats-generated-%s-summary.csv", folderName, regionName)
   write.table(summary_, f2)
 
-  pdf(sprintf("%s/avg-segregation-generated-%s.pdf", folderName, regionName))
+  pdf(sprintf("%s/avg-segregation-generated-%s.pdf", folderName, regionName), pointsize=25)
 
   plot(allLocationStats$meanMalePopularity, allLocationStats$meanFemalePopularity,
         xlim=axeslim, ylim=axeslim,
