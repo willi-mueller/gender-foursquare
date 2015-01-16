@@ -4,8 +4,8 @@ source('analysis/foursquare-analysis.r')
 
 baseFolder <- "results/null-model-3"
 N_CORES <- detectCores()
-THRESH <- 1000
-MAX_CI <- 3e+5
+THRESH <- 100
+MAX_CI <- 30000
 k <- 100
 countryFiles <- dir("paises")
 categoryStats <- data.frame() # global to save it in the workspace image
@@ -19,7 +19,7 @@ collectStatisticsForRanking <- function() {
 		country <- strsplit(countryFiles[i], ".dat", fixed=T)[[1]]
 		if(country %in% c("Germany", "France", "Spain", "United-Kingdom",
 				 "United-States", "Brazil", "Mexico",
-				 "United-Arab-Emirates", "Saudi-Arabia", "Kuwait", # run Turkey manually in R shell
+				 "United-Arab-Emirates", "Saudi-Arabia", "Kuwait", #"Turkey", # run Turkey manually in R shell
 				 "South-Korea", "Malaysia", "Japan", "Thailand")) {
 			# c("Brazil", "United States", "Indonesia", "France", "Singapore", "Saudi Arabia", "Russia")
 			message(country)
