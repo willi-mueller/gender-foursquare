@@ -100,3 +100,35 @@ resampleIfTooMuchCheckIns <- function(ci) {
 #############
 
 collectStatisticsForRanking()
+
+
+#####################################
+# Terminal for Turkey
+#####################################
+country <- "Turkey"
+ci <- readAndFilterCheckIns("paises/Turkey.dat", THRESH)
+ci <- filterSelectedCategories(ci)
+ci <- resampleIfTooMuchCheckIns(ci)
+
+allCheckIns <- fread("results/null-model-4/cleaned-check-ins-1000-15-countries-5-categories.csv")
+allCheckIns <<- rbindlist(list(allCheckIns, ci))
+
+stats <- calculateStats(ci, country)
+
+categoryStats <- fread("results/null-model-4/category-stats-15-countries-5-categories.csv")
+categoryStats <<- rbindlist(list(categoryStats, stats$categoryStats))
+
+locationStats <- fread("results/null-model-4/location-stats-15-countries-5-categories.csv")
+locationStats <<- rbindlist( list(locationStats, stats$locationStats))
+
+
+
+save.image()
+write.table(locationStats, sprintf("%s/location-stats-15-countries-5-categories.csv", baseFolder),
+			sep="\t", row.names=FALSE)
+write.table(categoryStats, sprintf("%s/category-stats-15-countries-5-categories.csv", baseFolder),
+			sep="\t", row.names=FALSE)
+write.table(allCheckIns, sprintf("%s/cleaned-check-ins-1000-15-countries-5-categories.csv", baseFolder),
+			sep="\t", row.names=FALSE)
+
+
