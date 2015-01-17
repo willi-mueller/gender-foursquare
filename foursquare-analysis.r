@@ -690,11 +690,11 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
                                  observedDifference=observedDifference), filename)
           filename <- sprintf("%s/location-%s-anomalous.pdf", folderName, location)
 
-          pdf(filename)
-          hist(c(empiricalDifference, observedDifference), xlab=NULL, main=NULL)
-          abline(v=percentile[1], col="green")
-          abline(v=percentile[2], col="green")
-          abline(v=observedDifference, col="blue")
+          pdf(filename, pointsize=25)
+          hist(c(empiricalDifference, observedDifference), xlab="Popularity difference", main=NULL)
+          abline(v=percentile[1], lty=3, lwd=5)
+          abline(v=percentile[2], lty=3, lwd=5)
+          abline(v=observedDifference, lwd=5)
           dev.off()
         }
       }
@@ -856,11 +856,11 @@ plotCategoryDist <- function(folderName, region, categoryName, isAnomalous,
     filename <- sprintf("%s/%s-category-%s", folderName, region, categoryName)
   }
   filename <- gsub(" / ", "--", filename) # for Monument / Landmark
-  pdf(sprintf("%s.pdf", filename))
-  hist(c(categoryDistDistribution, observedDist), xlab="gender distance")
-  abline(v=lowerPercentile, col="green")
-  abline(v=upperPercentile, col="green")
-  abline(v=observedDist, col="blue")
+  pdf(sprintf("%s.pdf", filename), pointsize=25)
+  hist(c(categoryDistDistribution, observedDist), xlab="Popularity difference", main=NULL)
+  abline(v=lowerPercentile, lty=3, lwd=5)
+  abline(v=upperPercentile, lty=3, lwd=5)
+  abline(v=observedDist, lwd=5)
   dev.off()
   write.table(data.table(category=categoryName,
                           observed=observedDist, generated=categoryDistDistribution,
