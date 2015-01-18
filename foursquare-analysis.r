@@ -516,19 +516,19 @@ runGenerate <- function(checkIns, segregation, UNIFORM_LOCATION_PROBABILITY, UNI
   return(c(checkInFile, maleSegregationFile, femaleSegregationFile))
 }
 
-testSignificance <- function(observed, sampleDist) {
+testSignificance <- function(sampleDist, observed) {
   sampleMean <- mean(sampleDist)
   sampleSD <- sd(sampleDist)
   # null hypothesis is that it is normal
-  couldBeNormal <- shapiro.test(samleDist)$p.value > 0.05
+  couldBeNormal <- shapiro.test(sampleDist)$p.value > 0.05
   #percentile <- quantile(empiricalDifference, c(alpha/2, 1-alpha/2))if(couldBeNormal) {
   if(couldBeNormal) {
     lowerLimit <- sampleMean - 3 * sampleSD
     upperLimit <- sampleMean + 3 * sampleSD
   }
   else {
-    lowerLimit <- min(samleDist)
-    upperLimit <- max(samleDist)
+    lowerLimit <- min(sampleDist)
+    upperLimit <- max(sampleDist)
   }
   return( list(isAnomalous=( observed < lowerLimit | observed > upperLimit ),
               lowerLimit=lowerLimit,
@@ -660,30 +660,32 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha, plotFo
 
   calc <- function(i) {
     statsForSubc <- genStats[seq(i, nSubcategories*k, nSubcategories)]
-    percentiles.eucDistSubc <- quantile(statsForSubc$eucDistSubc, c(alpha/2, 1-alpha/2))
-    observed.eucDistSubc <- observedStats[ subcategory==statsForSubc$subcategory[1], ]$eucDistSubc
 
-    percentiles.eucDistSubcPop <- quantile(statsForSubc$eucDistSubcPop, c(alpha/2, 1-alpha/2))
+    observed.eucDistSubc <- observedStats[ subcategory==statsForSubc$subcategory[1], ]$eucDistSubc
+    test <- testSignificance(statsForSubc$eucDistSubc, observed.eucDistSubc)
+
     observed.eucDistSubcPop <- observedStats[ subcategory==statsForSubc$subcategory[1], ]$eucDistSubcPop
+    testPop <- testSignificance(statsForSubc$eucDistSubcPop, observed.eucDistSubcPop)
+
     stats <- list(
-      eucDistSubc = ( observed.eucDistSubc < percentiles.eucDistSubc[[1]] | observed.eucDistSubc > percentiles.eucDistSubc[[2]] ),
-      eucDistSubcLowerQuantile = percentiles.eucDistSubc[[1]],
-      eucDistSubcUpperQuantile = percentiles.eucDistSubc[[2]],
+      eucDistSubc = test$isAnomalous,
+      eucDistSubclowerLimit = test$lowerLimit,
+      eucDistSubcUpperLimit = test$upperLimit,
       eucDistSubcGenMean = mean(statsForSubc$eucDistSubc),
       eucDistSubcGenMedian = median(statsForSubc$eucDistSubc),
 
       meanMaleSubcPop = mean(statsForSubc$malePopSubC),
       meanFemaleSubcPop  = mean(statsForSubc$femalePopSubC),
-      eucDistSubcPop = ( observed.eucDistSubcPop < percentiles.eucDistSubcPop[[1]] | observed.eucDistSubcPop > percentiles.eucDistSubcPop[[2]] ),
-      eucDistSubcPopLowerQuantile = percentiles.eucDistSubcPop[[1]],
-      eucDistSubcPopUpperQuantile = percentiles.eucDistSubcPop[[2]],
+      eucDistSubcPop = test$isAnomalous,
+      eucDistSubcPoplowerLimit = test$lowerLimit,
+      eucDistSubcPopUpperLimit = test$upperLimit,
       eucDistSubcPopGenMean = mean(statsForSubc$eucDistSubcPop),
       eucDistSubcPopGenMedian = median(statsForSubc$eucDistSubcPop)
     )
     plotCategoryDist(plotFolder, region, statsForSubc$subcategory[[1]], isAnomalous=stats$eucDistSubc,
                               statsForSubc$eucDistSubcPop, observed.eucDistSubcPop,
-                              stats$eucDistSubcPopLowerQuantile,
-                              stats$eucDistSubcPopUpperQuantile)
+                              stats$eucDistSubcPoplowerLimit,
+                              stats$eucDistSubcPopUpperLimit)
     return(stats)
   }
   statsPerSubc <- writeObservedValues(genStats, observedStats)
@@ -691,8 +693,8 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha, plotFo
 
   isAnomalous.eucDistSubc <- unlist(lapply(isAnomalous, function(x)x$eucDistSubc))
 
-  statsPerSubc$eucDistSubcLowerQuantile <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcLowerQuantile))
-  statsPerSubc$eucDistSubcUpperQuantile <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcUpperQuantile))
+  statsPerSubc$eucDistSubclowerLimit <- unlist(lapply(isAnomalous, function(x)x$eucDistSubclowerLimit))
+  statsPerSubc$eucDistSubcUpperLimit <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcUpperLimit))
   statsPerSubc$eucDistSubcGenMean <-  unlist(lapply(isAnomalous, function(x)x$eucDistSubcGenMean))
   statsPerSubc$eucDistSubcGenMedian <-  unlist(lapply(isAnomalous, function(x)x$eucDistSubcGenMedian))
   statsPerSubc$eucDistSubcIsAnomalous <- isAnomalous.eucDistSubc
@@ -704,8 +706,8 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha, plotFo
   ############
   isAnomalous.eucDistSubcPop <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcPop))
 
-  statsPerSubc$eucDistSubcPopLowerQuantile <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopLowerQuantile))
-  statsPerSubc$eucDistSubcPopUpperQuantile <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopUpperQuantile))
+  statsPerSubc$eucDistSubcPoplowerLimit <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcPoplowerLimit))
+  statsPerSubc$eucDistSubcPopUpperLimit <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopUpperLimit))
   statsPerSubc$eucDistSubcPopGenMean <-  unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopGenMean))
   statsPerSubc$eucDistSubcPopGenMedian <-  unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopGenMedian))
   statsPerSubc$eucDistSubcPopIsAnomalous <- isAnomalous.eucDistSubcPop
