@@ -516,6 +516,25 @@ runGenerate <- function(checkIns, segregation, UNIFORM_LOCATION_PROBABILITY, UNI
   return(c(checkInFile, maleSegregationFile, femaleSegregationFile))
 }
 
+testSignificance <- function(observed, sampleDist) {
+  sampleMean <- mean(sampleDist)
+  sampleSD <- sd(sampleDist)
+  # null hypothesis is that it is normal
+  couldBeNormal <- shapiro.test(samleDist)$p.value > 0.05
+  #percentile <- quantile(empiricalDifference, c(alpha/2, 1-alpha/2))if(couldBeNormal) {
+    lowerLimit <- sampleMean - 3 * sampleSD
+    upperLimit <- sampleMean + 3 * sampleSD
+  }
+  else {
+    lowerLimit <- min(samleDist)
+    upperLimit <- max(samleDist)
+  }
+  return( list(isAnomalous=( observed < lowerLimit | observed > upperLimit ),
+              lowerLimit=lowerLimit,
+              upperLimit=upperLimit,
+              couldBeNormal=couldBeNormal) )
+}
+
 testObservationWithNullModel <- function(observedSegregation, gen.segregation, folderName, regionName,
                                          k,
                                          SEARCH_ANOMALOUS_LOCATIONS=TRUE,
@@ -527,6 +546,7 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
 
   locationStats <- function(i) {
     location <- uniqueLocations[i]
+    notNormal <- 0
 
     iterLocation <- gen.segregation[idLocal==location, ]
     malePopularity <- iterLocation[, .SD[1], by=iterPermutation]$maleCount
@@ -536,26 +556,24 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
 
     if (SEARCH_ANOMALOUS_LOCATIONS) {
       empiricalDifference <- euclideanDistance(malePopularity, femalePopularity)
-      z_score <- qnorm(1-alpha/2)
-      standardError <- sd(empiricalDifference) / sqrt(k) * z_score
-      sampleMean <- mean(empiricalDifference)
-      conf.int <- list( lower=sampleMean - standardError,
-                        upper=sampleMean + standardError)
-      #percentile <- quantile(empiricalDifference, c(alpha/2, 1-alpha/2))
 
       observedMale <- observedSegregation[idLocal==location, ]$maleCount[[1]] # same value for each check-in
       observedFemale <- observedSegregation[idLocal==location, ]$femaleCount[[1]]
       observedDifference <- euclideanDistance(observedMale, observedFemale)
-      isAnomalous <- ( observedDifference < conf.int$lower | observedDifference > conf.int$upper )
-      if(isAnomalous) {
+
+      test <- testSignificance(empiricalDifference, observedDifference)
+      if(location == notInFirst)
+        browser()
+      if(test$isAnomalous) {
         if(PLOT_ANOM_DIST) {
           filename <- sprintf("%s/location-%s-anomalous.csv", folderName, location)
           write.table(data.table(idLocal=uniqueLocations[i],
                                  empiricalDifference=empiricalDifference,
                                  observedDifference=observedDifference,
-                                 conf.int.lower=conf.int$lower,
-                                 conf.int.upper=conf.int$upper,
-                                 isAnomalous=TRUE), filename)
+                                 lowerLimit=test$lowerLimit,
+                                 upperLimit=test$upperLimit,
+                                 isAnomalous=TRUE,
+                                 couldBeNormal=test$couldBeNormal), filename)
           filename <- sprintf("%s/location-%s-anomalous.pdf", folderName, location)
 
           pdf(filename, pointsize=25)
@@ -564,8 +582,8 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
           h$counts=h$counts/sum(h$counts)
           plot(h, xlab="Popularity difference", main=NULL, ylab="Occurences in %")
 
-          abline(v=conf.int$lower, lty=3, lwd=5)
-          abline(v=conf.int$upper, lty=3, lwd=5)
+          abline(v=test$lowerLimit, lty=3, lwd=5)
+          abline(v=test$upperLimit, lty=3, lwd=5)
           abline(v=observedDifference, lwd=5)
           dev.off()
         }
@@ -575,18 +593,21 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
                       category=iterLocation$category[[1]], city=iterLocation$city[[1]],
                       country=iterLocation$country[[1]], malePopularity=observedMale, femalePopularity=observedFemale,
                       meanMalePopularity=mean(malePopularity), meanFemalePopularity=mean(femalePopularity),
-                      difference=observedDifference, conf.int.lower=conf.int$lower, conf.int.upper=conf.int$upper,
-                      isAnomalous=isAnomalous))
+                      difference=observedDifference, lowerLimit=test$lowerLimit, upperLimit=test$upperLimit,
+                      isAnomalous=isAnomalous, couldBeNormal=test$couldBeNormal))
 
   }
-  allLocationStats <- rbindlist( mclapply(seq(nUniqueLocations), locationStats, mc.cores=N_CORES) )
+  allLocationStats <- rbindlist( lapply(seq(nUniqueLocations), locationStats) )#, mc.cores=N_CORES) )
 
   summary_ <- allLocationStats[, list(nAnomalous=sum(isAnomalous),
                                      nLocations=length(idLocal),
-                                     percAnomalous=length(isAnomalous[isAnomalous==T])/length(isAnomalous))]
+                                     percAnomalous=length(isAnomalous[isAnomalous==T])/length(isAnomalous),
+                                    percCouldBeNormal=length(couldBeNormal[couldBeNormal==T])/length(couldBeNormal))]
   message(sprintf("Distance to diagonal: %s of %s (%s%%) locations with observed anomalous segregation",
                   summary_$nAnomalous, summary_$nLocations,
                   round(100*summary_$percAnomalous, 3)))
+  message(summary_$percCouldBeNormal)
+
   f <- sprintf("%s/location-stats-generated-%s.csv", folderName, regionName)
   write.table(allLocationStats, f)
   f2 <- sprintf("%s/location-stats-generated-%s-summary.csv", folderName, regionName)
