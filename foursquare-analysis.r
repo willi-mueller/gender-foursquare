@@ -559,9 +559,11 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
           filename <- sprintf("%s/location-%s-anomalous.pdf", folderName, location)
 
           pdf(filename, pointsize=25)
-          hist(c(empiricalDifference, observedDifference), xlab="Popularity difference", main=NULL)
-          abline(v=percentile[1], lty=3, lwd=5)
-          abline(v=percentile[2], lty=3, lwd=5)
+
+          h <- hist(c(empiricalDifference, observedDifference), plot=FALSE)
+          h$counts=h$counts/sum(h$counts)
+          plot(h, xlab="Popularity difference", main=NULL, ylab="Occurences in %")
+
           abline(v=conf.int$lower, lty=3, lwd=5)
           abline(v=conf.int$upper, lty=3, lwd=5)
           abline(v=observedDifference, lwd=5)
