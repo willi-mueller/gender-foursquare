@@ -522,6 +522,7 @@ testSignificance <- function(observed, sampleDist) {
   # null hypothesis is that it is normal
   couldBeNormal <- shapiro.test(samleDist)$p.value > 0.05
   #percentile <- quantile(empiricalDifference, c(alpha/2, 1-alpha/2))if(couldBeNormal) {
+  if(couldBeNormal) {
     lowerLimit <- sampleMean - 3 * sampleSD
     upperLimit <- sampleMean + 3 * sampleSD
   }
