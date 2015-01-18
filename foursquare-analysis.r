@@ -561,10 +561,9 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
       observedMale <- observedSegregation[idLocal==location, ]$maleCount[[1]] # same value for each check-in
       observedFemale <- observedSegregation[idLocal==location, ]$femaleCount[[1]]
       observedDifference <- euclideanDistance(observedMale, observedFemale)
-
       test <- testSignificance(empiricalDifference, observedDifference)
-      if(location == notInFirst)
-        browser()
+      # if(location %in% notInFirst)
+      #   browser()
       if(test$isAnomalous) {
         if(PLOT_ANOM_DIST) {
           filename <- sprintf("%s/location-%s-anomalous.csv", folderName, location)
