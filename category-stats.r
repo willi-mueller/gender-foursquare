@@ -80,7 +80,7 @@ calculateStats <- function(ci, region) {
 	ci <- segregation(ci, region, log=F)
 
 	locationStats <- testObservationWithNullModel(ci, generated, folderName, region, k, PLOT_ANOM_DIST=T)
-	categoryStats <- getBootstrappedStatistics(folderName, ci, generated, k, region, alpha=0.01)
+	categoryStats <- getBootstrappedStatistics(folderName, ci, generated, k, region)
 	return(list(categoryStats=categoryStats$bootstrapStats, locationStats=locationStats))
 }
 

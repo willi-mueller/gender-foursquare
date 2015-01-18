@@ -539,7 +539,7 @@ testSignificance <- function(sampleDist, observed) {
 testObservationWithNullModel <- function(observedSegregation, gen.segregation, folderName, regionName,
                                          k,
                                          SEARCH_ANOMALOUS_LOCATIONS=TRUE,
-                                         PLOT_ANOM_DIST=F, axeslim=SEGREGATION_AXES, alpha=0.01) {
+                                         PLOT_ANOM_DIST=F, axeslim=SEGREGATION_AXES) {
   meanMalePopularities <- c()
   meanFemalePopularities <- c()
   uniqueLocations <- unique(observedSegregation$idLocal)
@@ -624,7 +624,7 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
   return(allLocationStats)
 }
 
-getBootstrappedStatistics <- function(plotFolder, observed, generated, k, region, alpha=0.01) {
+getBootstrappedStatistics <- function(plotFolder, observed, generated, k, region) {
   observedStats <- calculateCategoryStats(observed)
   calc <- function(i) {
     stat <- calculateCategoryStats(generated[iterPermutation==i])
@@ -632,7 +632,7 @@ getBootstrappedStatistics <- function(plotFolder, observed, generated, k, region
     return(stat)
   }
   genStats <- rbindlist( mclapply(seq(k), calc, mc.cores=N_CORES) )
-  bootstrapStats <- flagAnomalousSubcategories(observedStats, genStats, k, alpha, plotFolder, region)
+  bootstrapStats <- flagAnomalousSubcategories(observedStats, genStats, k, plotFolder, region)
   plotGeneratedMeans(plotFolder, region,
                     bootstrapStats$meanMaleSubcPop, bootstrapStats$meanFemaleSubcPop,
                     bootstrapStats$subcategory, axeslim=c(0, 1))
@@ -655,7 +655,7 @@ calculateCategoryStats <- function(checkIns) {
     malePopSubC, femalePopSubC, eucDistSubcPop)]
 }
 
-flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha, plotFolder, region) {
+flagAnomalousSubcategories <- function(observedStats, genStats, k, plotFolder, region) {
   nSubcategories <- nrow(genStats)/k
 
   calc <- function(i) {
@@ -717,8 +717,6 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha, plotFo
   nAnomalous2 <- length(isAnomalous.eucDistSubcPop[isAnomalous.eucDistSubcPop==TRUE])
   percOfAnomalousSubcPop <- nAnomalous2/nSubcategories
   statsPerSubc$percAnomalousEucDistSubcPop <- percOfAnomalousSubcPop
-
-  statsPerSubc$alpha <- alpha
 
   return(statsPerSubc)
 }
