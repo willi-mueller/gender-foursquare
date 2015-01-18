@@ -595,7 +595,7 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
                       country=iterLocation$country[[1]], malePopularity=observedMale, femalePopularity=observedFemale,
                       meanMalePopularity=mean(malePopularity), meanFemalePopularity=mean(femalePopularity),
                       difference=observedDifference, lowerLimit=test$lowerLimit, upperLimit=test$upperLimit,
-                      isAnomalous=isAnomalous, couldBeNormal=test$couldBeNormal))
+                      isAnomalous=test$isAnomalous, couldBeNormal=test$couldBeNormal))
 
   }
   allLocationStats <- rbindlist( lapply(seq(nUniqueLocations), locationStats) )#, mc.cores=N_CORES) )
