@@ -535,24 +535,35 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
     meanFemalePopularities <- c(meanFemalePopularities, mean(femalePopularity))
 
     if (SEARCH_ANOMALOUS_LOCATIONS) {
-      empiricalDifference <- malePopularity - femalePopularity
-      percentile <- quantile(empiricalDifference, c(alpha/2, 1-alpha/2))
+      empiricalDifference <- euclideanDistance(malePopularity, femalePopularity)
+      z_score <- qnorm(1-alpha/2)
+      standardError <- sd(empiricalDifference) / sqrt(k) * z_score
+      sampleMean <- mean(empiricalDifference)
+      conf.int <- list( lower=sampleMean - standardError,
+                        upper=sampleMean + standardError)
+      #percentile <- quantile(empiricalDifference, c(alpha/2, 1-alpha/2))
+
       observedMale <- observedSegregation[idLocal==location, ]$maleCount[[1]] # same value for each check-in
       observedFemale <- observedSegregation[idLocal==location, ]$femaleCount[[1]]
-      observedDifference <- observedMale - observedFemale
-      isAnomalous <- ( observedDifference < percentile[1] | observedDifference > percentile[2] )
+      observedDifference <- euclideanDistance(observedMale, observedFemale)
+      isAnomalous <- ( observedDifference < conf.int$lower | observedDifference > conf.int$upper )
       if(isAnomalous) {
         if(PLOT_ANOM_DIST) {
           filename <- sprintf("%s/location-%s-anomalous.csv", folderName, location)
           write.table(data.table(idLocal=uniqueLocations[i],
                                  empiricalDifference=empiricalDifference,
-                                 observedDifference=observedDifference), filename)
+                                 observedDifference=observedDifference,
+                                 conf.int.lower=conf.int$lower,
+                                 conf.int.upper=conf.int$upper,
+                                 isAnomalous=TRUE), filename)
           filename <- sprintf("%s/location-%s-anomalous.pdf", folderName, location)
 
           pdf(filename, pointsize=25)
           hist(c(empiricalDifference, observedDifference), xlab="Popularity difference", main=NULL)
           abline(v=percentile[1], lty=3, lwd=5)
           abline(v=percentile[2], lty=3, lwd=5)
+          abline(v=conf.int$lower, lty=3, lwd=5)
+          abline(v=conf.int$upper, lty=3, lwd=5)
           abline(v=observedDifference, lwd=5)
           dev.off()
         }
@@ -562,7 +573,7 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
                       category=iterLocation$category[[1]], city=iterLocation$city[[1]],
                       country=iterLocation$country[[1]], malePopularity=observedMale, femalePopularity=observedFemale,
                       meanMalePopularity=mean(malePopularity), meanFemalePopularity=mean(femalePopularity),
-                      difference=observedDifference, lowerPercentile=percentile[1], upperPercentile=percentile[2],
+                      difference=observedDifference, conf.int.lower=conf.int$lower, conf.int.upper=conf.int$upper,
                       isAnomalous=isAnomalous))
 
   }
