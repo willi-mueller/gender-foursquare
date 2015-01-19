@@ -675,9 +675,9 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, plotFolder, r
 
       meanMaleSubcPop = mean(statsForSubc$malePopSubC),
       meanFemaleSubcPop  = mean(statsForSubc$femalePopSubC),
-      eucDistSubcPop = test$isAnomalous,
-      eucDistSubcPoplowerLimit = test$lowerLimit,
-      eucDistSubcPopUpperLimit = test$upperLimit,
+      eucDistSubcPop = testPop$isAnomalous,
+      eucDistSubcPoplowerLimit = testPop$lowerLimit,
+      eucDistSubcPopUpperLimit = testPop$upperLimit,
       eucDistSubcPopGenMean = mean(statsForSubc$eucDistSubcPop),
       eucDistSubcPopGenMedian = median(statsForSubc$eucDistSubcPop)
     )
