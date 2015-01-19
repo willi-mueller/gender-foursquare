@@ -382,6 +382,7 @@ euclideanDistance <- function(male, female) {
   stopifnot(length(male) == length(female))
   # determine side of the diagonale
   for(i in seq(length(male))) {
+    # turkey crashes here
     if(female[i]>male[i]) {
       dist[i] <- - dist[i]
     }
@@ -597,7 +598,8 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
                       isAnomalous=test$isAnomalous, couldBeNormal=test$couldBeNormal))
 
   }
-  allLocationStats <- rbindlist( lapply(seq(nUniqueLocations), locationStats) )#, mc.cores=N_CORES) )
+  ll <- lapply(seq(nUniqueLocations), locationStats)#, mc.cores=N_CORES) ) # probably culprit
+  allLocationStats <- rbindlist( ll )
 
   summary_ <- allLocationStats[, list(nAnomalous=sum(isAnomalous),
                                      nLocations=length(idLocal),
@@ -741,7 +743,7 @@ writeObservedValues <- function(genStats, observedStats) {
 
 plotCategoryDist <- function(folderName, region, categoryName, isAnomalous,
                              categoryDistDistribution, observedDist,
-                             lowerPercentile, upperPercentile) {
+                             lowerLimit, upperLimit) {
   filename <- ""
   if(isAnomalous) {
     filename <- sprintf("%s/%s-category-%s-anomalous", folderName, region, categoryName)
@@ -751,13 +753,13 @@ plotCategoryDist <- function(folderName, region, categoryName, isAnomalous,
   filename <- gsub(" / ", "--", filename) # for Monument / Landmark
   pdf(sprintf("%s.pdf", filename), pointsize=25)
   hist(c(categoryDistDistribution, observedDist), xlab="Popularity difference", main=NULL)
-  abline(v=lowerPercentile, lty=3, lwd=5)
-  abline(v=upperPercentile, lty=3, lwd=5)
+  abline(v=lowerLimit, lty=3, lwd=5)
+  abline(v=upperLimit, lty=3, lwd=5)
   abline(v=observedDist, lwd=5)
   dev.off()
   write.table(data.table(category=categoryName,
                           observed=observedDist, generated=categoryDistDistribution,
-                          lowerPercentile=lowerPercentile, upperPercentile=upperPercentile,
+                          lowerLimit=lowerLimit, upperLimit=upperLimit,
                           isAnomalous=isAnomalous),
               file=sprintf("%s.csv", filename),
               row.names=FALSE, sep="\t")
@@ -851,6 +853,7 @@ euclideanDistanceForSubcategoryPopularity <- function(checkIns) {
 }
 
 euclideanDistanceForLocation <- function(checkIns) {
+  replace(checkIns, is.na(checkIns), 0) # fix for Turkey's crash?
    sortByCategory( checkIns[ ,eucDistLoc:=euclideanDistance(percMaleLoc, percFemaleLoc), by=idLocal] )
 }
 
