@@ -574,7 +574,8 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
                                  lowerLimit=test$lowerLimit,
                                  upperLimit=test$upperLimit,
                                  isAnomalous=TRUE,
-                                 couldBeNormal=test$couldBeNormal), filename)
+                                 couldBeNormal=test$couldBeNormal), filename,
+                      row.names=FALSE, sep="\t")
           filename <- sprintf("%s/location-%s-anomalous.pdf", folderName, location)
 
           pdf(filename, pointsize=25)
@@ -611,9 +612,9 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
   message(summary_$percCouldBeNormal)
 
   f <- sprintf("%s/location-stats-generated-%s.csv", folderName, regionName)
-  write.table(allLocationStats, f)
+  write.table(allLocationStats, f, row.names=F, sep="\t",)
   f2 <- sprintf("%s/location-stats-generated-%s-summary.csv", folderName, regionName)
-  write.table(summary_, f2)
+  write.table(summary_, f2, row.names=F, sep="\t",)
 
   pdf(sprintf("%s/avg-segregation-generated-%s.pdf", folderName, regionName), pointsize=25)
 
