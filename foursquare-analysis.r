@@ -531,7 +531,7 @@ testSignificance <- function(sampleDist, observed) {
     lowerLimit <- min(sampleDist)
     upperLimit <- max(sampleDist)
   }
-  return( list(isAnomalous=( observed < lowerLimit | observed > upperLimit ),
+  return( list(isAnomalous=( round(observed, 8) < round(lowerLimit, 8) | round(observed, 8) > round(upperLimit, 8) ),
               lowerLimit=lowerLimit,
               upperLimit=upperLimit,
               couldBeNormal=couldBeNormal) )
