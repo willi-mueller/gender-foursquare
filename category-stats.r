@@ -6,32 +6,39 @@ library(parallel)
 library(data.table)
 source('analysis/foursquare-analysis.r')
 
-baseFolder <- "results/null-model-3"
+baseFolder <- "results/null-model-5-dev"
 N_CORES <- detectCores()
 THRESH <- 100
-MAX_CI <- 30000 # TODO: Inf to disable filter for large data set
+MAX_CI <- Inf # TODO: Inf to disable filter for large data set
 k <- 100
-countryFiles <- dir("paises")
+DATA_DIR <- "../newData"
+countryFiles <- dir(DATA_DIR) # "paises" for old data set
 categoryStats <- data.frame() # global to save it in the workspace image
 locationStats <- data.frame() # global to save it in the workspace image
 allCheckIns <- data.frame()
 
+RUN_TURKEY = FALSE
+
 collectStatisticsForRanking <- function() {
 	for(i in 1:length(countryFiles)) {
 	#readAndCalc <- function(i) {
-		f <- sprintf("paises/%s", countryFiles[i])
+		f <- sprintf("%s/%s", DATA_DIR, countryFiles[i])
 		country <- strsplit(countryFiles[i], ".dat", fixed=T)[[1]]
-		if(country %in% c("Germany", "France", "Spain", "United-Kingdom",
-				 "United-States", "Brazil", "Mexico",
-				 "United-Arab-Emirates", "Saudi-Arabia", "Kuwait", #"Turkey", # run Turkey manually in R shell
-				 "South-Korea", "Malaysia", "Japan", "Thailand")) {
-			# c("Brazil", "United States", "Indonesia", "France", "Singapore", "Saudi Arabia", "Russia")
+		if(country %in% c("Germany")) {
+			#c("Germany", "Brazil", France", "Spain", "United-Kingdom",
+			# 	 "United-States", "Brazil", "Mexico",
+			# 	 "United-Arab-Emirates", "Saudi-Arabia", "Kuwait", #"Turkey", # run Turkey manually in R shell
+			# 	 "South-Korea", "Malaysia", "Japan", "Thailand")) {
+			# # c("Brazil", "United States", "Indonesia", "France", "Singapore", "Saudi Arabia", "Russia")
+			start <- Sys.time()
 			message(country)
 
 			ci <- readAndFilterCheckIns(f, THRESH)
 			ci <- filterSelectedCategories(ci)
 			ci <- resampleIfTooMuchCheckIns(ci)
-			message(nrow(ci), " check-ins are going to be analyzed")
+			message("#### Reading took: ", Sys.time()-start)
+			message("#### ", nrow(ci), " check-ins are going to be analyzed")
+			start <- Sys.time()
 			if(nrow(ci) > 0) {
 				allCheckIns <<- rbindlist(list(allCheckIns, ci))
 
@@ -39,6 +46,7 @@ collectStatisticsForRanking <- function() {
 				categoryStats <<- rbindlist( list(categoryStats, stats$categoryStats))
 				locationStats <<- rbindlist( list(locationStats, stats$locationStats))
 			}
+			message("#### Analyses took: ", Sys.time()-start)
 		}
 	}
 	save.image()
@@ -57,7 +65,7 @@ subcategorySegregationPlots <- function() {
 			 		"United-Arab-Emirates", "Saudi-Arabia", "Kuwait", "Turkey",
 			 		"South-Korea", "Malaysia", "Japan", "Thailand")) {
 		message(country)
-		f <- sprintf("paises/%s.dat", country)
+		f <- sprintf("%s/%s.dat", DATA_DIR, country)
 		ci <- readAndFilterCheckIns(f, THRESH)
 		ci <- filterSelectedCategories(ci)
 		ci <- resampleIfTooMuchCheckIns(ci)
@@ -79,7 +87,7 @@ subcategorySegregationPlots <- function() {
 
 calculateStats <- function(ci, region) {
 	folderName <- sprintf("%s/%s/gender-permutation", baseFolder, region)
-	generated <- runPermutate(ci, folderName, "permutate-gender", region, k=k, forceGenerate=T)
+	generated <- runPermutate(ci, folderName, "permutate-gender", region, k=k, forceGenerate=F)
 	# segregation() is crucial, the others need male and female popularity,
 	ci <- segregation(ci, region, log=F)
 
@@ -109,30 +117,31 @@ collectStatisticsForRanking()
 #####################################
 # Terminal for Turkey
 #####################################
-country <- "Turkey"
-ci <- readAndFilterCheckIns("paises/Turkey.dat", THRESH)
-ci <- filterSelectedCategories(ci)
-ci <- resampleIfTooMuchCheckIns(ci)
+if(RUN_TURKEY) {
+	country <- "Turkey"
+	ci <- readAndFilterCheckIns("%s/Turkey.dat", DATA_DIR, THRESH)
+	ci <- filterSelectedCategories(ci)
+	ci <- resampleIfTooMuchCheckIns(ci)
 
-allCheckIns <- fread("results/null-model-4/cleaned-check-ins-1000-15-countries-5-categories.csv")
-allCheckIns <<- rbindlist(list(allCheckIns, ci))
+	allCheckIns <- fread(sprintf("%s/cleaned-check-ins-1000-15-countries-5-categories.csv", baseFolder))
+	allCheckIns <<- rbindlist(list(allCheckIns, ci))
 
-stats <- calculateStats(ci, country)
+	stats <- calculateStats(ci, country)
 
-categoryStats <- fread("results/null-model-4/category-stats-15-countries-5-categories.csv")
-categoryStats <<- rbindlist(list(categoryStats, stats$categoryStats))
+	categoryStats <- fread(sprintf("%s/category-stats-15-countries-5-categories.csv", baseFolder))
+	categoryStats <<- rbindlist(list(categoryStats, stats$categoryStats))
 
-locationStats <- fread("results/null-model-4/location-stats-15-countries-5-categories.csv")
-locationStats <<- rbindlist( list(locationStats, stats$locationStats))
-
-
-
-save.image()
-write.table(locationStats, sprintf("%s/location-stats-15-countries-5-categories.csv", baseFolder),
-			sep="\t", row.names=FALSE)
-write.table(categoryStats, sprintf("%s/category-stats-15-countries-5-categories.csv", baseFolder),
-			sep="\t", row.names=FALSE)
-write.table(allCheckIns, sprintf("%s/cleaned-check-ins-1000-15-countries-5-categories.csv", baseFolder),
-			sep="\t", row.names=FALSE)
+	locationStats <- fread(sprintf("%s/location-stats-15-countries-5-categories.csv", baseFolder))
+	locationStats <<- rbindlist( list(locationStats, stats$locationStats))
 
 
+
+	save.image()
+	write.table(locationStats, sprintf("%s/location-stats-15-countries-5-categories.csv", baseFolder),
+				sep="\t", row.names=FALSE)
+	write.table(categoryStats, sprintf("%s/category-stats-15-countries-5-categories.csv", baseFolder),
+				sep="\t", row.names=FALSE)
+	write.table(allCheckIns, sprintf("%s/cleaned-check-ins-1000-15-countries-5-categories.csv", baseFolder),
+				sep="\t", row.names=FALSE)
+
+}
