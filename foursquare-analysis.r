@@ -1,3 +1,7 @@
+#########################
+# Common library
+#########################
+
 # library(sqldf)
 library(Hmisc) # Ecdf
 library(data.table)
@@ -382,6 +386,7 @@ euclideanDistance <- function(male, female) {
   stopifnot(length(male) == length(female))
   # determine side of the diagonale
   for(i in seq(length(male))) {
+    # turkey crashes here
     if(female[i]>male[i]) {
       dist[i] <- - dist[i]
     }
@@ -516,10 +521,30 @@ runGenerate <- function(checkIns, segregation, UNIFORM_LOCATION_PROBABILITY, UNI
   return(c(checkInFile, maleSegregationFile, femaleSegregationFile))
 }
 
+testSignificance <- function(sampleDist, observed) {
+  sampleMean <- mean(sampleDist)
+  sampleSD <- sd(sampleDist)
+  # null hypothesis is that it is normal
+  couldBeNormal <- shapiro.test(sampleDist)$p.value > 0.05
+  #percentile <- quantile(empiricalDifference, c(alpha/2, 1-alpha/2))if(couldBeNormal) {
+  if(couldBeNormal) {
+    lowerLimit <- sampleMean - 3 * sampleSD
+    upperLimit <- sampleMean + 3 * sampleSD
+  }
+  else {
+    lowerLimit <- min(sampleDist)
+    upperLimit <- max(sampleDist)
+  }
+  return( list(isAnomalous=( round(observed, 8) < round(lowerLimit, 8) | round(observed, 8) > round(upperLimit, 8) ),
+              lowerLimit=lowerLimit,
+              upperLimit=upperLimit,
+              couldBeNormal=couldBeNormal) )
+}
+
 testObservationWithNullModel <- function(observedSegregation, gen.segregation, folderName, regionName,
                                          k,
                                          SEARCH_ANOMALOUS_LOCATIONS=TRUE,
-                                         PLOT_ANOM_DIST=F, axeslim=SEGREGATION_AXES, alpha=0.01) {
+                                         PLOT_ANOM_DIST=F, axeslim=SEGREGATION_AXES) {
   meanMalePopularities <- c()
   meanFemalePopularities <- c()
   uniqueLocations <- unique(observedSegregation$idLocal)
@@ -527,6 +552,7 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
 
   locationStats <- function(i) {
     location <- uniqueLocations[i]
+    notNormal <- 0
 
     iterLocation <- gen.segregation[idLocal==location, ]
     malePopularity <- iterLocation[, .SD[1], by=iterPermutation]$maleCount
@@ -535,24 +561,35 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
     meanFemalePopularities <- c(meanFemalePopularities, mean(femalePopularity))
 
     if (SEARCH_ANOMALOUS_LOCATIONS) {
-      empiricalDifference <- malePopularity - femalePopularity
-      percentile <- quantile(empiricalDifference, c(alpha/2, 1-alpha/2))
+      empiricalDifference <- euclideanDistance(malePopularity, femalePopularity)
+
       observedMale <- observedSegregation[idLocal==location, ]$maleCount[[1]] # same value for each check-in
       observedFemale <- observedSegregation[idLocal==location, ]$femaleCount[[1]]
-      observedDifference <- observedMale - observedFemale
-      isAnomalous <- ( observedDifference < percentile[1] | observedDifference > percentile[2] )
-      if(isAnomalous) {
+      observedDifference <- euclideanDistance(observedMale, observedFemale)
+      test <- testSignificance(empiricalDifference, observedDifference)
+      # if(location %in% notInFirst)
+      #   browser()
+      if(test$isAnomalous) {
         if(PLOT_ANOM_DIST) {
           filename <- sprintf("%s/location-%s-anomalous.csv", folderName, location)
           write.table(data.table(idLocal=uniqueLocations[i],
                                  empiricalDifference=empiricalDifference,
-                                 observedDifference=observedDifference), filename)
+                                 observedDifference=observedDifference,
+                                 lowerLimit=test$lowerLimit,
+                                 upperLimit=test$upperLimit,
+                                 isAnomalous=TRUE,
+                                 couldBeNormal=test$couldBeNormal), filename,
+                      row.names=FALSE, sep="\t")
           filename <- sprintf("%s/location-%s-anomalous.pdf", folderName, location)
 
           pdf(filename, pointsize=25)
-          hist(c(empiricalDifference, observedDifference), xlab="Popularity difference", main=NULL)
-          abline(v=percentile[1], lty=3, lwd=5)
-          abline(v=percentile[2], lty=3, lwd=5)
+
+          h <- hist(c(empiricalDifference, observedDifference), plot=FALSE)
+          h$counts=h$counts/sum(h$counts)
+          plot(h, xlab="Popularity difference", main=NULL, ylab="Occurences in %")
+
+          abline(v=test$lowerLimit, lty=3, lwd=5)
+          abline(v=test$upperLimit, lty=3, lwd=5)
           abline(v=observedDifference, lwd=5)
           dev.off()
         }
@@ -562,22 +599,26 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
                       category=iterLocation$category[[1]], city=iterLocation$city[[1]],
                       country=iterLocation$country[[1]], malePopularity=observedMale, femalePopularity=observedFemale,
                       meanMalePopularity=mean(malePopularity), meanFemalePopularity=mean(femalePopularity),
-                      difference=observedDifference, lowerPercentile=percentile[1], upperPercentile=percentile[2],
-                      isAnomalous=isAnomalous))
+                      difference=observedDifference, lowerLimit=test$lowerLimit, upperLimit=test$upperLimit,
+                      isAnomalous=test$isAnomalous, couldBeNormal=test$couldBeNormal))
 
   }
-  allLocationStats <- rbindlist( mclapply(seq(nUniqueLocations), locationStats, mc.cores=N_CORES) )
+  ll <- lapply(seq(nUniqueLocations), locationStats)#, mc.cores=N_CORES) ) # probably culprit
+  allLocationStats <- rbindlist( ll )
 
   summary_ <- allLocationStats[, list(nAnomalous=sum(isAnomalous),
                                      nLocations=length(idLocal),
-                                     percAnomalous=length(isAnomalous[isAnomalous==T])/length(isAnomalous))]
+                                     percAnomalous=length(isAnomalous[isAnomalous==T])/length(isAnomalous),
+                                    percCouldBeNormal=length(couldBeNormal[couldBeNormal==T])/length(couldBeNormal))]
   message(sprintf("Distance to diagonal: %s of %s (%s%%) locations with observed anomalous segregation",
                   summary_$nAnomalous, summary_$nLocations,
                   round(100*summary_$percAnomalous, 3)))
+  message(summary_$percCouldBeNormal)
+
   f <- sprintf("%s/location-stats-generated-%s.csv", folderName, regionName)
-  write.table(allLocationStats, f)
+  write.table(allLocationStats, f, row.names=F, sep="\t",)
   f2 <- sprintf("%s/location-stats-generated-%s-summary.csv", folderName, regionName)
-  write.table(summary_, f2)
+  write.table(summary_, f2, row.names=F, sep="\t",)
 
   pdf(sprintf("%s/avg-segregation-generated-%s.pdf", folderName, regionName), pointsize=25)
 
@@ -589,7 +630,7 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
   return(allLocationStats)
 }
 
-getBootstrappedStatistics <- function(plotFolder, observed, generated, k, region, alpha=0.01) {
+getBootstrappedStatistics <- function(plotFolder, observed, generated, k, region) {
   observedStats <- calculateCategoryStats(observed)
   calc <- function(i) {
     stat <- calculateCategoryStats(generated[iterPermutation==i])
@@ -597,7 +638,7 @@ getBootstrappedStatistics <- function(plotFolder, observed, generated, k, region
     return(stat)
   }
   genStats <- rbindlist( mclapply(seq(k), calc, mc.cores=N_CORES) )
-  bootstrapStats <- flagAnomalousSubcategories(observedStats, genStats, k, alpha, plotFolder, region)
+  bootstrapStats <- flagAnomalousSubcategories(observedStats, genStats, k, plotFolder, region)
   plotGeneratedMeans(plotFolder, region,
                     bootstrapStats$meanMaleSubcPop, bootstrapStats$meanFemaleSubcPop,
                     bootstrapStats$subcategory, axeslim=c(0, 1))
@@ -620,35 +661,37 @@ calculateCategoryStats <- function(checkIns) {
     malePopSubC, femalePopSubC, eucDistSubcPop)]
 }
 
-flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha, plotFolder, region) {
+flagAnomalousSubcategories <- function(observedStats, genStats, k, plotFolder, region) {
   nSubcategories <- nrow(genStats)/k
 
   calc <- function(i) {
     statsForSubc <- genStats[seq(i, nSubcategories*k, nSubcategories)]
-    percentiles.eucDistSubc <- quantile(statsForSubc$eucDistSubc, c(alpha/2, 1-alpha/2))
-    observed.eucDistSubc <- observedStats[ subcategory==statsForSubc$subcategory[1], ]$eucDistSubc
 
-    percentiles.eucDistSubcPop <- quantile(statsForSubc$eucDistSubcPop, c(alpha/2, 1-alpha/2))
+    observed.eucDistSubc <- observedStats[ subcategory==statsForSubc$subcategory[1], ]$eucDistSubc
+    test <- testSignificance(statsForSubc$eucDistSubc, observed.eucDistSubc)
+
     observed.eucDistSubcPop <- observedStats[ subcategory==statsForSubc$subcategory[1], ]$eucDistSubcPop
+    testPop <- testSignificance(statsForSubc$eucDistSubcPop, observed.eucDistSubcPop)
+
     stats <- list(
-      eucDistSubc = ( observed.eucDistSubc < percentiles.eucDistSubc[[1]] | observed.eucDistSubc > percentiles.eucDistSubc[[2]] ),
-      eucDistSubcLowerQuantile = percentiles.eucDistSubc[[1]],
-      eucDistSubcUpperQuantile = percentiles.eucDistSubc[[2]],
+      eucDistSubc = test$isAnomalous,
+      eucDistSubclowerLimit = test$lowerLimit,
+      eucDistSubcUpperLimit = test$upperLimit,
       eucDistSubcGenMean = mean(statsForSubc$eucDistSubc),
       eucDistSubcGenMedian = median(statsForSubc$eucDistSubc),
 
       meanMaleSubcPop = mean(statsForSubc$malePopSubC),
       meanFemaleSubcPop  = mean(statsForSubc$femalePopSubC),
-      eucDistSubcPop = ( observed.eucDistSubcPop < percentiles.eucDistSubcPop[[1]] | observed.eucDistSubcPop > percentiles.eucDistSubcPop[[2]] ),
-      eucDistSubcPopLowerQuantile = percentiles.eucDistSubcPop[[1]],
-      eucDistSubcPopUpperQuantile = percentiles.eucDistSubcPop[[2]],
+      eucDistSubcPop = testPop$isAnomalous,
+      eucDistSubcPoplowerLimit = testPop$lowerLimit,
+      eucDistSubcPopUpperLimit = testPop$upperLimit,
       eucDistSubcPopGenMean = mean(statsForSubc$eucDistSubcPop),
       eucDistSubcPopGenMedian = median(statsForSubc$eucDistSubcPop)
     )
     plotCategoryDist(plotFolder, region, statsForSubc$subcategory[[1]], isAnomalous=stats$eucDistSubc,
                               statsForSubc$eucDistSubcPop, observed.eucDistSubcPop,
-                              stats$eucDistSubcPopLowerQuantile,
-                              stats$eucDistSubcPopUpperQuantile)
+                              stats$eucDistSubcPoplowerLimit,
+                              stats$eucDistSubcPopUpperLimit)
     return(stats)
   }
   statsPerSubc <- writeObservedValues(genStats, observedStats)
@@ -656,8 +699,8 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha, plotFo
 
   isAnomalous.eucDistSubc <- unlist(lapply(isAnomalous, function(x)x$eucDistSubc))
 
-  statsPerSubc$eucDistSubcLowerQuantile <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcLowerQuantile))
-  statsPerSubc$eucDistSubcUpperQuantile <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcUpperQuantile))
+  statsPerSubc$eucDistSubclowerLimit <- unlist(lapply(isAnomalous, function(x)x$eucDistSubclowerLimit))
+  statsPerSubc$eucDistSubcUpperLimit <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcUpperLimit))
   statsPerSubc$eucDistSubcGenMean <-  unlist(lapply(isAnomalous, function(x)x$eucDistSubcGenMean))
   statsPerSubc$eucDistSubcGenMedian <-  unlist(lapply(isAnomalous, function(x)x$eucDistSubcGenMedian))
   statsPerSubc$eucDistSubcIsAnomalous <- isAnomalous.eucDistSubc
@@ -669,8 +712,8 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha, plotFo
   ############
   isAnomalous.eucDistSubcPop <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcPop))
 
-  statsPerSubc$eucDistSubcPopLowerQuantile <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopLowerQuantile))
-  statsPerSubc$eucDistSubcPopUpperQuantile <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopUpperQuantile))
+  statsPerSubc$eucDistSubcPoplowerLimit <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcPoplowerLimit))
+  statsPerSubc$eucDistSubcPopUpperLimit <- unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopUpperLimit))
   statsPerSubc$eucDistSubcPopGenMean <-  unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopGenMean))
   statsPerSubc$eucDistSubcPopGenMedian <-  unlist(lapply(isAnomalous, function(x)x$eucDistSubcPopGenMedian))
   statsPerSubc$eucDistSubcPopIsAnomalous <- isAnomalous.eucDistSubcPop
@@ -680,8 +723,6 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, alpha, plotFo
   nAnomalous2 <- length(isAnomalous.eucDistSubcPop[isAnomalous.eucDistSubcPop==TRUE])
   percOfAnomalousSubcPop <- nAnomalous2/nSubcategories
   statsPerSubc$percAnomalousEucDistSubcPop <- percOfAnomalousSubcPop
-
-  statsPerSubc$alpha <- alpha
 
   return(statsPerSubc)
 }
@@ -707,7 +748,7 @@ writeObservedValues <- function(genStats, observedStats) {
 
 plotCategoryDist <- function(folderName, region, categoryName, isAnomalous,
                              categoryDistDistribution, observedDist,
-                             lowerPercentile, upperPercentile) {
+                             lowerLimit, upperLimit) {
   filename <- ""
   if(isAnomalous) {
     filename <- sprintf("%s/%s-category-%s-anomalous", folderName, region, categoryName)
@@ -717,13 +758,13 @@ plotCategoryDist <- function(folderName, region, categoryName, isAnomalous,
   filename <- gsub(" / ", "--", filename) # for Monument / Landmark
   pdf(sprintf("%s.pdf", filename), pointsize=25)
   hist(c(categoryDistDistribution, observedDist), xlab="Popularity difference", main=NULL)
-  abline(v=lowerPercentile, lty=3, lwd=5)
-  abline(v=upperPercentile, lty=3, lwd=5)
+  abline(v=lowerLimit, lty=3, lwd=5)
+  abline(v=upperLimit, lty=3, lwd=5)
   abline(v=observedDist, lwd=5)
   dev.off()
   write.table(data.table(category=categoryName,
                           observed=observedDist, generated=categoryDistDistribution,
-                          lowerPercentile=lowerPercentile, upperPercentile=upperPercentile,
+                          lowerLimit=lowerLimit, upperLimit=upperLimit,
                           isAnomalous=isAnomalous),
               file=sprintf("%s.csv", filename),
               row.names=FALSE, sep="\t")
@@ -817,6 +858,7 @@ euclideanDistanceForSubcategoryPopularity <- function(checkIns) {
 }
 
 euclideanDistanceForLocation <- function(checkIns) {
+  replace(checkIns, is.na(checkIns), 0) # fix for Turkey's crash?
    sortByCategory( checkIns[ ,eucDistLoc:=euclideanDistance(percMaleLoc, percFemaleLoc), by=idLocal] )
 }
 

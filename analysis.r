@@ -1,4 +1,8 @@
 ##################
+# Collection of code snippets for R console
+##################
+
+##################
 # Run
 ##################
 country <- "UAE"

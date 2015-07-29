@@ -1,3 +1,7 @@
+#####################
+# Analyses of categories for ranking
+####################
+
 library(parallel)
 library(data.table)
 source('analysis/foursquare-analysis.r')
@@ -5,7 +9,7 @@ source('analysis/foursquare-analysis.r')
 baseFolder <- "results/null-model-3"
 N_CORES <- detectCores()
 THRESH <- 100
-MAX_CI <- 30000
+MAX_CI <- 30000 # TODO: Inf to disable filter for large data set
 k <- 100
 countryFiles <- dir("paises")
 categoryStats <- data.frame() # global to save it in the workspace image
@@ -80,7 +84,7 @@ calculateStats <- function(ci, region) {
 	ci <- segregation(ci, region, log=F)
 
 	locationStats <- testObservationWithNullModel(ci, generated, folderName, region, k, PLOT_ANOM_DIST=T)
-	categoryStats <- getBootstrappedStatistics(folderName, ci, generated, k, region, alpha=0.01)
+	categoryStats <- getBootstrappedStatistics(folderName, ci, generated, k, region)
 	return(list(categoryStats=categoryStats$bootstrapStats, locationStats=locationStats))
 }
 
