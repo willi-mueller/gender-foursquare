@@ -1,3 +1,7 @@
+#########################
+# Common library
+#########################
+
 # library(sqldf)
 library(Hmisc) # Ecdf
 library(data.table)
