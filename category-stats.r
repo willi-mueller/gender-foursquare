@@ -11,7 +11,7 @@ N_CORES <- detectCores()
 THRESH <- 100
 MAX_CI <- Inf # TODO: Inf to disable filter for large data set
 k <- 100
-DATA_DIR <- "../newData"
+DATA_DIR <- "newData"
 countryFiles <- dir(DATA_DIR) # "paises" for old data set
 categoryStats <- data.frame() # global to save it in the workspace image
 locationStats <- data.frame() # global to save it in the workspace image
@@ -24,11 +24,11 @@ collectStatisticsForRanking <- function() {
 	#readAndCalc <- function(i) {
 		f <- sprintf("%s/%s", DATA_DIR, countryFiles[i])
 		country <- strsplit(countryFiles[i], ".dat.gz", fixed=T)[[1]]
-		if(country %in% c("Germany")) {
-			#c("Germany", "Brazil", France", "Spain", "United-Kingdom",
-			# 	 "United-States", "Brazil", "Mexico",
-			# 	 "United-Arab-Emirates", "Saudi-Arabia", "Kuwait", #"Turkey", # run Turkey manually in R shell
-			# 	 "South-Korea", "Malaysia", "Japan", "Thailand")) {
+		if(country %in% #c("Germany")) {
+			c("Germany", "Brazil", "France", "Spain", "United-Kingdom",
+				 "United-States", "Brazil", "Mexico",
+				 "United-Arab-Emirates", "Saudi-Arabia", "Kuwait", #"Turkey", # run Turkey manually in R shell
+				 "South-Korea", "Malaysia", "Japan", "Thailand")) {
 			# # c("Brazil", "United States", "Indonesia", "France", "Singapore", "Saudi Arabia", "Russia")
 			start <- Sys.time()
 			message(country)
