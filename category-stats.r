@@ -23,7 +23,7 @@ collectStatisticsForRanking <- function() {
 	for(i in 1:length(countryFiles)) {
 	#readAndCalc <- function(i) {
 		f <- sprintf("%s/%s", DATA_DIR, countryFiles[i])
-		country <- strsplit(countryFiles[i], ".dat", fixed=T)[[1]]
+		country <- strsplit(countryFiles[i], ".dat.gz", fixed=T)[[1]]
 		if(country %in% c("Germany")) {
 			#c("Germany", "Brazil", France", "Spain", "United-Kingdom",
 			# 	 "United-States", "Brazil", "Mexico",
@@ -55,7 +55,7 @@ collectStatisticsForRanking <- function() {
 				sep="\t", row.names=FALSE)
 	write.table(categoryStats, sprintf("%s/category-stats-15-countries-5-categories.csv", baseFolder),
 				sep="\t", row.names=FALSE)
-	write.table(allCheckIns, sprintf("%s/cleaned-check-ins-1000-15-countries-5-categories.csv", baseFolder),
+	write.table(gzfile(allCheckIns), sprintf("%s/cleaned-check-ins-1000-15-countries-5-categories.csv.gz", baseFolder),
 				sep="\t", row.names=FALSE)
 }
 
@@ -65,7 +65,7 @@ subcategorySegregationPlots <- function() {
 			 		"United-Arab-Emirates", "Saudi-Arabia", "Kuwait", "Turkey",
 			 		"South-Korea", "Malaysia", "Japan", "Thailand")) {
 		message(country)
-		f <- sprintf("%s/%s.dat", DATA_DIR, country)
+		f <- sprintf("%s/%s.dat.gz", DATA_DIR, country)
 		ci <- readAndFilterCheckIns(f, THRESH)
 		ci <- filterSelectedCategories(ci)
 		ci <- resampleIfTooMuchCheckIns(ci)
@@ -119,11 +119,10 @@ collectStatisticsForRanking()
 #####################################
 if(RUN_TURKEY) {
 	country <- "Turkey"
-	ci <- readAndFilterCheckIns("%s/Turkey.dat", DATA_DIR, THRESH)
+	ci <- readAndFilterCheckIns("%s/Turkey.dat.gz", DATA_DIR, THRESH)
 	ci <- filterSelectedCategories(ci)
 	ci <- resampleIfTooMuchCheckIns(ci)
-
-	allCheckIns <- fread(sprintf("%s/cleaned-check-ins-1000-15-countries-5-categories.csv", baseFolder))
+	allCheckIns <- fread(sprintf("zcat %s/cleaned-check-ins-1000-15-countries-5-categories.csv.gz", baseFolder))
 	allCheckIns <<- rbindlist(list(allCheckIns, ci))
 
 	stats <- calculateStats(ci, country)
@@ -141,7 +140,7 @@ if(RUN_TURKEY) {
 				sep="\t", row.names=FALSE)
 	write.table(categoryStats, sprintf("%s/category-stats-15-countries-5-categories.csv", baseFolder),
 				sep="\t", row.names=FALSE)
-	write.table(allCheckIns, sprintf("%s/cleaned-check-ins-1000-15-countries-5-categories.csv", baseFolder),
+	write.table(allCheckIns, gzfile(sprintf("%s/cleaned-check-ins-1000-15-countries-5-categories.csv.gz"), baseFolder),
 				sep="\t", row.names=FALSE)
 
 }

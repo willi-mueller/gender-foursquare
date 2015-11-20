@@ -39,7 +39,7 @@ k <- c(1000, 2000)
 
 run <- function(allci, TOP_N, k, AXES, MAIN_FOLDER) {
 
-	countries <- c("Brazil", "United States", "Indonesia", "Turkey", "Singapore", "Japan", "Saudi Arabia", "Russia")
+	countries <- c("Brazil")#, "United States", "Indonesia", "Turkey", "Singapore", "Japan", "Saudi Arabia", "Russia")
 
 	stopifnot( all(allci[, list(n=.N), by=idLocal]$n >= 5) )
 

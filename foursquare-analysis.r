@@ -68,7 +68,8 @@ getTopNCategories <- function(group1, group2, N, method="most popular"){
 
 readAndFilterCheckIns <- function(f, thresh=THRESH) {
   cc <- list(integer=c(1, 12), character=c(2, seq(5, 11)), numeric=c(3, 4))
-  ci <- try(fread(f, header=F, sep="\t", stringsAsFactors=FALSE, colClasses=cc))
+  gzipFile <- sprintf("zcat %s", f)
+  ci <- try(fread(gzipfile, header=F, sep="\t", stringsAsFactors=FALSE, colClasses=cc))
   if(length(ci)>2) {
     if(nrow(ci) < thresh) {
       message("< ", thresh, " check-ins")
@@ -259,7 +260,8 @@ readUsers <- function(path) {
 }
 
 readCheckIns <- function(path) {
-  ci <- fread(path, header=F, sep="\t", stringsAsFactors=FALSE)
+  gzipFile <- sprintf("zcat %s", path)
+  ci <- fread(gzipfile, header=F, sep="\t", stringsAsFactors=FALSE)
   setnames(ci, 1:12,c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
                       "subcategory", "category", "country", "city", "district", "gender", "timeOffset"))
   return(ci)
@@ -448,7 +450,10 @@ runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=
     cc <- list(integer=c("idUserFoursquare", "timeOffset"),
         caracter=c("date","idLocal", "subcategory", "category", "country", "city", "district", "gender"),
         numeric=c("maleCount", "femaleCount"))
-    return(fread(generatedFile, header=T, sep="\t", stringsAsFactors=FALSE, colClasses=cc))
+
+    # dt <- fread(input = 'zcat < data.gz')   # on OSX
+    gzipFile <- sprintf("zcat %s", generatedFile)
+    return(fread(gzipFile, header=T, sep="\t", stringsAsFactors=FALSE, colClasses=cc))
   } else {
     if( !file.exists(folderName) | forceGenerate ) {
       dir.create(folderName, recursive=TRUE)
@@ -467,7 +472,7 @@ runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=
     gen.segregation <- rbindlist( mclapply(seq(k), calc, mc.cores=N_CORES), use.names=TRUE)
     stopifnot(length(unique(gen.segregation$iterPermutation))==k)
     message("Generated ", regionName, ". Writing…")
-    write.table(gen.segregation, generatedFile, sep="\t", row.names=FALSE)
+    write.table(gen.segregation, gzfile(generatedFile), sep="\t", row.names=FALSE)
     message("Wrote generated segregation of ", regionName, " to ", generatedFile)
 
     return(gen.segregation)
@@ -509,7 +514,7 @@ runGenerate <- function(checkIns, segregation, UNIFORM_LOCATION_PROBABILITY, UNI
 
   x <- x[2:(k*nCheckIns),] # discard first NaN row
   checkInFile <- sprintf("%s/generated-riyadh-%s.csv", folderName, plotName)
-  write.csv(x, checkInFile)
+  write.csv(x, gzfile(checkInFile, "w"))
   message("Wrote generated check-ins to %s", checkInFile)
 
   femaleSegregationFile <- sprintf("%s/generated-riyadh-%s-pop-female.csv", folderName, plotName)
