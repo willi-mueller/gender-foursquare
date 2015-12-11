@@ -8,6 +8,8 @@ library(data.table)
 library(moments) # skewness
 library(parallel) #mclapply
 
+ZCAT <- "zcat <" # for OSX: `zcat < file.gz`, for linux: `zcat file.gz`
+
 subcategoryPreferencesByGender <- function(checkIns) {
   joined <- checkIns
   nOfUsersByGenderAndCategory <- checkIns[, list(count=length(unique(idUserFoursquare))),
@@ -68,7 +70,7 @@ getTopNCategories <- function(group1, group2, N, method="most popular"){
 
 readAndFilterCheckIns <- function(f, thresh=THRESH) {
   cc <- list(integer=c(1, 12), character=c(2, seq(5, 11)), numeric=c(3, 4))
-  gzipFile <- sprintf("zcat %s", f)
+  gzipFile <- sprintf("%s %s", ZCAT, f)
   ci <- try(fread(gzipFile, header=F, sep="\t", stringsAsFactors=FALSE, colClasses=cc))
   if(length(ci)>2) {
     if(nrow(ci) < thresh) {
@@ -260,7 +262,7 @@ readUsers <- function(path) {
 }
 
 readCheckIns <- function(path) {
-  gzipFile <- sprintf("zcat %s", path)
+  gzipFile <- sprintf("%s %s", ZCAT, path)
   ci <- fread(gzipFile, header=F, sep="\t", stringsAsFactors=FALSE)
   setnames(ci, 1:12,c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
                       "subcategory", "category", "country", "city", "district", "gender", "timeOffset"))
@@ -452,7 +454,7 @@ runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=
         numeric=c("maleCount", "femaleCount"))
 
     # dt <- fread(input = 'zcat < data.gz')   # on OSX
-    gzipFile <- sprintf("zcat %s", generatedFile)
+    gzipFile <- sprintf("%s %s", ZCAT, generatedFile)
     return(fread(gzipFile, header=T, sep="\t", stringsAsFactors=FALSE, colClasses=cc))
   } else {
     if( !file.exists(folderName) | forceGenerate ) {

@@ -16,6 +16,7 @@ countryFiles <- dir(DATA_DIR) # "paises" for old data set
 categoryStats <- data.frame() # global to save it in the workspace image
 locationStats <- data.frame() # global to save it in the workspace image
 allCheckIns <- data.frame()
+ZCAT <- "zcat" # for OSX: `zcat < file.gz`, for linux: `zcat file.gz`
 
 RUN_TURKEY = FALSE
 
@@ -122,7 +123,7 @@ if(RUN_TURKEY) {
 	ci <- readAndFilterCheckIns("%s/Turkey.dat.gz", DATA_DIR, THRESH)
 	ci <- filterSelectedCategories(ci)
 	ci <- resampleIfTooMuchCheckIns(ci)
-	allCheckIns <- fread(sprintf("zcat %s/cleaned-check-ins-1000-15-countries-5-categories.csv.gz", baseFolder))
+	allCheckIns <- fread(sprintf("%s %s/cleaned-check-ins-1000-15-countries-5-categories.csv.gz", ZCAT, baseFolder))
 	allCheckIns <<- rbindlist(list(allCheckIns, ci))
 
 	stats <- calculateStats(ci, country)

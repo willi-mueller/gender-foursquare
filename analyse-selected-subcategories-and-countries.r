@@ -34,7 +34,7 @@ pickCIinTopLocations <- function(ci, topN) {
 
 AXES = c(0, 0.5)
 MAIN_FOLDER <- "results/null-model/selected-subcategories-and-countries/difference"
-TOP_N <- c(5, 10)
+TOP_N <- c(5, 10) # most popular <n> locations of a subcategory
 k <- c(1000, 2000)
 
 run <- function(allci, TOP_N, k, AXES, MAIN_FOLDER) {
