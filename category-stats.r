@@ -9,7 +9,7 @@ source('analysis/foursquare-analysis.r')
 baseFolder <- "results/null-model-5-dev"
 N_CORES <- detectCores()
 THRESH <- 100
-MAX_CI <- Inf # TODO: Inf to disable filter for large data set
+MAX_CI <- Inf #Inf to disable filter for large data set
 k <- 100
 DATA_DIR <- "newData"
 countryFiles <- dir(DATA_DIR) # "paises" for old data set
@@ -20,17 +20,19 @@ ZCAT <- "zcat" # for OSX: `zcat < file.gz`, for linux: `zcat file.gz`
 
 RUN_TURKEY = FALSE
 
-collectStatisticsForRanking <- function() {
+collectStatisticsForRanking <- function(countries) {
+	if(missing(countries)) {
+		countries <- c("Germany", "Brazil", "France", "Spain", "United-Kingdom",
+				 "United-States", "Brazil", "Mexico",
+				 "United-Arab-Emirates", "Saudi-Arabia", "Kuwait", #"Turkey", # run Turkey manually in R shell
+				 "South-Korea", "Malaysia", "Japan", "Thailand")
+# 				# c("Brazil", "United States", "Indonesia", "France", "Singapore", "Saudi Arabia", "Russia")
+	}
 	for(i in 1:length(countryFiles)) {
 	#readAndCalc <- function(i) {
 		f <- sprintf("%s/%s", DATA_DIR, countryFiles[i])
 		country <- strsplit(countryFiles[i], ".dat.gz", fixed=T)[[1]]
-		if(country %in% #c("Germany")) {
-			c("Germany", "Brazil", "France", "Spain", "United-Kingdom",
-				 "United-States", "Brazil", "Mexico",
-				 "United-Arab-Emirates", "Saudi-Arabia", "Kuwait", #"Turkey", # run Turkey manually in R shell
-				 "South-Korea", "Malaysia", "Japan", "Thailand")) {
-			# # c("Brazil", "United States", "Indonesia", "France", "Singapore", "Saudi Arabia", "Russia")
+		if(country %in% countries) {
 			start <- Sys.time()
 			message(country)
 
