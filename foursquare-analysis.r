@@ -76,9 +76,14 @@ readAndFilterCheckIns <- function(f, thresh=THRESH) {
     if(nrow(ci) < thresh) {
       message("< ", thresh, " check-ins")
     } else {
-      setnames(ci, 1:12, c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
-                  "subcategory", "category", "country", "city", "district", "gender", "timeOffset"))
-
+      colnames <- c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
+                  "subcategory", "category", "country", "city", "district", "gender", "timeOffset")
+      setnames(ci, 1:12, colnames)
+      if(ncol(ci) > 12) {
+        # to remove last two columns in newData, which are 'district' and 'country' again
+        # only include explicitely specified columns
+        ci <- ci[, colnames, with = F]
+      }
       filtered <- cleanData(ci, substitutionRules)
       stopifnot(length(unique(filtered$gender)) == 2 ) # only male and female
       if(nrow(filtered) > thresh) {
