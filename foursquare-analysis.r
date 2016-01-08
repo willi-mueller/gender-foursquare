@@ -453,7 +453,6 @@ runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=
         caracter=c("date","idLocal", "subcategory", "category", "country", "city", "district", "gender"),
         numeric=c("maleCount", "femaleCount"))
 
-    # dt <- fread(input = 'zcat < data.gz')   # on OSX
     gzipFile <- sprintf("%s %s", ZCAT, generatedFile)
     return(fread(gzipFile, header=T, sep="\t", stringsAsFactors=FALSE, colClasses=cc))
   } else {
@@ -620,7 +619,7 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
   message(sprintf("Distance to diagonal: %s of %s (%s%%) locations with observed anomalous segregation",
                   summary_$nAnomalous, summary_$nLocations,
                   round(100*summary_$percAnomalous, 3)))
-  message(summary_$percCouldBeNormal)
+  message(sprintf("%s%% could be normal", round(100*summary_$percCouldBeNormal, 3)))
 
   f <- sprintf("%s/location-stats-generated-%s.csv", folderName, regionName)
   write.table(allLocationStats, f, row.names=F, sep="\t",)
