@@ -58,7 +58,7 @@ collectStatisticsForRanking <- function(countries) {
 				sep="\t", row.names=FALSE)
 	write.table(categoryStats, sprintf("%s/category-stats-15-countries-5-categories.csv", baseFolder),
 				sep="\t", row.names=FALSE)
-	write.table(gzfile(allCheckIns), sprintf("%s/cleaned-check-ins-1000-15-countries-5-categories.csv.gz", baseFolder),
+	write.table(allCheckIns, gzfile(sprintf("%s/cleaned-check-ins-1000-15-countries-5-categories.csv.gz", baseFolder)),
 				sep="\t", row.names=FALSE)
 }
 
