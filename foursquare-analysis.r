@@ -561,6 +561,9 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
   uniqueLocations <- unique(observedSegregation$idLocal)
   nUniqueLocations <- length(uniqueLocations)
 
+  # observed checkins and generated checkins must have the same locations
+  stopifnot(nUniqueLocations == length(unique(gen.segregation$idLocal)))
+  stopifnot(all(sort(uniqueLocations) == sort(unique(gen.segregation$idLocal))))
   locationStats <- function(i) {
     location <- uniqueLocations[i]
     notNormal <- 0
