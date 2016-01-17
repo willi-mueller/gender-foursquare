@@ -8,7 +8,7 @@ source('analysis/foursquare-analysis.r')
 
 baseFolder <- "results/null-model-5-dev"
 N_CORES <- detectCores()
-THRESH <- 100
+MIN_CI <- 100
 MAX_CI <- Inf #Inf to disable filter for large data set
 k <- 100
 DATA_DIR <- "newData"
@@ -36,7 +36,7 @@ collectStatisticsForRanking <- function(countries) {
 			start <- Sys.time()
 			message(country)
 
-			ci <- readAndFilterCheckIns(f, THRESH)
+			ci <- readAndFilterCheckIns(f, MIN_CI)
 			ci <- filterSelectedCategories(ci)
 			ci <- resampleIfTooMuchCheckIns(ci)
 			message("#### Reading took: ", Sys.time()-start)
@@ -69,7 +69,7 @@ subcategorySegregationPlots <- function() {
 			 		"South-Korea", "Malaysia", "Japan", "Thailand")) {
 		message(country)
 		f <- sprintf("%s/%s.dat.gz", DATA_DIR, country)
-		ci <- readAndFilterCheckIns(f, THRESH)
+		ci <- readAndFilterCheckIns(f, MIN_CI)
 		ci <- filterSelectedCategories(ci)
 		ci <- resampleIfTooMuchCheckIns(ci)
 		message(nrow(ci), " check-ins are going to be analyzed")
@@ -122,7 +122,7 @@ collectStatisticsForRanking()
 #####################################
 if(RUN_TURKEY) {
 	country <- "Turkey"
-	ci <- readAndFilterCheckIns("%s/Turkey.dat.gz", DATA_DIR, THRESH)
+	ci <- readAndFilterCheckIns("%s/Turkey.dat.gz", DATA_DIR, MIN_CI)
 	ci <- filterSelectedCategories(ci)
 	ci <- resampleIfTooMuchCheckIns(ci)
 	allCheckIns <- fread(sprintf("%s %s/cleaned-check-ins-1000-15-countries-5-categories.csv.gz", ZCAT, baseFolder))
