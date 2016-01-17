@@ -760,13 +760,13 @@ writeObservedValues <- function(genStats, observedStats) {
 plotCategoryDist <- function(folderName, region, categoryName, isAnomalous,
                              categoryDistDistribution, observedDist,
                              lowerLimit, upperLimit) {
+  categoryName <- gsub("/", "", categoryName) # for Monument / Landmark, Vegetarian / Vegan etc.
   filename <- ""
   if(isAnomalous) {
     filename <- sprintf("%s/%s-category-%s-anomalous", folderName, region, categoryName)
   } else {
     filename <- sprintf("%s/%s-category-%s", folderName, region, categoryName)
   }
-  filename <- gsub(" / ", "--", filename) # for Monument / Landmark
   pdf(sprintf("%s.pdf", filename), pointsize=25)
   hist(c(categoryDistDistribution, observedDist), xlab="Popularity difference", main=NULL)
   abline(v=lowerLimit, lty=3, lwd=5)
