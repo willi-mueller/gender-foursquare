@@ -501,14 +501,16 @@ bootstrap_gender_location <- function(checkIns) {
   nCheckIns <- nrow(checkIns)
   allGenders <- c("male", "female") # unique(checkIns$gender)
   allUsers <- unique(checkIns$idUserFoursquare)
-  userColumns <- quote(c("idUserFoursquare", "gender", "date", "timeOffset")) # to use it as column names
-  locationColumns <- setdiff(colnames, eval(userColumns))
+  userColumns <- quote(c("idUserFoursquare", "date", "timeOffset")) # to use it as column names
+  locationColumns <- setdiff(colnames, c("gender", eval(userColumns)))
 
+  genderSamples <- sample(allGenders, size=nCheckIns, replace=TRUE)
   userRelated <- checkIns[, .SD[1], by=idUserFoursquare][, eval(userColumns), with=F][sample(.N, size=nCheckIns, replace=T)]
   locationRelated <- checkIns[, .SD[1], by=idLocal][, locationColumns, with=F][sample(.N, size=nCheckIns, replace=T)]
 
   # union columns
   locationRelated[, eval(userColumns) := userRelated]
+  locationRelated[, gender := genderSamples]
 }
 
 
@@ -529,6 +531,7 @@ testSignificance <- function(sampleDist, observed, withShapiroWilk=FALSE) {
       lowerLimit <- sampleMean - 3 * sampleSD
       upperLimit <- sampleMean + 3 * sampleSD
     }
+  }
 
   return( list(isAnomalous=( round(observed, 8) < round(lowerLimit, 8) | round(observed, 8) > round(upperLimit, 8) ),
               lowerLimit=lowerLimit,
@@ -544,7 +547,6 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
   meanFemalePopularities <- c()
   uniqueLocations <- unique(observedSegregation$idLocal)
   nUniqueLocations <- length(uniqueLocations)
-
   # observed checkins and generated checkins must have the same locations
   stopifnot(nUniqueLocations == length(unique(gen.segregation$idLocal)))
   stopifnot(all(sort(uniqueLocations) == sort(unique(gen.segregation$idLocal))))
