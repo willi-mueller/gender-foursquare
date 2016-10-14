@@ -467,10 +467,10 @@ runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=
     checkIns <- checkIns[gender=="male" || gender=="female", ]
     randomizedCheckIns <- copy(checkIns)
     calc <- function(i) {
-      gen.checkIns <- permutateGender(randomizedCheckIns)
+      gen.checkIns <- bootstrap_gender_location(randomizedCheckIns)
       gen.checkIns[,iterPermutation:=i]
       segregation(gen.checkIns, regionName,
-                  sub="permutating gender", log=log)
+                  sub="bootstrap", log=log)
       return(gen.checkIns)
     }
 
@@ -492,60 +492,44 @@ permutateGender <- function(checkIns) {
 # this copy() is important!! If removed,
 # iterPermutation will have N_CORE distinct values
   copy(checkIns)[, gender:=sample(checkIns[, gender])]
+}
 
+bootstrap_gender_location <- function(checkIns) {
+  colnames <- c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
+                "subcategory", "category", "country", "city", "district", "gender", "timeOffset")
+
+  nCheckIns <- nrow(checkIns)
+  allGenders <- c("male", "female") # unique(checkIns$gender)
+  allUsers <- unique(checkIns$idUserFoursquare)
+  userColumns <- quote(c("idUserFoursquare", "gender", "date", "timeOffset")) # to use it as column names
+  locationColumns <- setdiff(colnames, eval(userColumns))
+
+  userRelated <- checkIns[, .SD[1], by=idUserFoursquare][, eval(userColumns), with=F][sample(.N, size=nCheckIns, replace=T)]
+  locationRelated <- checkIns[, .SD[1], by=idLocal][, locationColumns, with=F][sample(.N, size=nCheckIns, replace=T)]
+
+  # union columns
+  locationRelated[, eval(userColumns) := userRelated]
 }
 
 
 ######## Check-in generation #############
 
-runGenerate <- function(checkIns, segregation, UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY,
-                        folderName, plotName, k=100) {
-  checkIns <- rbind(checkIns[checkIns$gender=="male", ], checkIns[checkIns$gender=="female", ])
-  nCheckIns <- nrow(checkIns)
+testSignificance <- function(sampleDist, observed, withShapiroWilk=FALSE) {
+  couldBeNormal <- FALSE
+  lowerLimit <- min(sampleDist)
+  upperLimit <- max(sampleDist)
 
-  gen.segregation <- c()
-  x <- data.frame(idUserFoursquare=NaN ,date=NaN ,latitude=NaN ,longitude=NaN ,idLocal=NaN
-      ,subcategory=NaN ,category=NaN ,city=NaN ,country=NaN ,user=NaN ,userLocal=NaN ,gender=NaN)
-  for(i in seq(k)) {
-      gen.checkIns <- generateCheckIns(checkIns, UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY)
-      x <- rbind(gen.checkIns, x)
+  if(withShapiroWilk) {
+    # null hypothesis is that sampleDist is normal
+    couldBeNormal <- shapiro.test(sampleDist)$p.value > 0.05
+    # percentile <- quantile(empiricalDifference, c(alpha/2, 1-alpha/2))
+    if(couldBeNormal) {
+      sampleMean <- mean(sampleDist)
+      sampleSD <- sd(sampleDist)
+      lowerLimit <- sampleMean - 3 * sampleSD
+      upperLimit <- sampleMean + 3 * sampleSD
+    }
 
-      # segregation with all values crashes :(
-      s <- segregation(gen.checkIns, "Riyadh generated",
-                          sub=sprintf("uniform location: %s, uniform gender: %s",
-                              UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY))
-      gen.segregation$maleCIR <- rbind(gen.segregation$maleCIR, s$maleCIR)
-      gen.segregation$femaleCIR <- rbind(gen.segregation$femaleCIR, s$femaleCIR)
-  }
-
-  x <- x[2:(k*nCheckIns),] # discard first NaN row
-  checkInFile <- sprintf("%s/generated-riyadh-%s.csv", folderName, plotName)
-  write.csv(x, gzfile(checkInFile, "w"))
-  message("Wrote generated check-ins to %s", checkInFile)
-
-  femaleSegregationFile <- sprintf("%s/generated-riyadh-%s-pop-female.csv", folderName, plotName)
-  write.csv(gen.segregation$femaleCIR, femaleSegregationFile)
-  message("Wrote generated segregation to %s", femaleSegregationFile)
-  maleSegregationFile <- sprintf("%s/generated-riyadh-%s-pop-male.csv", folderName, plotName)
-  write.csv(gen.segregation$maleCIR, maleSegregationFile)
-  message("Wrote generated segregation to %s", maleSegregationFile)
-  return(c(checkInFile, maleSegregationFile, femaleSegregationFile))
-}
-
-testSignificance <- function(sampleDist, observed) {
-  sampleMean <- mean(sampleDist)
-  sampleSD <- sd(sampleDist)
-  # null hypothesis is that it is normal
-  couldBeNormal <- shapiro.test(sampleDist)$p.value > 0.05
-  #percentile <- quantile(empiricalDifference, c(alpha/2, 1-alpha/2))if(couldBeNormal) {
-  if(couldBeNormal) {
-    lowerLimit <- sampleMean - 3 * sampleSD
-    upperLimit <- sampleMean + 3 * sampleSD
-  }
-  else {
-    lowerLimit <- min(sampleDist)
-    upperLimit <- max(sampleDist)
-  }
   return( list(isAnomalous=( round(observed, 8) < round(lowerLimit, 8) | round(observed, 8) > round(upperLimit, 8) ),
               lowerLimit=lowerLimit,
               upperLimit=upperLimit,

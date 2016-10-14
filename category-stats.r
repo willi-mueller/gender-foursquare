@@ -6,7 +6,7 @@ library(parallel)
 library(data.table)
 source('analysis/foursquare-analysis.r')
 
-baseFolder <- "results/null-model-5-dev"
+baseFolder <- "results/null-model-6-bootstrap"
 N_CORES <- detectCores()
 MIN_CI <- 100
 MAX_CI <- Inf #Inf to disable filter for large data set
