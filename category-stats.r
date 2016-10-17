@@ -75,7 +75,7 @@ subcategorySegregationPlots <- function() {
 		message(nrow(ci), " check-ins are going to be analyzed")
 
 		segregation(ci)
-		pdf(sprintf("%s/%s/gender-permutation/segregation-subcategories.pdf", baseFolder, country))
+		pdf(sprintf("%s/%s/bootstrap/segregation-subcategories.pdf", baseFolder, country))
 		segregationData <- segregationSubcategories(ci)
 		dev.off()
 		write.table(locationStats, sprintf("%s/%s/gender-permutation/segregation-subcategories.csv",
@@ -89,8 +89,8 @@ subcategorySegregationPlots <- function() {
 #############
 
 calculateStats <- function(ci, region) {
-	folderName <- sprintf("%s/%s/gender-permutation", baseFolder, region)
-	generated <- runPermutate(ci, folderName, "permutate-gender", region, k=k, forceGenerate=F)
+	folderName <- sprintf("%s/%s/bootstrap", baseFolder, region)
+	generated <- runPermutate(ci, folderName, "bootstrap", region, k=k, forceGenerate=T)
 	# segregation() is crucial, the others need male and female popularity,
 	ci <- segregation(ci, region, log=F)
 
