@@ -688,7 +688,8 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, plotFolder, r
       eucDistSubcPopGenMean = mean(statsForSubc$eucDistSubcPop),
       eucDistSubcPopGenMedian = median(statsForSubc$eucDistSubcPop)
     )
-    plotCategoryDist(plotFolder, region, statsForSubc$subcategory[[1]], isAnomalous=stats$eucDistSubc,
+
+    plotCategoryDist(plotFolder, region, statsForSubc$subcategory[[1]], isAnomalous=stats$eucDistSubcPop,
                               statsForSubc$eucDistSubcPop, observed.eucDistSubcPop,
                               stats$eucDistSubcPoplowerLimit,
                               stats$eucDistSubcPopUpperLimit)
