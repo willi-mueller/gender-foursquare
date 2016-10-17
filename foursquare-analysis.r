@@ -951,18 +951,3 @@ substitutionRules <- list(
     list(original="Movie Theater", equivalents=c("Indie Movie Theater", "Multiplex")),
     list(original="University", equivalents=c("General College & University", "College & University")),
     list(original="Gym", equivalents=c("Gym / Fitness Center", "College Gym")))
-
-# FOR DATA BASE 2
-saudiCheckIns <- "base2/arabiaSaudita/Saudi-Arabia.txt"
-franceCheckIns <- "base2/France.txt"
-swedenCheckIns <- "base2/Sweden.txt"
-uaeCheckIns <- "base2/United-Arab-Emirates.txt"
-germanyCheckIns <- "base2/Germany.txt"
-
-franceFilter <- "Paris|France|Metz|Bordeaux|Marseille|Midi-Py|Strasbourg|Lyon"
-swedenFilter <- "Sverige|Sweden|Stockholm|Malmö"
-saudiFilter <- "Saudi|Mecca|Medina|Riyadh|Ar Riyad|الرياض|Jedda"  # الرياض = Riyadh
-uaeFilter <- "Dubai|United Arab Emirates|Abu Dhabi|Sharjah|Al Ain|Ras Al-Khaimah"
-germanyFilter <- "Deutschland|Berlin|Germany|München|Munich|Frankfurt|Hamburg|Stuttgart|Mainz|Düsseldorf|Köln|Cologne|Thüringen|Hessen|Sachsen|Bremen|Schleswig|Mecklenburg|Saarbrücken|Saarland|Bayern|Bavaria|Nordrhein-Westfalen"
-franceUsers=germanyUsers=swedenUsers=uaeUsers <- "base2/profileFiltredGermanyFranceEmiratesSweden.dat"
-saudiUsers <- "base2/arabiaSaudita/profilesArabia.dat"
