@@ -518,13 +518,13 @@ bootstrap_gender_location <- function(checkIns) {
 
 testSignificance <- function(sampleDist, observed, withShapiroWilk=FALSE) {
   couldBeNormal <- FALSE
-  lowerLimit <- min(sampleDist)
-  upperLimit <- max(sampleDist)
+  percentiles <- quantile(empiricalDifference, c(ALPHA/2, 1-ALPHA/2))
+  lowerLimit <- percentiles[[1]] #min(sampleDist)
+  upperLimit <- percentiles[[2]] #max(sampleDist)
 
   if(withShapiroWilk) {
     # null hypothesis is that sampleDist is normal
     couldBeNormal <- shapiro.test(sampleDist)$p.value > 0.05
-    # percentile <- quantile(empiricalDifference, c(alpha/2, 1-alpha/2))
     if(couldBeNormal) {
       sampleMean <- mean(sampleDist)
       sampleSD <- sd(sampleDist)
@@ -941,6 +941,7 @@ checkInsInlocationsWithMinimumCheckIns <- function(checkIns, n=5) {
 ##########
 N_CORES <- detectCores()
 SEGREGATION_AXES <- c(0, 0.20)
+ALPHA <- 0.01
 
 substitutionRules <- list(
     list(original="Café", equivalents=c("Coffee Shop", "College Cafeteria")),
