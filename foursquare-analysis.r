@@ -70,8 +70,8 @@ getTopNCategories <- function(group1, group2, N, method="most popular"){
 
 readAndFilterCheckIns <- function(f, thresh=THRESH) {
   cc <- list(integer=c(1, 12), character=c(2, seq(5, 11)), numeric=c(3, 4))
-  gzipFile <- sprintf("%s %s", ZCAT, f)
-  ci <- try(fread(gzipFile, header=F, sep="\t", stringsAsFactors=FALSE, colClasses=cc))
+  #gzipFile <- sprintf("%s %s", ZCAT, f)
+  ci <- try(fread(f, header=F, sep="\t", stringsAsFactors=FALSE, colClasses=cc))
   if(length(ci)>2) {
     if(nrow(ci) < thresh) {
       message("< ", thresh, " check-ins")

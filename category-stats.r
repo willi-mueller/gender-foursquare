@@ -31,7 +31,7 @@ collectStatisticsForRanking <- function(countries) {
 	for(i in 1:length(countryFiles)) {
 	#readAndCalc <- function(i) {
 		f <- sprintf("%s/%s", DATA_DIR, countryFiles[i])
-		country <- strsplit(countryFiles[i], ".dat.gz", fixed=T)[[1]]
+		country <- strsplit(countryFiles[i], ".dat", fixed=T)[[1]]
 		if(country %in% countries) {
 			start <- Sys.time()
 			message(country)
@@ -68,7 +68,7 @@ subcategorySegregationPlots <- function() {
 			 		"United-Arab-Emirates", "Saudi-Arabia", "Kuwait", "Turkey",
 			 		"South-Korea", "Malaysia", "Japan", "Thailand")) {
 		message(country)
-		f <- sprintf("%s/%s.dat.gz", DATA_DIR, country)
+		f <- sprintf("%s/%s.dat", DATA_DIR, country)
 		ci <- readAndFilterCheckIns(f, MIN_CI)
 		ci <- filterSelectedCategories(ci)
 		ci <- resampleIfTooMuchCheckIns(ci)
@@ -122,7 +122,7 @@ collectStatisticsForRanking()
 #####################################
 if(RUN_TURKEY) {
 	country <- "Turkey"
-	ci <- readAndFilterCheckIns("%s/Turkey.dat.gz", DATA_DIR, MIN_CI)
+	ci <- readAndFilterCheckIns("%s/Turkey.dat", DATA_DIR, MIN_CI)
 	ci <- filterSelectedCategories(ci)
 	ci <- resampleIfTooMuchCheckIns(ci)
 	allCheckIns <- fread(sprintf("%s %s/cleaned-check-ins-1000-15-countries-5-categories.csv.gz", ZCAT, baseFolder))
