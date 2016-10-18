@@ -6,12 +6,12 @@ library(parallel)
 library(data.table)
 source('analysis/foursquare-analysis.r')
 
-baseFolder <- "results/null-model-6-bootstrap"
+baseFolder <- "results/null-model-3"
 N_CORES <- detectCores()
 MIN_CI <- 100
 MAX_CI <- Inf #Inf to disable filter for large data set
 k <- 100
-DATA_DIR <- "newData"
+DATA_DIR <- "paises"
 countryFiles <- dir(DATA_DIR) # "paises" for old data set
 categoryStats <- data.frame() # global to save it in the workspace image
 locationStats <- data.frame() # global to save it in the workspace image
