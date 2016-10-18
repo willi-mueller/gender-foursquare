@@ -518,7 +518,7 @@ bootstrap_gender_location <- function(checkIns) {
 
 testSignificance <- function(sampleDist, observed, withShapiroWilk=FALSE) {
   couldBeNormal <- FALSE
-  percentiles <- quantile(empiricalDifference, c(ALPHA/2, 1-ALPHA/2))
+  percentiles <- quantile(sampleDist, c(ALPHA/2, 1-ALPHA/2))
   lowerLimit <- percentiles[[1]] #min(sampleDist)
   upperLimit <- percentiles[[2]] #max(sampleDist)
 
