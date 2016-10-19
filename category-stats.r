@@ -122,7 +122,7 @@ collectStatisticsForRanking()
 #####################################
 if(RUN_TURKEY) {
 	country <- "Turkey"
-	ci <- readAndFilterCheckIns("%s/Turkey.dat", DATA_DIR, MIN_CI)
+	ci <- readAndFilterCheckIns(sprintf("%s/Turkey.dat", DATA_DIR), MIN_CI)
 	ci <- filterSelectedCategories(ci)
 	ci <- resampleIfTooMuchCheckIns(ci)
 	allCheckIns <- fread(sprintf("%s %s/cleaned-check-ins-1000-15-countries-5-categories.csv.gz", ZCAT, baseFolder))
@@ -143,7 +143,7 @@ if(RUN_TURKEY) {
 				sep="\t", row.names=FALSE)
 	write.table(categoryStats, sprintf("%s/category-stats-15-countries-5-categories.csv", baseFolder),
 				sep="\t", row.names=FALSE)
-	write.table(allCheckIns, gzfile(sprintf("%s/cleaned-check-ins-1000-15-countries-5-categories.csv.gz"), baseFolder),
+	write.table(allCheckIns, gzfile(sprintf("%s/cleaned-check-ins-1000-15-countries-5-categories.csv.gz", baseFolder)),
 				sep="\t", row.names=FALSE)
 
 }
