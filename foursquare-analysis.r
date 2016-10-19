@@ -586,7 +586,7 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
 
           h <- hist(c(empiricalDifference, observedDifference), plot=FALSE)
           h$counts=h$counts/sum(h$counts)
-          plot(h, xlab="Popularity difference", main=NULL, ylab="Occurences in %")
+          plot(h, xlab="Popularity difference", main=NULL, ylab="Occurrences in %")
 
           abline(v=test$lowerLimit, lty=3, lwd=5)
           abline(v=test$upperLimit, lty=3, lwd=5)
