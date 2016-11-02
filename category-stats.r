@@ -122,9 +122,19 @@ collectStatisticsForRanking()
 #####################################
 if(RUN_TURKEY) {
 	country <- "Turkey"
-	ci <- readAndFilterCheckIns(sprintf("%s/Turkey.dat", DATA_DIR), MIN_CI)
-	ci <- filterSelectedCategories(ci)
-	ci <- resampleIfTooMuchCheckIns(ci)
+	turkeyFile <- sprintf("%s/Turkey.dat", DATA_DIR)
+	turkeyGen <- sprintf("%/Turkey_sample.csv", DATA_DIR)
+	if( !file.exists(turkeyGen)) {
+		message("no sample of Turkey available, will generate and save")
+		ci <- readAndFilterCheckIns(turkeyFile, MIN_CI)
+		ci <- filterSelectedCategories(ci)
+		ci <- resampleIfTooMuchCheckIns(ci)
+		write.table(ci, sep="\t", row.names=F)
+	} else {
+		message("Read existing sample of Turkey")
+		ci <- readAndFilterCheckIns(turkeyGen, MIN_CI)
+	}
+
 	allCheckIns <- fread(sprintf("%s %s/cleaned-check-ins-1000-15-countries-5-categories.csv.gz", ZCAT, baseFolder))
 	allCheckIns <<- rbindlist(list(allCheckIns, ci))
 

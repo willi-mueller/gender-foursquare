@@ -732,6 +732,7 @@ writeObservedValues <- function(genStats, observedStats) {
   # get data format from first bootstrap iteration of each subcategory
   statsPerSubc <- genStats[, .SD[1], by=subcategory][, list(country, subcategory, category)]
   # verify order
+  browser()
   stopifnot(observedStats$subcategory == genStats[, .SD[1], by=subcategory]$subcategory)
   statsPerSubc$eucDistSubcPop <- observedStats$eucDistSubcPop
   statsPerSubc$malePopSubC <- observedStats$malePopSubC
