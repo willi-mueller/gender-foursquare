@@ -9,7 +9,7 @@ source('analysis/foursquare-analysis.r')
 baseFolder <- "results/null-model-3"
 N_CORES <- detectCores()
 MIN_CI <- 100
-MAX_CI <- Inf #Inf to disable filter for large data set
+MAX_CI <- 30000 #Inf to disable filter for large data set
 k <- 100
 DATA_DIR <- "paises"
 countryFiles <- dir(DATA_DIR) # "paises" for old data set
@@ -18,7 +18,7 @@ locationStats <- data.frame() # global to save it in the workspace image
 allCheckIns <- data.frame()
 ZCAT <- "zcat" # for OSX: `zcat < file.gz`, for linux: `zcat file.gz`
 
-RUN_TURKEY = FALSE
+RUN_TURKEY = TRUE
 
 collectStatisticsForRanking <- function(countries) {
 	if(missing(countries)) {
@@ -114,7 +114,7 @@ resampleIfTooMuchCheckIns <- function(ci) {
 # Run
 #############
 
-collectStatisticsForRanking()
+#collectStatisticsForRanking(c("Germany"))
 
 
 #####################################
