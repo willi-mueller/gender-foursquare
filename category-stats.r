@@ -123,7 +123,7 @@ resampleIfTooMuchCheckIns <- function(ci) {
 if(RUN_TURKEY) {
 	country <- "Turkey"
 	turkeyFile <- sprintf("%s/Turkey.dat", DATA_DIR)
-	turkeyGen <- sprintf("%/Turkey_sample.csv", DATA_DIR)
+	turkeyGen <- sprintf("%s/Turkey_sample.csv", DATA_DIR)
 	if( !file.exists(turkeyGen)) {
 		message("no sample of Turkey available, will generate and save")
 		ci <- readAndFilterCheckIns(turkeyFile, MIN_CI)
