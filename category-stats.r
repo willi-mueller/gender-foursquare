@@ -38,7 +38,7 @@ collectStatisticsForRanking <- function(countries) {
 
 			ci <- readAndFilterCheckIns(f, MIN_CI)
 			ci <- filterSelectedCategories(ci)
-			ci <- resampleIfTooMuchCheckIns(ci)
+			ci <- resampleIfTooMuchCheckIns(ci, country)
 			message("#### Reading took: ", Sys.time()-start)
 			message("#### ", nrow(ci), " check-ins are going to be analyzed")
 			start <- Sys.time()
@@ -62,25 +62,23 @@ collectStatisticsForRanking <- function(countries) {
 				sep="\t", row.names=FALSE)
 }
 
-subcategorySegregationPlots <- function() {
-	for(country in c("Germany", "France", "Spain", "United-Kingdom",
-				 	"United-States", "Brazil", "Mexico",
-			 		"United-Arab-Emirates", "Saudi-Arabia", "Kuwait", "Turkey",
-			 		"South-Korea", "Malaysia", "Japan", "Thailand")) {
-		message(country)
-		f <- sprintf("%s/%s.dat", DATA_DIR, country)
-		ci <- readAndFilterCheckIns(f, MIN_CI)
-		ci <- filterSelectedCategories(ci)
-		ci <- resampleIfTooMuchCheckIns(ci)
+subcategorySegregationPlots <- function(allci) {
+	for(cntry in c("Germany", "France", "Spain", "United Kingdom",
+				 	"United States", "Brazil", "Mexico",
+			 		"United Arab Emirates", "Saudi Arabia", "Kuwait", "Turkey",
+			 		"South Korea", "Malaysia", "Japan", "Thailand")) {
+		message(cntry)
+		ci <- allci[country==cntry]
 		message(nrow(ci), " check-ins are going to be analyzed")
 
-		segregation(ci)
-		pdf(sprintf("%s/%s/bootstrap/segregation-subcategories.pdf", baseFolder, country))
+		ci <- segregation(ci) # has nasty side effect of adding columns, don't know if this works
+		pdf(sprintf("%s/%s/segregation-subcategories.pdf", baseFolder, cntry))
 		segregationData <- segregationSubcategories(ci)
+		#browser()
+		#segPlotData <- segregationData[, c("country", "subcategory", "meanMaleSubcPop", "meanFemaleSubcPop", "eucDistSubcPopIsAnomalous"), with=F]
 		dev.off()
-		write.table(locationStats, sprintf("%s/%s/gender-permutation/segregation-subcategories.csv",
-											baseFolder, country), sep="\t", row.names=FALSE)
-
+		write.table(segregationData, sprintf("%s/%s/segregation-subcategories.csv",
+											baseFolder, cntry), sep="\t", row.names=FALSE)
 	}
 }
 
@@ -91,7 +89,7 @@ subcategorySegregationPlots <- function() {
 calculateStats <- function(ci, region) {
 	folderName <- sprintf("%s/%s/bootstrap", baseFolder, region)
 	generated <- runPermutate(ci, folderName, "bootstrap", region, k=k, forceGenerate=T)
-	# segregation() is crucial, the others need male and female popularity,
+	# segregation() is crucial, the others need male and female popularity
 	ci <- segregation(ci, region, log=F)
 
 	locationStats <- testObservationWithNullModel(ci, generated, folderName, region, k, PLOT_ANOM_DIST=T)
@@ -99,13 +97,22 @@ calculateStats <- function(ci, region) {
 	return(list(categoryStats=categoryStats$bootstrapStats, locationStats=locationStats))
 }
 
-resampleIfTooMuchCheckIns <- function(ci) {
+resampleIfTooMuchCheckIns <- function(ci, country) {
 	n <- nrow(ci)
 	if(n > MAX_CI) {
-		message("Too many check-ins")
-		ci <- ci[sample(n, MAX_CI, replace=FALSE)]
-		message("resampled check-ins")
-		stopifnot(nrow(ci) <= MAX_CI)
+		message(sprintf("Too many check-ins in %s (%s)", country, n))
+		countrySample <- sprintf("%s/%s_sample.dat", DATA_DIR, country)
+		# for repeatability keep the sample
+		if( !file.exists(countrySample)) {
+			ci <- ci[sample(n, MAX_CI, replace=FALSE)]
+			message("resampled check-ins to ", nrow(ci))
+			stopifnot(nrow(ci) <= MAX_CI)
+			write.table(ci, countrySample, sep="\t", row.names=F)
+		} else {
+			message("Read existing sample of ", country)
+			ci <- readAndFilterCheckIns(countrySample, MIN_CI)
+		}
+
 	}
 	return(ci)
 }

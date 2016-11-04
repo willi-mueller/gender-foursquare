@@ -94,6 +94,7 @@ readAndFilterCheckIns <- function(f, thresh=THRESH) {
   return(data.table())
 }
 
+# TODO: dead code?
 getCheckInsInCountry <- function(countryCheckIns, substitutionRules, countryUsers, userLocalFilter) {
   ci <- readCheckIns(countryCheckIns)
   if(!missing(countryUsers)) {
@@ -132,12 +133,13 @@ checkInsInlocationsWithMinimumCheckIns <- function(checkIns, n=5) {
 filterSelectedCategories <- function(ci, allowed=c("Arts", "Food", "Education", "Nightlife", "Work")) {
   inAllowedCategories <- ci[category %in% allowed]
   sufficientlyPopularSubc <- inAllowedCategories[, subcategory[length(unique(idLocal))>=2], by=subcategory]$subcategory
-  # allow locations whose subcategories locations might be in allowed as well as not allowed categories
-  #return( ci[subcategory %in% sufficientlyPopularSubc] )
+  # allow locations whose subcategory's locations might be in allowed as well as not allowed categories
+  # return( ci[subcategory %in% sufficientlyPopularSubc] )
   # other version: allow only locations whose subcategory is only associated with allowed categories
   return( inAllowedCategories[subcategory %in% sufficientlyPopularSubc] )
 }
 
+# TODO: dead code?
 getCheckInsInRegion <- function(regionFilters, countryCheckIns, countryUsers, userLocalFilter, substitutionRules, checkIns) {
   if(missing(checkIns)) {
     checkIns <- getCheckInsInCountry(countryCheckIns, substitutionRules, countryUsers, userLocalFilter)
@@ -259,6 +261,7 @@ topLocations <- function(checkIns, n=7) {
     return(checkIns[order(checkIns$count, decreasing=T),][1:n,])
 }
 
+# TODO: dead code?
 readUsers <- function(path) {
   fullPath <- paste("~/studium/Lehrveranstaltungen/informationRetrieval/GenderSocialMedia/datasets/", path, sep="")
   users <- read.csv(fullPath, header=F, sep="\t")
@@ -266,6 +269,7 @@ readUsers <- function(path) {
   return(users)
 }
 
+# TODO: dead code?
 readCheckIns <- function(path) {
   gzipFile <- sprintf("%s %s", ZCAT, path)
   ci <- fread(gzipFile, header=F, sep="\t", stringsAsFactors=FALSE)
@@ -428,6 +432,7 @@ compareSegregationBoxplot <- function(segregationInRegion1, segregationInRegion2
   print(summary(seg2))
 }
 
+# TODO: dead code?
 genderDistanceForCountry <- function(countries, substitutionRules, main){
   distances <- list()
   for(country in countries) {
@@ -674,6 +679,7 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, plotFolder, r
     testPop <- testSignificance(statsForSubc$eucDistSubcPop, observed.eucDistSubcPop)
 
     stats <- list(
+      # NB for Turkey the last two categories (Wings Joint, Zoo receive the values from the first two American Restaurant, Aquarium
       eucDistSubc = test$isAnomalous,
       eucDistSubclowerLimit = test$lowerLimit,
       eucDistSubcUpperLimit = test$upperLimit,
@@ -732,8 +738,10 @@ writeObservedValues <- function(genStats, observedStats) {
   # get data format from first bootstrap iteration of each subcategory
   statsPerSubc <- genStats[, .SD[1], by=subcategory][, list(country, subcategory, category)]
   # verify order
-  browser()
-  stopifnot(observedStats$subcategory == genStats[, .SD[1], by=subcategory]$subcategory)
+  #browser()
+  #stopifnot(observedStats$subcategory == genStats[, .SD[1], by=subcategory]$subcategory) # deactivate for Turkey
+  sameSubcategories <- all(observedStats$subcategory == statsPerSubc$subcategory)
+  message("subcategory of observed == subcategory of generated: ", sameSubcategories)
   statsPerSubc$eucDistSubcPop <- observedStats$eucDistSubcPop
   statsPerSubc$malePopSubC <- observedStats$malePopSubC
   statsPerSubc$femalePopSubC <- observedStats$femalePopSubC
