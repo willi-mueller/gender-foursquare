@@ -133,9 +133,9 @@ filterSelectedCategories <- function(ci, allowed=c("Arts", "Food", "Education", 
   inAllowedCategories <- ci[category %in% allowed]
   sufficientlyPopularSubc <- inAllowedCategories[, subcategory[length(unique(idLocal))>=2], by=subcategory]$subcategory
   # allow locations whose subcategories locations might be in allowed as well as not allowed categories
-  return( ci[subcategory %in% sufficientlyPopularSubc] )
+  #return( ci[subcategory %in% sufficientlyPopularSubc] )
   # other version: allow only locations whose subcategory is only associated with allowed categories
-  #return( inAllowedCategories[subcategory %in% sufficientlyPopularSubc] )
+  return( inAllowedCategories[subcategory %in% sufficientlyPopularSubc] )
 }
 
 getCheckInsInRegion <- function(regionFilters, countryCheckIns, countryUsers, userLocalFilter, substitutionRules, checkIns) {
