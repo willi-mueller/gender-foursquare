@@ -131,7 +131,6 @@ locationStats <- fread(sprintf("%s/location-stats-15-countries-5-categories.csv"
 if(RUN_TURKEY) {
 	collectStatisticsForRanking(c("Turkey"), allCheckIns, categoryStats, locationStats)
 }
-allci <- data.table(fread(sprintf("%s %s/cleaned-check-ins-15-countries-5-categories.csv.gz", ZCAT, baseFolder)),
-				sep="\t", row.names=FALSE))
+allci <- fread(sprintf("%s %s/cleaned-check-ins-15-countries-5-categories.csv.gz", ZCAT, baseFolder))
 
 subcategorySegregationPlots(allci)
