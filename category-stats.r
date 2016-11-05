@@ -20,16 +20,17 @@ ZCAT <- "zcat" # for OSX: `zcat < file.gz`, for linux: `zcat file.gz`
 
 RUN_TURKEY = TRUE
 
-collectStatisticsForRanking <- function(countries) {
+collectStatisticsForRanking <- function(countries,
+										allCheckIns=allCheckIns,
+										categoryStats=categoryStats,
+										locationStats=locationStats) {
 	if(missing(countries)) {
 		countries <- c("Germany", "Brazil", "France", "Spain", "United-Kingdom",
 				 "United-States", "Brazil", "Mexico",
 				 "United-Arab-Emirates", "Saudi-Arabia", "Kuwait", #"Turkey", # run Turkey manually in R shell
 				 "South-Korea", "Malaysia", "Japan", "Thailand")
-# 				# c("Brazil", "United States", "Indonesia", "France", "Singapore", "Saudi Arabia", "Russia")
 	}
 	for(i in 1:length(countryFiles)) {
-	#readAndCalc <- function(i) {
 		f <- sprintf("%s/%s", DATA_DIR, countryFiles[i])
 		country <- strsplit(countryFiles[i], ".dat", fixed=T)[[1]]
 		if(country %in% countries) {
@@ -58,15 +59,15 @@ collectStatisticsForRanking <- function(countries) {
 				sep="\t", row.names=FALSE)
 	write.table(categoryStats, sprintf("%s/category-stats-15-countries-5-categories.csv", baseFolder),
 				sep="\t", row.names=FALSE)
-	write.table(allCheckIns, gzfile(sprintf("%s/cleaned-check-ins-1000-15-countries-5-categories.csv.gz", baseFolder)),
+	write.table(allCheckIns, gzfile(sprintf("%s/cleaned-check-ins-15-countries-5-categories.csv.gz", baseFolder)),
 				sep="\t", row.names=FALSE)
 }
 
 subcategorySegregationPlots <- function(allci) {
-	for(cntry in c("Germany", "France", "Spain", "United Kingdom",
-				 	"United States", "Brazil", "Mexico",
-			 		"United Arab Emirates", "Saudi Arabia", "Kuwait", "Turkey",
-			 		"South Korea", "Malaysia", "Japan", "Thailand")) {
+	for(cntry in c("Germany", "France", "Spain", "United-Kingdom",
+				 	"United-States", "Brazil", "Mexico",
+			 		"United-Arab-Emirates", "Saudi-Arabia", "Kuwait", "Turkey",
+			 		"South-Korea", "Malaysia", "Japan", "Thailand")) {
 		message(cntry)
 		ci <- allci[country==cntry]
 		message(nrow(ci), " check-ins are going to be analyzed")
@@ -75,9 +76,9 @@ subcategorySegregationPlots <- function(allci) {
 		pdf(sprintf("%s/%s/segregation-subcategories.pdf", baseFolder, cntry))
 		segregationData <- segregationSubcategories(ci)
 		#browser()
-		#segPlotData <- segregationData[, c("country", "subcategory", "meanMaleSubcPop", "meanFemaleSubcPop", "eucDistSubcPopIsAnomalous"), with=F]
+		segPlotData <- segregationData[, c("country", "subcategory", "meanMaleSubcPop", "meanFemaleSubcPop", "eucDistSubcPopIsAnomalous"), with=F]
 		dev.off()
-		write.table(segregationData, sprintf("%s/%s/segregation-subcategories.csv",
+		write.table(segPlotData, sprintf("%s/%s/segregation-subcategories.csv",
 											baseFolder, cntry), sep="\t", row.names=FALSE)
 	}
 }
@@ -121,46 +122,16 @@ resampleIfTooMuchCheckIns <- function(ci, country) {
 # Run
 #############
 
-#collectStatisticsForRanking(c("Germany"))
+collectStatisticsForRanking() # all countries
 
+allCheckIns <- fread(sprintf("%s %s/cleaned-check-ins-15-countries-5-categories.csv.gz", ZCAT, baseFolder))
+categoryStats <- fread(sprintf("%s/category-stats-15-countries-5-categories.csv", baseFolder))
+locationStats <- fread(sprintf("%s/location-stats-15-countries-5-categories.csv", baseFolder))
 
-#####################################
-# Terminal for Turkey
-#####################################
 if(RUN_TURKEY) {
-	country <- "Turkey"
-	turkeyFile <- sprintf("%s/Turkey.dat", DATA_DIR)
-	turkeySample <- sprintf("%s/Turkey_sample.csv", DATA_DIR)
-	if( !file.exists(turkeySample)) {
-		message("no sample of Turkey available, will generate and save")
-		ci <- readAndFilterCheckIns(turkeyFile, MIN_CI)
-		ci <- filterSelectedCategories(ci)
-		ci <- resampleIfTooMuchCheckIns(ci)
-		write.table(ci, turkeySample, sep="\t", row.names=F)
-	} else {
-		message("Read existing sample of Turkey")
-		ci <- readAndFilterCheckIns(turkeySample, MIN_CI)
-	}
-
-	allCheckIns <- fread(sprintf("%s %s/cleaned-check-ins-1000-15-countries-5-categories.csv.gz", ZCAT, baseFolder))
-	allCheckIns <<- rbindlist(list(allCheckIns, ci))
-
-	stats <- calculateStats(ci, country)
-
-	categoryStats <- fread(sprintf("%s/category-stats-15-countries-5-categories.csv", baseFolder))
-	categoryStats <<- rbindlist(list(categoryStats, stats$categoryStats))
-
-	locationStats <- fread(sprintf("%s/location-stats-15-countries-5-categories.csv", baseFolder))
-	locationStats <<- rbindlist( list(locationStats, stats$locationStats))
-
-
-
-	save.image()
-	write.table(locationStats, sprintf("%s/location-stats-15-countries-5-categories.csv", baseFolder),
-				sep="\t", row.names=FALSE)
-	write.table(categoryStats, sprintf("%s/category-stats-15-countries-5-categories.csv", baseFolder),
-				sep="\t", row.names=FALSE)
-	write.table(allCheckIns, gzfile(sprintf("%s/cleaned-check-ins-1000-15-countries-5-categories.csv.gz", baseFolder)),
-				sep="\t", row.names=FALSE)
-
+	collectStatisticsForRanking(c("Turkey"), allCheckIns, categoryStats, locationStats)
 }
+allci <- data.table(fread(sprintf("%s %s/cleaned-check-ins-15-countries-5-categories.csv.gz", ZCAT, baseFolder)),
+				sep="\t", row.names=FALSE))
+
+subcategorySegregationPlots(allci)

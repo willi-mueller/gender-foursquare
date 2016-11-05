@@ -165,7 +165,7 @@ combineEquivalentSubCategories <- function(checkIns, substitutionRules) {
   return(checkIns)
 }
 
-segregationSubcategories <- function(checkIns, axeslim=c(0,1)) {
+segregationSubcategories <- function(checkIns, axeslim=c(0,1), withLabels=T) {
   malePop <- checkIns[, list(maleSum=sum(maleCount)), by=subcategory]
   femalePop <- checkIns[, list(femaleSum=sum(femaleCount)), by=subcategory]
   normFactor <- max(malePop$maleSum, femalePop$femaleSum)
@@ -179,21 +179,24 @@ segregationSubcategories <- function(checkIns, axeslim=c(0,1)) {
       xlim=axeslim, ylim=axeslim)
   abline(0, 1, col="red")
 
-  top <- joined[, diff:=abs(maleSum)+abs(femaleSum)][order(-rank(diff))][1:5]
-  top <- rbindlist(list( top, joined[order(-femaleSum)][1:5]) )
-  top <- rbindlist(list (top, joined[order(-maleSum)][1:5]) )
-  top <- unique(top)
-  x <- c(); y<-c()
-  for(subc in top$subcategory) {
-    x <- c(x, joined[subcategory==subc]$maleSum)
-    y <- c(y, joined[subcategory==subc]$femaleSum)
+  if(withLabels) {
+    top <- joined[, diff:=abs(maleSum)+abs(femaleSum)][order(-rank(diff))][1:5]
+    top <- rbindlist(list( top, joined[order(-femaleSum)][1:5]) )
+    top <- rbindlist(list (top, joined[order(-maleSum)][1:5]) )
+    top <- unique(top)
+    x <- c(); y<-c()
+    for(subc in top$subcategory) {
+      x <- c(x, joined[subcategory==subc]$maleSum)
+      y <- c(y, joined[subcategory==subc]$femaleSum)
+    }
+    text(x,y, label=top$subcategory, pos=2)
   }
-  text(x,y, label=top$subcategory, pos=2)
   return(joined)
 }
 
 segregation <- function(checkIns, location="<location>", sub=NULL, axeslim=SEGREGATION_AXES, log=TRUE) {
   # given that we have 1 checkin for user and location
+  # computational performance bottleneck
 
   nMaleUsers <- length(unique(checkIns[, idUserFoursquare[gender=="male"]]))
   nFemaleUsers <- length(unique(checkIns[, idUserFoursquare[gender=="female"]]))
