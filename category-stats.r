@@ -64,22 +64,22 @@ collectStatisticsForRanking <- function(countries,
 }
 
 subcategorySegregationPlots <- function(allci) {
-	for(cntry in c("Germany", "France", "Spain", "United-Kingdom",
-				 	"United-States", "Brazil", "Mexico",
-			 		"United-Arab-Emirates", "Saudi-Arabia", "Kuwait", "Turkey",
-			 		"South-Korea", "Malaysia", "Japan", "Thailand")) {
+	for(cntry in c("Germany", "France", "Spain", "United Kingdom",
+				 	"United States", "Brazil", "Mexico",
+			 		"United Arab Emirates", "Saudi Arabia", "Kuwait", "Turkey",
+			 		"South Korea", "Malaysia", "Japan", "Thailand")) {
 		message(cntry)
 		ci <- allci[country==cntry]
 		message(nrow(ci), " check-ins are going to be analyzed")
 
 		ci <- segregation(ci) # has nasty side effect of adding columns, don't know if this works
-		pdf(sprintf("%s/%s/segregation-subcategories.pdf", baseFolder, cntry))
+		cntryFolder <- gsub(" ", "-", cntry)
+		pdf(sprintf("%s/%s/segregation-subcategories.pdf", baseFolder, cntryFolder))
 		segregationData <- segregationSubcategories(ci)
-		#browser()
-		segPlotData <- segregationData[, c("country", "subcategory", "meanMaleSubcPop", "meanFemaleSubcPop", "eucDistSubcPopIsAnomalous"), with=F]
+		segPlotData <- segregationData[, c("subcategory", "maleSum", "femaleSum", "diff"), with=F]
 		dev.off()
 		write.table(segPlotData, sprintf("%s/%s/segregation-subcategories.csv",
-											baseFolder, cntry), sep="\t", row.names=FALSE)
+											baseFolder, cntryFolder), sep="\t", row.names=FALSE)
 	}
 }
 
