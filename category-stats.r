@@ -122,15 +122,38 @@ resampleIfTooMuchCheckIns <- function(ci, country) {
 # Run
 #############
 
-collectStatisticsForRanking() # all countries
+#collectStatisticsForRanking() # all countries
 
 allCheckIns <- fread(sprintf("%s %s/cleaned-check-ins-15-countries-5-categories.csv.gz", ZCAT, baseFolder))
 categoryStats <- fread(sprintf("%s/category-stats-15-countries-5-categories.csv", baseFolder))
 locationStats <- fread(sprintf("%s/location-stats-15-countries-5-categories.csv", baseFolder))
 
 if(RUN_TURKEY) {
-	collectStatisticsForRanking(c("Turkey"), allCheckIns, categoryStats, locationStats)
-}
-allci <- fread(sprintf("%s %s/cleaned-check-ins-15-countries-5-categories.csv.gz", ZCAT, baseFolder))
+	#collectStatisticsForRanking(c("Turkey"), allCheckIns, categoryStats, locationStats)
+	start <- Sys.time()
+	ci <- fread(sprintf("%s/Turkey_sample.dat", DATA_DIR))
+		if(nrow(ci) >= MAX_CI) {
+			allCheckIns <<- rbindlist(list(allCheckIns, ci))
 
-subcategorySegregationPlots(allci)
+			stats <- calculateStats(ci, country)
+
+			categoryStats <<- rbindlist( list(categoryStats, stats$categoryStats))
+			locationStats <<- rbindlist( list(locationStats, stats$locationStats))
+			message("#### Analyses took: ", Sys.time()-start)
+			write.table(locationStats, sprintf("%s/location-stats-15-countries-5-categories.csv", baseFolder),
+				sep="\t", row.names=FALSE)
+			write.table(categoryStats, sprintf("%s/category-stats-15-countries-5-categories.csv", baseFolder),
+				sep="\t", row.names=FALSE)
+			write.table(allCheckIns, gzfile(sprintf("%s/cleaned-check-ins-15-countries-5-categories.csv.gz", baseFolder)),
+				sep="\t", row.names=FALSE)
+		}
+		else message("Read only ", nrow(ci), "check-ins for Turkey")
+	}
+
+}
+
+#allci <- fread(sprintf("%s %s/cleaned-check-ins-15-countries-5-categories.csv.gz", ZCAT, baseFolder))
+
+#subcategorySegregationPlots(allci)
+
+
