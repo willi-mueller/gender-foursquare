@@ -111,7 +111,7 @@ resampleIfTooMuchCheckIns <- function(ci, country) {
 			write.table(ci, countrySample, sep="\t", row.names=F)
 		} else {
 			message("Read existing sample of ", country)
-			ci <- readAndFilterCheckIns(countrySample, MIN_CI)
+			ci <- fread(countrySample)	# read directly because readAndFilterCheckIns() assumes different data format
 		}
 
 	}
