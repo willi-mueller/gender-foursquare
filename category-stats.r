@@ -8,7 +8,7 @@ source('analysis/foursquare-analysis.r')
 
 baseFolder <- "results/null-model-3"
 N_CORES <- detectCores()
-MIN_CI <- 100
+MIN_CI <- 1000
 MAX_CI <- 30000 #Inf to disable filter for large data set
 k <- 100
 DATA_DIR <- "paises"
@@ -89,7 +89,7 @@ subcategorySegregationPlots <- function(allci) {
 
 calculateStats <- function(ci, region) {
 	folderName <- sprintf("%s/%s/bootstrap", baseFolder, region)
-	generated <- runPermutate(ci, folderName, "bootstrap", region, k=k, forceGenerate=T)
+	generated <- generateNullModel(ci, folderName, "bootstrap", region, k=k, forceGenerate=T)
 	# segregation() is crucial, the others need male and female popularity
 	ci <- segregation(ci, region, log=F)
 

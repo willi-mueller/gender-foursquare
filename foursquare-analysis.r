@@ -264,23 +264,6 @@ topLocations <- function(checkIns, n=7) {
     return(checkIns[order(checkIns$count, decreasing=T),][1:n,])
 }
 
-# TODO: dead code?
-readUsers <- function(path) {
-  fullPath <- paste("~/studium/Lehrveranstaltungen/informationRetrieval/GenderSocialMedia/datasets/", path, sep="")
-  users <- read.csv(fullPath, header=F, sep="\t")
-  colnames(users) <- c("idUserFoursquare", "user", "userLocal", "gender")
-  return(users)
-}
-
-# TODO: dead code?
-readCheckIns <- function(path) {
-  gzipFile <- sprintf("%s %s", ZCAT, path)
-  ci <- fread(gzipFile, header=F, sep="\t", stringsAsFactors=FALSE)
-  setnames(ci, 1:12,c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
-                      "subcategory", "category", "country", "city", "district", "gender", "timeOffset"))
-  return(ci)
-}
-
 discardNonResidents <- function(users, filter) {
   return(users[grep(filter, ignore.case=T, users$userLocal), ])
 }
@@ -458,7 +441,7 @@ genderDistanceForCountry <- function(countries, substitutionRules, main){
 ####################
 
 ######## Permutation #############
-runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=FALSE, forceGenerate=FALSE) {
+generateNullModel <- function(checkIns, folderName, plotName, regionName, k=100, log=FALSE, forceGenerate=FALSE) {
   generatedFile <- sprintf("%s/generated-%s-%s-pop.csv", folderName, regionName, plotName)
   if(file.exists(generatedFile) & !forceGenerate) {
     message("Already randomized check-ins for ", regionName)
@@ -475,6 +458,7 @@ runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=
     checkIns <- checkIns[gender=="male" || gender=="female", ]
     randomizedCheckIns <- copy(checkIns)
     calc <- function(i) {
+      # Plug-in: permutateGender() or bootstrap_gender_location()
       gen.checkIns <- bootstrap_gender_location(randomizedCheckIns)
       gen.checkIns[,iterPermutation:=i]
       segregation(gen.checkIns, regionName,
