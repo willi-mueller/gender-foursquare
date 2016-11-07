@@ -155,5 +155,6 @@ if(RUN_TURKEY) {
 #allci <- fread(sprintf("%s %s/cleaned-check-ins-15-countries-5-categories.csv.gz", ZCAT, baseFolder))
 
 #subcategorySegregationPlots(allci)
+warnings()
 
 
