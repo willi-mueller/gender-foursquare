@@ -128,7 +128,7 @@ runResampledCountry <- function(cntry, allCheckIns, categoryStats, locationStats
 
 	start <- Sys.time()
 	ci <- fread(sprintf("%s %s/%s_sample.csv.gz", ZCAT, DATA_DIR, cntry))
-	message(sprintf("Read %s check-ins of %s" nrow(ci), cntry)
+	message(sprintf("Read %s check-ins of %s", nrow(ci), cntry))
 
 	allCheckIns <<- rbindlist(list(allCheckIns, ci))
 
@@ -150,7 +150,7 @@ runResampledCountry <- function(cntry, allCheckIns, categoryStats, locationStats
 # Run
 #############
 
-#collectStatisticsForRanking(c("Turkey", "Malaysia")) # all countries
+#collectStatisticsForRanking() # all countries
 
 allCheckIns <- fread(sprintf("%s %s/cleaned-check-ins-15-countries-5-categories.csv.gz", ZCAT, baseFolder))
 categoryStats <- fread(sprintf("%s/category-stats-15-countries-5-categories.csv", baseFolder))
