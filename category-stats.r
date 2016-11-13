@@ -102,16 +102,19 @@ resampleIfTooMuchCheckIns <- function(ci, country) {
 	n <- nrow(ci)
 	if(n > MAX_CI) {
 		message(sprintf("Too many check-ins in %s (%s)", country, n))
-		countrySample <- sprintf("%s/%s_sample.dat", DATA_DIR, country)
+		countrySample <- sprintf("%s/%s_sample.csv.gz", DATA_DIR, country)
 		# for repeatability keep the sample
 		if( !file.exists(countrySample)) {
-			ci <- ci[sample(n, MAX_CI, replace=FALSE)]
-			message("resampled check-ins to ", nrow(ci))
-			stopifnot(nrow(ci) <= MAX_CI)
-			write.table(ci, countrySample, sep="\t", row.names=F)
+			message("Please locate a subsample at the path: ", countrySample)
+			# turkey: ci <- turk[turk$idLocal %in% c(sample(unique(turk$idLocal), 1499), "4b69625ef964a520a9a02be3"), ]
+			# malaysia: ci <- malaysia[malaysia$idLocal %in% sample(unique(malaysia$idLocal), 2700), ]
+
+			# message("resampled check-ins to ", nrow(ci))
+			# stopifnot(nrow(ci) <= MAX_CI)
+			# write.table(ci, countrySample, sep="\t", row.names=F)
 		} else {
-			message("Read existing sample of ", country)
-			ci <- fread(countrySample)	# read directly because readAndFilterCheckIns() assumes different data format
+			message(sprintf("Read existing sample of %s with %s check-ins", country, nrow(ci)))
+			ci <- fread(sprintf("%s %s", ZCAT, countrySample))	# read directly because readAndFilterCheckIns() assumes different data format
 		}
 
 	}
