@@ -8,6 +8,8 @@ library(data.table)
 library(moments) # skewness
 library(parallel) #mclapply
 
+ZCAT <- "zcat <" # for OSX: `zcat < file.gz`, for linux: `zcat file.gz`
+
 subcategoryPreferencesByGender <- function(checkIns) {
   joined <- checkIns
   nOfUsersByGenderAndCategory <- checkIns[, list(count=length(unique(idUserFoursquare))),
@@ -68,14 +70,20 @@ getTopNCategories <- function(group1, group2, N, method="most popular"){
 
 readAndFilterCheckIns <- function(f, thresh=THRESH) {
   cc <- list(integer=c(1, 12), character=c(2, seq(5, 11)), numeric=c(3, 4))
+  #gzipFile <- sprintf("%s %s", ZCAT, f)
   ci <- try(fread(f, header=F, sep="\t", stringsAsFactors=FALSE, colClasses=cc))
   if(length(ci)>2) {
     if(nrow(ci) < thresh) {
       message("< ", thresh, " check-ins")
     } else {
-      setnames(ci, 1:12, c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
-                  "subcategory", "category", "country", "city", "district", "gender", "timeOffset"))
-
+      colnames <- c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
+                  "subcategory", "category", "country", "city", "district", "gender", "timeOffset")
+      setnames(ci, 1:12, colnames)
+      if(ncol(ci) > 12) {
+        # to remove last two columns in newData, which are 'district' and 'country' again
+        # only include explicitely specified columns
+        ci <- ci[, colnames, with = F]
+      }
       filtered <- cleanData(ci, substitutionRules)
       stopifnot(length(unique(filtered$gender)) == 2 ) # only male and female
       if(nrow(filtered) > thresh) {
@@ -86,6 +94,7 @@ readAndFilterCheckIns <- function(f, thresh=THRESH) {
   return(data.table())
 }
 
+# TODO: dead code?
 getCheckInsInCountry <- function(countryCheckIns, substitutionRules, countryUsers, userLocalFilter) {
   ci <- readCheckIns(countryCheckIns)
   if(!missing(countryUsers)) {
@@ -124,12 +133,13 @@ checkInsInlocationsWithMinimumCheckIns <- function(checkIns, n=5) {
 filterSelectedCategories <- function(ci, allowed=c("Arts", "Food", "Education", "Nightlife", "Work")) {
   inAllowedCategories <- ci[category %in% allowed]
   sufficientlyPopularSubc <- inAllowedCategories[, subcategory[length(unique(idLocal))>=2], by=subcategory]$subcategory
-  # allow locations whose subcategories locations might be in allowed as well as not allowed categories
-  return( ci[subcategory %in% sufficientlyPopularSubc] )
+  # allow locations whose subcategory's locations might be in allowed as well as not allowed categories
+  # return( ci[subcategory %in% sufficientlyPopularSubc] )
   # other version: allow only locations whose subcategory is only associated with allowed categories
-  #return( inAllowedCategories[subcategory %in% sufficientlyPopularSubc] )
+  return( inAllowedCategories[subcategory %in% sufficientlyPopularSubc] )
 }
 
+# TODO: dead code?
 getCheckInsInRegion <- function(regionFilters, countryCheckIns, countryUsers, userLocalFilter, substitutionRules, checkIns) {
   if(missing(checkIns)) {
     checkIns <- getCheckInsInCountry(countryCheckIns, substitutionRules, countryUsers, userLocalFilter)
@@ -155,7 +165,7 @@ combineEquivalentSubCategories <- function(checkIns, substitutionRules) {
   return(checkIns)
 }
 
-segregationSubcategories <- function(checkIns, axeslim=c(0,1)) {
+segregationSubcategories <- function(checkIns, axeslim=c(0,1), withLabels=T) {
   malePop <- checkIns[, list(maleSum=sum(maleCount)), by=subcategory]
   femalePop <- checkIns[, list(femaleSum=sum(femaleCount)), by=subcategory]
   normFactor <- max(malePop$maleSum, femalePop$femaleSum)
@@ -169,21 +179,24 @@ segregationSubcategories <- function(checkIns, axeslim=c(0,1)) {
       xlim=axeslim, ylim=axeslim)
   abline(0, 1, col="red")
 
-  top <- joined[, diff:=abs(maleSum)+abs(femaleSum)][order(-rank(diff))][1:5]
-  top <- rbindlist(list( top, joined[order(-femaleSum)][1:5]) )
-  top <- rbindlist(list (top, joined[order(-maleSum)][1:5]) )
-  top <- unique(top)
-  x <- c(); y<-c()
-  for(subc in top$subcategory) {
-    x <- c(x, joined[subcategory==subc]$maleSum)
-    y <- c(y, joined[subcategory==subc]$femaleSum)
+  if(withLabels) {
+    top <- joined[, diff:=abs(maleSum)+abs(femaleSum)][order(-rank(diff))][1:5]
+    top <- rbindlist(list( top, joined[order(-femaleSum)][1:5]) )
+    top <- rbindlist(list (top, joined[order(-maleSum)][1:5]) )
+    top <- unique(top)
+    x <- c(); y<-c()
+    for(subc in top$subcategory) {
+      x <- c(x, joined[subcategory==subc]$maleSum)
+      y <- c(y, joined[subcategory==subc]$femaleSum)
+    }
+    text(x,y, label=top$subcategory, pos=2)
   }
-  text(x,y, label=top$subcategory, pos=2)
   return(joined)
 }
 
 segregation <- function(checkIns, location="<location>", sub=NULL, axeslim=SEGREGATION_AXES, log=TRUE) {
   # given that we have 1 checkin for user and location
+  # computational performance bottleneck
 
   nMaleUsers <- length(unique(checkIns[, idUserFoursquare[gender=="male"]]))
   nFemaleUsers <- length(unique(checkIns[, idUserFoursquare[gender=="female"]]))
@@ -249,20 +262,6 @@ countLocationsByGender <- function(checkIns, genderString) {
 
 topLocations <- function(checkIns, n=7) {
     return(checkIns[order(checkIns$count, decreasing=T),][1:n,])
-}
-
-readUsers <- function(path) {
-  fullPath <- paste("~/studium/Lehrveranstaltungen/informationRetrieval/GenderSocialMedia/datasets/", path, sep="")
-  users <- read.csv(fullPath, header=F, sep="\t")
-  colnames(users) <- c("idUserFoursquare", "user", "userLocal", "gender")
-  return(users)
-}
-
-readCheckIns <- function(path) {
-  ci <- fread(path, header=F, sep="\t", stringsAsFactors=FALSE)
-  setnames(ci, 1:12,c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
-                      "subcategory", "category", "country", "city", "district", "gender", "timeOffset"))
-  return(ci)
 }
 
 discardNonResidents <- function(users, filter) {
@@ -419,6 +418,7 @@ compareSegregationBoxplot <- function(segregationInRegion1, segregationInRegion2
   print(summary(seg2))
 }
 
+# TODO: dead code?
 genderDistanceForCountry <- function(countries, substitutionRules, main){
   distances <- list()
   for(country in countries) {
@@ -441,14 +441,16 @@ genderDistanceForCountry <- function(countries, substitutionRules, main){
 ####################
 
 ######## Permutation #############
-runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=FALSE, forceGenerate=FALSE) {
+generateNullModel <- function(checkIns, folderName, plotName, regionName, k=100, log=FALSE, forceGenerate=FALSE) {
   generatedFile <- sprintf("%s/generated-%s-%s-pop.csv", folderName, regionName, plotName)
   if(file.exists(generatedFile) & !forceGenerate) {
     message("Already randomized check-ins for ", regionName)
     cc <- list(integer=c("idUserFoursquare", "timeOffset"),
         caracter=c("date","idLocal", "subcategory", "category", "country", "city", "district", "gender"),
         numeric=c("maleCount", "femaleCount"))
-    return(fread(generatedFile, header=T, sep="\t", stringsAsFactors=FALSE, colClasses=cc))
+
+    gzipFile <- sprintf("%s %s", ZCAT, generatedFile)
+    return(fread(gzipFile, header=T, sep="\t", stringsAsFactors=FALSE, colClasses=cc))
   } else {
     if( !file.exists(folderName) | forceGenerate ) {
       dir.create(folderName, recursive=TRUE)
@@ -456,10 +458,11 @@ runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=
     checkIns <- checkIns[gender=="male" || gender=="female", ]
     randomizedCheckIns <- copy(checkIns)
     calc <- function(i) {
-      gen.checkIns <- permutateGender(randomizedCheckIns)
+      # Plug-in: permutateGender() or bootstrap_gender_location()
+      gen.checkIns <- bootstrap_gender_location(randomizedCheckIns)
       gen.checkIns[,iterPermutation:=i]
       segregation(gen.checkIns, regionName,
-                  sub="permutating gender", log=log)
+                  sub="bootstrap", log=log)
       return(gen.checkIns)
     }
 
@@ -467,7 +470,7 @@ runPermutate <- function(checkIns, folderName, plotName, regionName, k=100, log=
     gen.segregation <- rbindlist( mclapply(seq(k), calc, mc.cores=N_CORES), use.names=TRUE)
     stopifnot(length(unique(gen.segregation$iterPermutation))==k)
     message("Generated ", regionName, ". Writing…")
-    write.table(gen.segregation, generatedFile, sep="\t", row.names=FALSE)
+    write.table(gen.segregation, gzfile(generatedFile), sep="\t", row.names=FALSE)
     message("Wrote generated segregation of ", regionName, " to ", generatedFile)
 
     return(gen.segregation)
@@ -481,60 +484,47 @@ permutateGender <- function(checkIns) {
 # this copy() is important!! If removed,
 # iterPermutation will have N_CORE distinct values
   copy(checkIns)[, gender:=sample(checkIns[, gender])]
+}
 
+bootstrap_gender_location <- function(checkIns) {
+  colnames <- c("idUserFoursquare", "date", "latitude", "longitude", "idLocal",
+                "subcategory", "category", "country", "city", "district", "gender", "timeOffset")
+
+  nCheckIns <- nrow(checkIns)
+  allGenders <- c("male", "female") # unique(checkIns$gender)
+  allUsers <- unique(checkIns$idUserFoursquare)
+  userColumns <- quote(c("idUserFoursquare", "date", "timeOffset")) # to use it as column names
+  locationColumns <- setdiff(colnames, c("gender", eval(userColumns)))
+
+  genderSamples <- sample(allGenders, size=nCheckIns, replace=TRUE)
+  userRelated <- checkIns[, .SD[1], by=idUserFoursquare][, eval(userColumns), with=F][sample(.N, size=nCheckIns, replace=T)]
+  locationRelated <- checkIns[, .SD[1], by=idLocal][, locationColumns, with=F][sample(.N, size=nCheckIns, replace=T)]
+
+  # union columns
+  locationRelated[, eval(userColumns) := userRelated]
+  locationRelated[, gender := genderSamples]
 }
 
 
 ######## Check-in generation #############
 
-runGenerate <- function(checkIns, segregation, UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY,
-                        folderName, plotName, k=100) {
-  checkIns <- rbind(checkIns[checkIns$gender=="male", ], checkIns[checkIns$gender=="female", ])
-  nCheckIns <- nrow(checkIns)
+testSignificance <- function(sampleDist, observed, withShapiroWilk=FALSE) {
+  couldBeNormal <- FALSE
+  percentiles <- quantile(sampleDist, c(ALPHA/2, 1-ALPHA/2))
+  lowerLimit <- percentiles[[1]] #min(sampleDist)
+  upperLimit <- percentiles[[2]] #max(sampleDist)
 
-  gen.segregation <- c()
-  x <- data.frame(idUserFoursquare=NaN ,date=NaN ,latitude=NaN ,longitude=NaN ,idLocal=NaN
-      ,subcategory=NaN ,category=NaN ,city=NaN ,country=NaN ,user=NaN ,userLocal=NaN ,gender=NaN)
-  for(i in seq(k)) {
-      gen.checkIns <- generateCheckIns(checkIns, UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY)
-      x <- rbind(gen.checkIns, x)
-
-      # segregation with all values crashes :(
-      s <- segregation(gen.checkIns, "Riyadh generated",
-                          sub=sprintf("uniform location: %s, uniform gender: %s",
-                              UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY))
-      gen.segregation$maleCIR <- rbind(gen.segregation$maleCIR, s$maleCIR)
-      gen.segregation$femaleCIR <- rbind(gen.segregation$femaleCIR, s$femaleCIR)
+  if(withShapiroWilk) {
+    # null hypothesis is that sampleDist is normal
+    couldBeNormal <- shapiro.test(sampleDist)$p.value > 0.05
+    if(couldBeNormal) {
+      sampleMean <- mean(sampleDist)
+      sampleSD <- sd(sampleDist)
+      lowerLimit <- sampleMean - 3 * sampleSD
+      upperLimit <- sampleMean + 3 * sampleSD
+    }
   }
 
-  x <- x[2:(k*nCheckIns),] # discard first NaN row
-  checkInFile <- sprintf("%s/generated-riyadh-%s.csv", folderName, plotName)
-  write.csv(x, checkInFile)
-  message("Wrote generated check-ins to %s", checkInFile)
-
-  femaleSegregationFile <- sprintf("%s/generated-riyadh-%s-pop-female.csv", folderName, plotName)
-  write.csv(gen.segregation$femaleCIR, femaleSegregationFile)
-  message("Wrote generated segregation to %s", femaleSegregationFile)
-  maleSegregationFile <- sprintf("%s/generated-riyadh-%s-pop-male.csv", folderName, plotName)
-  write.csv(gen.segregation$maleCIR, maleSegregationFile)
-  message("Wrote generated segregation to %s", maleSegregationFile)
-  return(c(checkInFile, maleSegregationFile, femaleSegregationFile))
-}
-
-testSignificance <- function(sampleDist, observed) {
-  sampleMean <- mean(sampleDist)
-  sampleSD <- sd(sampleDist)
-  # null hypothesis is that it is normal
-  couldBeNormal <- shapiro.test(sampleDist)$p.value > 0.05
-  #percentile <- quantile(empiricalDifference, c(alpha/2, 1-alpha/2))if(couldBeNormal) {
-  if(couldBeNormal) {
-    lowerLimit <- sampleMean - 3 * sampleSD
-    upperLimit <- sampleMean + 3 * sampleSD
-  }
-  else {
-    lowerLimit <- min(sampleDist)
-    upperLimit <- max(sampleDist)
-  }
   return( list(isAnomalous=( round(observed, 8) < round(lowerLimit, 8) | round(observed, 8) > round(upperLimit, 8) ),
               lowerLimit=lowerLimit,
               upperLimit=upperLimit,
@@ -549,7 +539,9 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
   meanFemalePopularities <- c()
   uniqueLocations <- unique(observedSegregation$idLocal)
   nUniqueLocations <- length(uniqueLocations)
-
+  # observed checkins and generated checkins must have the same locations
+  stopifnot(nUniqueLocations == length(unique(gen.segregation$idLocal)))
+  stopifnot(all(sort(uniqueLocations) == sort(unique(gen.segregation$idLocal))))
   locationStats <- function(i) {
     location <- uniqueLocations[i]
     notNormal <- 0
@@ -586,7 +578,7 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
 
           h <- hist(c(empiricalDifference, observedDifference), plot=FALSE)
           h$counts=h$counts/sum(h$counts)
-          plot(h, xlab="Popularity difference", main=NULL, ylab="Occurences in %")
+          plot(h, xlab="Popularity difference", main=NULL, ylab="Occurrences in %")
 
           abline(v=test$lowerLimit, lty=3, lwd=5)
           abline(v=test$upperLimit, lty=3, lwd=5)
@@ -613,7 +605,7 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
   message(sprintf("Distance to diagonal: %s of %s (%s%%) locations with observed anomalous segregation",
                   summary_$nAnomalous, summary_$nLocations,
                   round(100*summary_$percAnomalous, 3)))
-  message(summary_$percCouldBeNormal)
+  message(sprintf("%s%% could be normal", round(100*summary_$percCouldBeNormal, 3)))
 
   f <- sprintf("%s/location-stats-generated-%s.csv", folderName, regionName)
   write.table(allLocationStats, f, row.names=F, sep="\t",)
@@ -674,6 +666,7 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, plotFolder, r
     testPop <- testSignificance(statsForSubc$eucDistSubcPop, observed.eucDistSubcPop)
 
     stats <- list(
+      # NB for Turkey the last two categories (Wings Joint, Zoo receive the values from the first two American Restaurant, Aquarium
       eucDistSubc = test$isAnomalous,
       eucDistSubclowerLimit = test$lowerLimit,
       eucDistSubcUpperLimit = test$upperLimit,
@@ -688,7 +681,8 @@ flagAnomalousSubcategories <- function(observedStats, genStats, k, plotFolder, r
       eucDistSubcPopGenMean = mean(statsForSubc$eucDistSubcPop),
       eucDistSubcPopGenMedian = median(statsForSubc$eucDistSubcPop)
     )
-    plotCategoryDist(plotFolder, region, statsForSubc$subcategory[[1]], isAnomalous=stats$eucDistSubc,
+
+    plotCategoryDist(plotFolder, region, statsForSubc$subcategory[[1]], isAnomalous=stats$eucDistSubcPop,
                               statsForSubc$eucDistSubcPop, observed.eucDistSubcPop,
                               stats$eucDistSubcPoplowerLimit,
                               stats$eucDistSubcPopUpperLimit)
@@ -731,7 +725,10 @@ writeObservedValues <- function(genStats, observedStats) {
   # get data format from first bootstrap iteration of each subcategory
   statsPerSubc <- genStats[, .SD[1], by=subcategory][, list(country, subcategory, category)]
   # verify order
-  stopifnot(observedStats$subcategory == genStats[, .SD[1], by=subcategory]$subcategory)
+  #browser()
+  #stopifnot(observedStats$subcategory == genStats[, .SD[1], by=subcategory]$subcategory) # deactivate for Turkey
+  sameSubcategories <- all(observedStats$subcategory == statsPerSubc$subcategory)
+  message("subcategory of observed == subcategory of generated: ", sameSubcategories)
   statsPerSubc$eucDistSubcPop <- observedStats$eucDistSubcPop
   statsPerSubc$malePopSubC <- observedStats$malePopSubC
   statsPerSubc$femalePopSubC <- observedStats$femalePopSubC
@@ -749,13 +746,13 @@ writeObservedValues <- function(genStats, observedStats) {
 plotCategoryDist <- function(folderName, region, categoryName, isAnomalous,
                              categoryDistDistribution, observedDist,
                              lowerLimit, upperLimit) {
+  categoryName <- gsub("/", "", categoryName) # for Monument / Landmark, Vegetarian / Vegan etc.
   filename <- ""
   if(isAnomalous) {
     filename <- sprintf("%s/%s-category-%s-anomalous", folderName, region, categoryName)
   } else {
     filename <- sprintf("%s/%s-category-%s", folderName, region, categoryName)
   }
-  filename <- gsub(" / ", "--", filename) # for Monument / Landmark
   pdf(sprintf("%s.pdf", filename), pointsize=25)
   hist(c(categoryDistDistribution, observedDist), xlab="Popularity difference", main=NULL)
   abline(v=lowerLimit, lty=3, lwd=5)
@@ -940,6 +937,7 @@ checkInsInlocationsWithMinimumCheckIns <- function(checkIns, n=5) {
 ##########
 N_CORES <- detectCores()
 SEGREGATION_AXES <- c(0, 0.20)
+ALPHA <- 0.01
 
 substitutionRules <- list(
     list(original="Café", equivalents=c("Coffee Shop", "College Cafeteria")),
@@ -950,18 +948,3 @@ substitutionRules <- list(
     list(original="Movie Theater", equivalents=c("Indie Movie Theater", "Multiplex")),
     list(original="University", equivalents=c("General College & University", "College & University")),
     list(original="Gym", equivalents=c("Gym / Fitness Center", "College Gym")))
-
-# FOR DATA BASE 2
-saudiCheckIns <- "base2/arabiaSaudita/Saudi-Arabia.txt"
-franceCheckIns <- "base2/France.txt"
-swedenCheckIns <- "base2/Sweden.txt"
-uaeCheckIns <- "base2/United-Arab-Emirates.txt"
-germanyCheckIns <- "base2/Germany.txt"
-
-franceFilter <- "Paris|France|Metz|Bordeaux|Marseille|Midi-Py|Strasbourg|Lyon"
-swedenFilter <- "Sverige|Sweden|Stockholm|Malmö"
-saudiFilter <- "Saudi|Mecca|Medina|Riyadh|Ar Riyad|الرياض|Jedda"  # الرياض = Riyadh
-uaeFilter <- "Dubai|United Arab Emirates|Abu Dhabi|Sharjah|Al Ain|Ras Al-Khaimah"
-germanyFilter <- "Deutschland|Berlin|Germany|München|Munich|Frankfurt|Hamburg|Stuttgart|Mainz|Düsseldorf|Köln|Cologne|Thüringen|Hessen|Sachsen|Bremen|Schleswig|Mecklenburg|Saarbrücken|Saarland|Bayern|Bavaria|Nordrhein-Westfalen"
-franceUsers=germanyUsers=swedenUsers=uaeUsers <- "base2/profileFiltredGermanyFranceEmiratesSweden.dat"
-saudiUsers <- "base2/arabiaSaudita/profilesArabia.dat"

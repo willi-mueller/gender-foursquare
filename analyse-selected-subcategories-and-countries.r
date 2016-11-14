@@ -34,12 +34,13 @@ pickCIinTopLocations <- function(ci, topN) {
 
 AXES = c(0, 0.5)
 MAIN_FOLDER <- "results/null-model/selected-subcategories-and-countries/difference"
-TOP_N <- c(5, 10)
+TOP_N <- c(5, 10) # most popular <n> locations of a subcategory
 k <- c(1000, 2000)
+DATA_DIR <- "paises"
 
 run <- function(allci, TOP_N, k, AXES, MAIN_FOLDER) {
 
-	countries <- c("Brazil", "United States", "Indonesia", "Turkey", "Singapore", "Japan", "Saudi Arabia", "Russia")
+	countries <- c("Brazil")#, "United States", "Indonesia", "Turkey", "Singapore", "Japan", "Saudi Arabia", "Russia")
 
 	stopifnot( all(allci[, list(n=.N), by=idLocal]$n >= 5) )
 
@@ -99,7 +100,7 @@ run <- function(allci, TOP_N, k, AXES, MAIN_FOLDER) {
 countryFileNames <- c("Brazil", "United-States", "Indonesia", "Turkey", "Japan", "Singapore", "Saudi-Arabia", "Russia")
 
 allci <- rbindlist( mclapply(countryFileNames, function(x) {
-	readAndFilterCheckIns(sprintf("paises/%s.dat", x))
+	allci <- readAndFilterCheckIns(sprintf("%s/%s.dat.gz", DATA_DIR, x))
 	}, mc.cores=N_CORES))
 
 for(n in c(10, 7, 5)) {
