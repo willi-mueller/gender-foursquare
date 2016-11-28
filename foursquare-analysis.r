@@ -165,42 +165,44 @@ combineEquivalentSubCategories <- function(checkIns, substitutionRules) {
   return(checkIns)
 }
 
-segregationSubcategories <- function(checkIns, axeslim=c(0,1), withLabels=T) {
-  malePop <- checkIns[, list(maleSum=sum(maleCount)), by=subcategory]
-  femalePop <- checkIns[, list(femaleSum=sum(femaleCount)), by=subcategory]
-  normFactor <- max(malePop$maleSum, femalePop$femaleSum)
+# segregationSubcategories <- function(checkIns, axeslim=c(0,1), withLabels=T) {
+#   malePop <- checkIns[, list(maleSum=sum(maleCount)), by=subcategory]
+#   femalePop <- checkIns[, list(femaleSum=sum(femaleCount)), by=subcategory]
+#   normFactor <- max(malePop$maleSum, femalePop$femaleSum)
 
-  joined <- cbind(malePop, femalePop)
-  joined$maleSum <- joined$maleSum/normFactor
-  joined$femaleSum <- joined$femaleSum/normFactor
+#   joined <- cbind(malePop, femalePop)
+#   joined$maleSum <- joined$maleSum/normFactor
+#   joined$femaleSum <- joined$femaleSum/normFactor
 
-  plot(joined$maleSum, joined$femaleSum,
-      main=NULL, xlab="Sum of male popularity of locations in subcategory", ylab="Sum of female popularity of locations in subcategory",
-      xlim=axeslim, ylim=axeslim)
-  abline(0, 1, col="red")
+#   plot(joined$maleSum, joined$femaleSum,
+#       main=NULL, xlab="Sum of male popularity of locations in subcategory", ylab="Sum of female popularity of locations in subcategory",
+#       xlim=axeslim, ylim=axeslim)
+#   abline(0, 1, col="red")
 
-  if(withLabels) {
-    top <- joined[, diff:=abs(maleSum)+abs(femaleSum)][order(-rank(diff))][1:5]
-    top <- rbindlist(list( top, joined[order(-femaleSum)][1:5]) )
-    top <- rbindlist(list (top, joined[order(-maleSum)][1:5]) )
-    top <- unique(top)
-    x <- c(); y<-c()
-    for(subc in top$subcategory) {
-      x <- c(x, joined[subcategory==subc]$maleSum)
-      y <- c(y, joined[subcategory==subc]$femaleSum)
-    }
-    text(x,y, label=top$subcategory, pos=2)
-  }
-  return(joined)
-}
+#   if(withLabels) {
+#     top <- joined[, diff:=abs(maleSum)+abs(femaleSum)][order(-rank(diff))][1:5]
+#     top <- rbindlist(list( top, joined[order(-femaleSum)][1:5]) )
+#     top <- rbindlist(list (top, joined[order(-maleSum)][1:5]) )
+#     top <- unique(top)
+#     x <- c(); y<-c()
+#     for(subc in top$subcategory) {
+#       x <- c(x, joined[subcategory==subc]$maleSum)
+#       y <- c(y, joined[subcategory==subc]$femaleSum)
+#     }
+#     text(x,y, label=top$subcategory, pos=2)
+#   }
+#   return(joined)
+# }
 
 segregation <- function(checkIns, location="<location>", sub=NULL, axeslim=SEGREGATION_AXES, log=TRUE) {
+  # popularity of location in a gender group
   # given that we have 1 checkin for user and location
   # computational performance bottleneck
 
   nMaleUsers <- length(unique(checkIns[, idUserFoursquare[gender=="male"]]))
   nFemaleUsers <- length(unique(checkIns[, idUserFoursquare[gender=="female"]]))
 
+  #malePopSubC=as.numeric(length(gender[gender=='male'])/nMaleCheckIns),
   checkIns[, maleCount:=sum(gender=='male')/nGenderCheckIns(checkIns, "male"), by=idLocal]
   checkIns[, femaleCount:=sum(gender=='female')/nGenderCheckIns(checkIns, "female"), by=idLocal]
 
@@ -461,6 +463,7 @@ generateNullModel <- function(checkIns, folderName, plotName, regionName, k=100,
       # Plug-in: permutateGender() or bootstrap_gender_location()
       gen.checkIns <- bootstrap_gender_location(randomizedCheckIns)
       gen.checkIns[,iterPermutation:=i]
+      # TODO necessary?
       segregation(gen.checkIns, regionName,
                   sub="bootstrap", log=log)
       return(gen.checkIns)
@@ -531,6 +534,8 @@ testSignificance <- function(sampleDist, observed, withShapiroWilk=FALSE) {
               couldBeNormal=couldBeNormal) )
 }
 
+
+# test if location is anomalous
 testObservationWithNullModel <- function(observedSegregation, gen.segregation, folderName, regionName,
                                          k,
                                          SEARCH_ANOMALOUS_LOCATIONS=TRUE,
@@ -612,11 +617,11 @@ testObservationWithNullModel <- function(observedSegregation, gen.segregation, f
   f2 <- sprintf("%s/location-stats-generated-%s-summary.csv", folderName, regionName)
   write.table(summary_, f2, row.names=F, sep="\t",)
 
-  pdf(sprintf("%s/avg-segregation-generated-%s.pdf", folderName, regionName), pointsize=25)
+  pdf(sprintf("%s/avg-segregation-generated-locations-%s.pdf", folderName, regionName), pointsize=25)
 
   plot(allLocationStats$meanMalePopularity, allLocationStats$meanFemalePopularity,
         xlim=axeslim, ylim=axeslim,
-        xlab="Mean male popularity", ylab="Mean female popularity")
+        xlab="male popularity", ylab="female popularity")
   abline(0, 1, col="red")
   dev.off()
   return(allLocationStats)
@@ -914,21 +919,6 @@ categoryPopularity <- function(ci, genderCount) {
   # old stuff: describe difference and popularity in one number
   ci <- ci[,list(pop=mean(eval(genderCount))), by=list(idLocal, category)][,list(pop=sum(pop)), by=category]
   return(ci[order(rank(category))])
-}
-
-readGeneratedDataAndPlot <- function(segregationFile, folderName, regionName,
-                                     UNIFORM_LOCATION_PROBABILITY, UNIFORM_GENDER_PROBABILITY) {
-  gen.segregation <-c()
-  gen.segregation$maleCIR <- read.csv(malePopularityFile)
-  gen.segregation$femaleCIR <- read.csv(femalePopularityFile)
-  testObservationWithNullModel(gen.segregation, folderName, regionName,
-                               UNIFORM_GENDER_PROBABILITY, UNIFORM_LOCATION_PROBABILITY,
-                               SEARCH_ANOMALOUS_LOCATIONS=F, PLOT_ANOM_DISTS=F)
-}
-
-checkInsInlocationsWithMinimumCheckIns <- function(checkIns, n=5) {
-  locations <- checkIns[, list(hasMore=length(unique(idUserFoursquare))>=n), by=idLocal][hasMore==TRUE]$idLocal
-  return(checkIns[idLocal %in% locations, ])
 }
 
 

@@ -63,25 +63,6 @@ collectStatisticsForRanking <- function(countries,
 				sep="\t", row.names=FALSE)
 }
 
-subcategorySegregationPlots <- function(allci) {
-	for(cntry in c("Germany", "France", "Spain", "United Kingdom",
-				 	"United States", "Brazil", "Mexico",
-			 		"United Arab Emirates", "Saudi Arabia", "Kuwait", "Turkey",
-			 		"South Korea", "Malaysia", "Japan", "Thailand")) {
-		message(cntry)
-		ci <- allci[country==cntry]
-		message(nrow(ci), " check-ins are going to be analyzed")
-
-		ci <- segregation(ci) # has nasty side effect of adding columns, don't know if this works
-		cntryFolder <- gsub(" ", "-", cntry)
-		pdf(sprintf("%s/%s/segregation-subcategories.pdf", baseFolder, cntryFolder))
-		segregationData <- segregationSubcategories(ci)
-		segPlotData <- segregationData[, c("subcategory", "maleSum", "femaleSum", "diff"), with=F]
-		dev.off()
-		write.table(segPlotData, sprintf("%s/%s/segregation-subcategories.csv",
-											baseFolder, cntryFolder), sep="\t", row.names=FALSE)
-	}
-}
 
 ##############
 # Calculation
@@ -91,7 +72,7 @@ calculateStats <- function(ci, region) {
 	folderName <- sprintf("%s/%s/bootstrap", baseFolder, region)
 	generated <- generateNullModel(ci, folderName, "bootstrap", region, k=k, forceGenerate=T)
 	# segregation() is crucial, the others need male and female popularity
-	ci <- segregation(ci, region, log=F)
+	ci <- segregation(ci, region, log=F) # TODO necessary?
 
 	locationStats <- testObservationWithNullModel(ci, generated, folderName, region, k, PLOT_ANOM_DIST=T)
 	categoryStats <- getBootstrappedStatistics(folderName, ci, generated, k, region)

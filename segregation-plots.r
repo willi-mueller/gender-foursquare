@@ -73,24 +73,30 @@ generatedSegregationLocationStats(sp.stats, normFactor=1) # to not move dots to 
 generatedSegregationLocationStats(sp.night.stats, normFactor=1) # to not move dots to the upper right corner
 
 
-countrySegregationPlot <- function(countryStats) {
-  # already summed popularity across subcategory and normalized
-  plot(countryStats$maleSum, countryStats$femaleSum,
+
+segregationPlot <- function(male, female, filename="segregation.pdf", label="subcategory", fileout=T) {
+  if(fileout){
+    pdf(filename, pointsize=25)
+  }
+  normFactor <- max(male, female)
+  plot(male/normFactor, female/normFactor,
        main=NULL, xlab="Male popularity", ylab="Female popularity",
        xlim=c(0,1), ylim=c(0,1))
    abline(0, 1, col="red")
-}
-
-generatedCountrySegregationPlot <- function(countryStats) {
-  plot(us.catstats$meanMaleSubcPop, us.catstats$meanFemaleSubcPop,
-         main=NULL, xlab="Male popularity", ylab="Female popularity",
-         xlim=c(0,1), ylim=c(0,1))
-  abline(0, 1, col="red")
+   if(fileout) {
+    dev.off()
+    write.table(data.table(label, male=male/normFactor, female=female/normFactor), gsub(".pdf", ".csv", filename), sep="\t", row.names=FALSE)
+  }
 }
 
 # Example for United States
-allCatStats <- fread("results/null-model-3/server-2016-11-13/category-stats-15-countries-5-categories.csv")
-us.allCatStats <- catstats[country=="United States"]
-us.catStats <- fread("results/null-model-3/server-2016-11-04/United-States/segregation-subcategories.csv")
-generatedCountrySegregationPlot(us.allCatStats)
-countrySegregationPlot(us.catStats)
+catstats <- fread("results/null-model-3/server-2016-11-13/category-stats-15-countries-5-categories.csv")
+us.catstats <- catstats[country=="United States"]
+segregationPlot(us.catstats$malePopSubC, us.catstats$femalePopSubC, "~/studium/Lehrveranstaltungen/informationRetrieval/GenderSocialMedia/paper/2016-epjDataScience/images/segregation-subcategory-countries/segregation-subcategories-UnitedStates.pdf", us.catstats$subcategory)
+print(us.catstats[us.catstats$subcategory %in% c("Café", "Office", "Soccer Stadium", "Baseball Stadium", "University")][])
+
+segregationPlot(us.catstats$meanMaleSubcPop, us.catstats$meanFemaleSubcPop, "~/studium/Lehrveranstaltungen/informationRetrieval/GenderSocialMedia/paper/2016-epjDataScience/images/segregation-subcategory-countries/mean-segregation-subcategories-UnitedStates.pdf", us.catstats$subcategory)
+
+brazil.catstats <- catstats[country=="Brazil"]
+segregationPlot(brazil.catstats$malePopSubC, brazil.catstats$femalePopSubC, "~/studium/Lehrveranstaltungen/informationRetrieval/GenderSocialMedia/paper/2016-epjDataScience/images/segregation-subcategory-countries/segregation-subcategories-Brazil.pdf", brazil.catstats$subcategory)
+segregationPlot(brazil.catstats$meanMaleSubcPop, brazil.catstats$meanFemaleSubcPop, "~/studium/Lehrveranstaltungen/informationRetrieval/GenderSocialMedia/paper/2016-epjDataScience/images/segregation-subcategory-countries/mean-segregation-subcategories-Brazil.pdf", brazil.catstats$subcategory)
